@@ -6,7 +6,7 @@
 struct SimTrackerHit <: POD
     index::Index{SimTrackerHit}
     # Members:
-    cellID::Int64                   # ID of the sensor that created this hit
+    cellID::UInt64                  # ID of the sensor that created this hit
     EDep::Float32                   # energy deposited in the hit [GeV].
     time::Float32                   # proper time of the hit in the lab frame in [ns].
     pathLength::Float32             # path length of the particle in the sensitive material that resulted in this hit.

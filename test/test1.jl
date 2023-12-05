@@ -60,6 +60,6 @@ for j in 1:nsh
 end
 
 for s in EDM4hep.simtrackerhit_objects
-    println("SimTrackerHit in cellID=$(s.cellID) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle)")
+    println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle.index)")
 end
 
