@@ -14,7 +14,7 @@ struct SimTrackerHit <: POD
     position::Vector3d              # the hit position in [mm].
     momentum::Vector3f              # the 3-momentum of the particle at the hits position in [GeV]
     # OneToOneRelations:
-    mcparticle::Index{MCParticle}   # MCParticle that caused the hit.
+    mcparticleidx::Index{MCParticle}   # MCParticle that caused the hit.
 end
 
 function SimTrackerHit(;cellID=0, EDep=0, time=0, pathLength=0, quality=0, position=Vector3d(), momentum=Vector3f(), mcparticle=0)
@@ -41,7 +41,7 @@ end
 #---Utility functions for SimTrackerHit----------------------------------------------------------
 function Base.getproperty(obj::SimTrackerHit, sym::Symbol)
     if sym == :mcparticle
-        idx = getfield(obj, :mcparticle)
+        idx = getfield(obj, :mcparticleidx)
         return iszero(idx) ? nothing : convert(MCParticle, idx)
     else # fallback to getfield
         return getfield(obj, sym)

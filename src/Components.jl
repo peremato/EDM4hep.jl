@@ -43,8 +43,10 @@ end
 Base.zero(::Type{Index{ED}}) where ED = Index{ED}(0)
 Base.iszero(x::Index{ED}) where ED = x.idx == 0
 Base.show(io::IO, x::Index{ED}) where ED = print(io, "#$(x.idx)")
+Base.convert(::Type{Integer}, i::Index{ED}) where ED = i.idx
 Base.convert(::Type{ED}, i::Index{ED}) where ED = iszero(i.idx) ? nothing : @inbounds EDStore_objects(i)[i.idx]
 Base.convert(::Type{Index{ED}}, p::ED) where ED = iszero(p.index) ? register(p).index : return p.index
+Base.:-(i::Index{ED}) where ED = Index{ED}(-i.idx)
 function register(p::ED) where ED
     !iszero(p.index) && error("Registering an already registered MCParticle $p")
     last = lastindex(EDStore_objects(p))
@@ -63,7 +65,11 @@ struct Relation{ED <: POD}
     size::Int64     # allocated size
     Relation{ED}(first=0, length=0, size=0) where ED = new(first, length, size)
 end
-Base.show(io::IO, r::Relation{ED}) where ED = print(io, "$ED#$([Int64(p.idx) for p in EDStore_relations(r)[r.first:r.first+r.length-1]])")
+indexes(r::Relation{ED}) where ED = [p.idx for p in EDStore_relations(r)[r.first:r.first+r.length-1]]
+function Base.show(io::IO, r::Relation{ED}) where ED
+    idxs = indexes(r)
+    print(io, isempty(idxs) ? "$ED#[]" : "$ED#$idxs")
+end
 Base.iterate(r::Relation{ED}, i=1) where ED = i > r.length ? nothing : (convert(ED, EDStore_relations(r)[r.first + i - 1]), i + 1)
 Base.getindex(r::Relation{ED}, i) where ED = 0 < i <= r.length ? convert(ED, EDStore_relations(r)[r.first + i - 1]) : throw(BoundsError(r,i))
 Base.size(r::Relation{ED}) where ED = (r.length,)

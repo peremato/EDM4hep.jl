@@ -63,3 +63,6 @@ for s in EDM4hep.simtrackerhit_objects
     println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle.index)")
 end
 
+using CSV
+CSV.write("edm4help.csv", EDM4hep.simtrackerhit_objects)
+
