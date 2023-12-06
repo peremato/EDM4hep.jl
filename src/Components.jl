@@ -61,33 +61,30 @@ end
 #---Relation{ED} for implementation of OneToManyRelation---------------------------------------
 struct Relation{ED <: POD}
     first::Int64    # first index
-    length::Int64   # length
-    size::Int64     # allocated size
-    Relation{ED}(first=0, length=0, size=0) where ED = new(first, length, size)
+    last::Int64     # last index
+    Relation{ED}(first=1, last=1) where ED = new(first, last)
 end
-indexes(r::Relation{ED}) where ED = [p.idx for p in EDStore_relations(r)[r.first:r.first+r.length-1]]
+indexes(r::Relation{ED}) where ED = [p.idx for p in EDStore_relations(r)[r.first:r.last-1]]
 function Base.show(io::IO, r::Relation{ED}) where ED
     idxs = indexes(r)
     print(io, isempty(idxs) ? "$ED#[]" : "$ED#$idxs")
 end
-Base.iterate(r::Relation{ED}, i=1) where ED = i > r.length ? nothing : (convert(ED, EDStore_relations(r)[r.first + i - 1]), i + 1)
-Base.getindex(r::Relation{ED}, i) where ED = 0 < i <= r.length ? convert(ED, EDStore_relations(r)[r.first + i - 1]) : throw(BoundsError(r,i))
-Base.size(r::Relation{ED}) where ED = (r.length,)
-Base.length(r::Relation{ED}) where ED = r.length
+Base.iterate(r::Relation{ED}, i=1) where ED = i > (r.last-r.first) ? nothing : (convert(ED, EDStore_relations(r)[r.first + i - 1]), i + 1)
+Base.getindex(r::Relation{ED}, i) where ED = 0 < i <= (r.last - r.first) ? convert(ED, EDStore_relations(r)[r.first + i - 1]) : throw(BoundsError(r,i))
+Base.size(r::Relation{ED}) where ED = (r.last-r.first,)
+Base.length(r::Relation{ED}) where ED = r.last-r.first
 Base.eltype(::Type{Relation{ED}}) where ED = ED
 
 const InitAlloc = 8
 function push(r::Relation{ED}, p::ED) where ED
-    (;first, length, size) = r
-    last = lastindex(EDStore_relations(r))
-    if length == size  # allocate or re-allocate
-        alloc = size != 0 ? size * 2 : InitAlloc
-        append!(EDStore_relations(r), zeros(Index{ED}, alloc))
-        EDStore_relations(r)[last+1:last + size] = EDStore_relations(r)[first:first+length-1]
-        first = last + 1
-        size = alloc
-    end
-    EDStore_relations(r)[first+length] = p
-    length += 1
-    Relation{ED}(first, length, size)
+    (;first, last) = r
+    length = last-first
+    tail = lastindex(EDStore_relations(r))
+    append!(EDStore_relations(r), zeros(Index{ED}, length+1))      # add extended indices at the end
+    EDStore_relations(r)[tail + 1:tail + length] = EDStore_relations(r)[first:last-1]  # copy indices
+    EDStore_relations(r)[first:last-1] .= 0                        # reset unused indices
+    first = tail + 1
+    last  = first + length + 1
+    EDStore_relations(r)[last-1] = p
+    Relation{ED}(first, last)
 end

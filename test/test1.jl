@@ -2,7 +2,6 @@
 using Revise
 using EDM4hep
 
-
 # place the following generator event to the MCParticle collection
 #     name status pdg_id  parent Px       Py    Pz       Energy      Mass
 #  1  !p+!    3   2212    0,0    0.000    0.000 7000.000 7000.000    0.938
@@ -63,6 +62,9 @@ for s in EDM4hep.simtrackerhit_objects
     println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle.index)")
 end
 
-using CSV
-CSV.write("edm4help.csv", EDM4hep.simtrackerhit_objects)
+using DataFrames
+df = DataFrame(EDM4hep.mcparticle_objects)
+
+using StructArrays
+sa = StructArray(EDM4hep.mcparticle_objects)
 
