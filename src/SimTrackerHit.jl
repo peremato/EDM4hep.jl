@@ -22,21 +22,7 @@ function SimTrackerHit(;cellID=0, EDep=0, time=0, pathLength=0, quality=0, posit
 end
 
 #---Event Data Store (defining the containers for objects and relations)-----------------------
-const simtrackerhit_objects = SimTrackerHit[]
-const simtrackerhit_relations = Index{SimTrackerHit}[]
 
-function EDStore_objects(::SimTrackerHit)
-    global simtrackerhit_objects
-    simtrackerhit_objects
-end
-function EDStore_objects(::Index{SimTrackerHit})
-    global simtrackerhit_objects
-    simtrackerhit_objects
-end
-function EDStore_relations(::Relation{SimTrackerHit})
-    global simtrackerhit_relations
-    simtrackerhit_relations
-end
 
 #---Utility functions for SimTrackerHit----------------------------------------------------------
 function Base.getproperty(obj::SimTrackerHit, sym::Symbol)

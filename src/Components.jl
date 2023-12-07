@@ -44,18 +44,19 @@ Base.zero(::Type{Index{ED}}) where ED = Index{ED}(0)
 Base.iszero(x::Index{ED}) where ED = x.idx == 0
 Base.show(io::IO, x::Index{ED}) where ED = print(io, "#$(x.idx)")
 Base.convert(::Type{Integer}, i::Index{ED}) where ED = i.idx
-Base.convert(::Type{ED}, i::Index{ED}) where ED = iszero(i.idx) ? nothing : @inbounds EDStore_objects(i)[i.idx]
+Base.convert(::Type{ED}, i::Index{ED}) where ED = iszero(i.idx) ? nothing : @inbounds EDStore_objects(ED)[i.idx]
 Base.convert(::Type{Index{ED}}, p::ED) where ED = iszero(p.index) ? register(p).index : return p.index
 Base.:-(i::Index{ED}) where ED = Index{ED}(-i.idx)
 function register(p::ED) where ED
+    store::Vector{ED} = EDStore_objects(ED)
     !iszero(p.index) && error("Registering an already registered MCParticle $p")
-    last = lastindex(EDStore_objects(p))
+    last = lastindex(store)
     p = @set p.index = Index{ED}(last + 1)
-    push!(EDStore_objects(p), p)
+    push!(store, p)
     return p
 end
 function update(p::ED) where ED
-    EDStore_objects(p)[p.index.idx] = p
+    EDStore_objects(ED)[p.index.idx] = p
 end
 
 #---Relation{ED} for implementation of OneToManyRelation---------------------------------------
@@ -64,13 +65,13 @@ struct Relation{ED <: POD}
     last::Int64     # last index
     Relation{ED}(first=1, last=1) where ED = new(first, last)
 end
-indexes(r::Relation{ED}) where ED = [p.idx for p in EDStore_relations(r)[r.first:r.last-1]]
-function Base.show(io::IO, r::Relation{ED}) where ED
-    idxs = indexes(r)
-    print(io, isempty(idxs) ? "$ED#[]" : "$ED#$idxs")
-end
-Base.iterate(r::Relation{ED}, i=1) where ED = i > (r.last-r.first) ? nothing : (convert(ED, EDStore_relations(r)[r.first + i - 1]), i + 1)
-Base.getindex(r::Relation{ED}, i) where ED = 0 < i <= (r.last - r.first) ? convert(ED, EDStore_relations(r)[r.first + i - 1]) : throw(BoundsError(r,i))
+indices(r::Relation{ED}) where ED = [p.idx for p in EDStore_relations(ED)[r.first:r.last-1]]
+#function Base.show(io::IO, r::Relation{ED}) where ED
+#    idxs = indices(r)
+#    print(io, isempty(idxs) ? "$ED#[]" : "$ED#$idxs")
+#end
+Base.iterate(r::Relation{ED}, i=1) where ED = i > (r.last-r.first) ? nothing : (convert(ED, EDStore_relations(ED)[r.first + i - 1]), i + 1)
+Base.getindex(r::Relation{ED}, i) where ED = 0 < i <= (r.last - r.first) ? convert(ED, EDStore_relations(ED)[r.first + i - 1]) : throw(BoundsError(r,i))
 Base.size(r::Relation{ED}) where ED = (r.last-r.first,)
 Base.length(r::Relation{ED}) where ED = r.last-r.first
 Base.eltype(::Type{Relation{ED}}) where ED = ED
@@ -79,12 +80,12 @@ const InitAlloc = 8
 function push(r::Relation{ED}, p::ED) where ED
     (;first, last) = r
     length = last-first
-    tail = lastindex(EDStore_relations(r))
-    append!(EDStore_relations(r), zeros(Index{ED}, length+1))      # add extended indices at the end
-    EDStore_relations(r)[tail + 1:tail + length] = EDStore_relations(r)[first:last-1]  # copy indices
-    EDStore_relations(r)[first:last-1] .= 0                        # reset unused indices
+    tail = lastindex(EDStore_relations(ED))
+    append!(EDStore_relations(ED), zeros(Index{ED}, length+1))      # add extended indices at the end
+    EDStore_relations(ED)[tail + 1:tail + length] = EDStore_relations(ED)[first:last-1]  # copy indices
+    EDStore_relations(ED)[first:last-1] .= 0                        # reset unused indices
     first = tail + 1
     last  = first + length + 1
-    EDStore_relations(r)[last-1] = p
+    EDStore_relations(ED)[last-1] = p
     Relation{ED}(first, last)
 end

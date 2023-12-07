@@ -14,6 +14,9 @@ using EDM4hep
 #  7  !d!     1      1    5,5   -2.445   28.816    6.082   29.552    0.010
 #  8  !u~!    1     -2    5,5    3.962  -49.498  -26.687   56.373    0.006
 
+initEDStore(MCParticle)
+initEDStore(SimTrackerHit)
+
 p1 = MCParticle(PDG=2212, mass=0.938, momentum=(0.0, 0.0, 7000.0), generatorStatus=3)
 p1 = register(p1)
 
@@ -40,7 +43,7 @@ p7, p5 = add_parent(p7, p5)
 p8 = MCParticle(PDG=-2, mass=0.0, momentum=(3.962, -49.498, -26.687), generatorStatus=1)
 p8, p5 = add_parent(p8, p5)
 
-for p in EDM4hep.mcparticle_objects
+for p in getEDStore(MCParticle).objects
     println("MCParticle $(p.index) with PDG=$(p.PDG) and momentum $(p.momentum) has $(length(p.daughters)) daughters")
     for d in p.daughters
         println("   ---> $(d.index) with PDG=$(d.PDG) and momentum $(d.momentum)")
@@ -58,13 +61,13 @@ for j in 1:nsh
   sth2 = register(sth2)
 end
 
-for s in EDM4hep.simtrackerhit_objects
+for s in getEDStore(SimTrackerHit).objects
     println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle.index)")
 end
 
-using DataFrames
-df = DataFrame(EDM4hep.mcparticle_objects)
+#using DataFrames
+#df = DataFrame(EDM4hep.mcparticle_objects)
 
-using StructArrays
-sa = StructArray(EDM4hep.mcparticle_objects)
+#using StructArrays
+#sa = StructArray(EDM4hep.mcparticle_objects)
 

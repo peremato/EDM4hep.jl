@@ -30,21 +30,6 @@ function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time
 end
 
 #---Event Data Store (defining the containers for objects and relations)-----------------------
-const mcparticle_objects = MCParticle[]
-const mcparticle_relations = Index{MCParticle}[]
-
-function EDStore_objects(::MCParticle)
-    global mcparticle_objects
-    mcparticle_objects
-end
-function EDStore_objects(::Index{MCParticle})
-    global mcparticle_objects
-    mcparticle_objects
-end
-function EDStore_relations(::Relation{MCParticle})
-    global mcparticle_relations
-    mcparticle_relations
-end
 
 #----Utility functions for MCParticle----------------------------------------------------------
 function add_daughter(p::MCParticle, d::MCParticle)
