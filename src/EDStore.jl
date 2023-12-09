@@ -1,4 +1,4 @@
-export EDStore, getEDStore, initEDStore
+export EDStore, getEDStore, initEDStore, assignEDStore
 
 mutable struct EDStore{ED <: POD}
     objects::AbstractVector{ED}
@@ -21,6 +21,9 @@ function initEDStore(::Type{ED}) where ED
 end
 function getEDStore(::Type{ED}) where ED
     _eventDataStore[ED]
+end
+function assignEDStore(container::AbstractArray{ED}) where ED
+    _eventDataStore[ED].objects = container
 end
 
 function EDStore_objects(::Type{ED}) where ED

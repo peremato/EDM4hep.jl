@@ -37,6 +37,11 @@ Base.show(io::IO, v::Vector2i) = print(io, "($(v.a),$(v.b))")
 #---Index{ED}----------------------------------------------------------------------------------
 abstract type POD end
 
+struct ObjectID <: POD
+    index::Int32
+    collectionID::UInt32
+end
+
 struct Index{ED <: POD} <: Integer
     idx::Int64
 end
@@ -46,6 +51,7 @@ Base.show(io::IO, x::Index{ED}) where ED = print(io, "#$(x.idx)")
 Base.convert(::Type{Integer}, i::Index{ED}) where ED = i.idx
 Base.convert(::Type{ED}, i::Index{ED}) where ED = iszero(i.idx) ? nothing : @inbounds EDStore_objects(ED)[i.idx]
 Base.convert(::Type{Index{ED}}, p::ED) where ED = iszero(p.index) ? register(p).index : return p.index
+Base.eltype(::Type{Index{ED}}) where ED = ED
 Base.:-(i::Index{ED}) where ED = Index{ED}(-i.idx)
 function register(p::ED) where ED
     store::Vector{ED} = EDStore_objects(ED)
