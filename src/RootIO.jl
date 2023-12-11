@@ -8,7 +8,6 @@ module RootIO
 
     function buildlayout(tree::UnROOT.LazyTree, branch::String, T::Type)
         layout = []
-        #(index, type, [simple, composite, undef])
         fnames = fieldnames(T)
         ftypes = fieldtypes(T)
         splitnames = names(tree)
@@ -21,9 +20,9 @@ module RootIO
                 b = findfirst(x -> x == n * "_begin", splitnames)
                 e = findfirst(x -> x == n * "_end", splitnames)
                 push!(layout, (ft, (b,e)))
-            elseif ft <: Index{T}         # index of himself
+            elseif ft <: ObjectID{T}         # index of himself
                 push!(layout, -1)
-            elseif ft <: Index            # index of another one....
+            elseif ft <: ObjectID            # index of another one....
                 et = eltype(ft)
                 id = findfirst(x -> x == "_$(branch)_$(et)_index", splitnames)
                 push!(layout, id)
@@ -81,10 +80,15 @@ module RootIO
         reader.lazytree = LazyTree(reader.file, treename,  keys(reader.btypes))
     end
 
-    function get(reader::Reader, evt::UnROOT.LazyEvent, branchname::String)
+    function get(reader::Reader, evt::UnROOT.LazyEvent, branchname::String; T::Type=Any, register=true)
         if !haskey(reader.layouts, branchname)
-            reader.layouts[branchname] = buildlayout(reader.lazytree, branchname, reader.btypes[branchname])
+            reader.layouts[branchname] = buildlayout(reader.lazytree, branchname, T === Any ? reader.btypes[branchname] : T)
         end
-        getStructArray(evt, reader.layouts[branchname])
+        sa = getStructArray(evt, reader.layouts[branchname])
+        if register 
+            assignEDStore(sa)
+        end
+        sa
     end
+
 end

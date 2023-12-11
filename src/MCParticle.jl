@@ -3,7 +3,7 @@
     Author: "F.Gaede, DESY"
 """
 struct MCParticle <: POD
-    index::Index{MCParticle}
+    index::ObjectID{MCParticle}
     #  Members
     PDG::Int32                         # PDG code of the particle
     generatorStatus::Int32             # status of the particle as defined by the generator
@@ -25,7 +25,7 @@ end
 function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time=0, mass=0,
                     vertex=Vector3d(), endpoint=Vector3d(), momentum=Vector3f(), momentumAtEndpoint=Vector3f(),
                     spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle}(), daughters=Relation{MCParticle}())
-    MCParticle(0, PDG,generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, 
+    MCParticle(-1, PDG,generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, 
             parents, daughters)
 end
 

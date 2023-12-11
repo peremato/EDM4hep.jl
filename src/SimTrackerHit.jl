@@ -4,7 +4,7 @@
     Author: "F.Gaede, DESY"
 """
 struct SimTrackerHit <: POD
-    index::Index{SimTrackerHit}
+    index::ObjectID{SimTrackerHit}
     # Members:
     cellID::UInt64                  # ID of the sensor that created this hit
     EDep::Float32                   # energy deposited in the hit [GeV].
@@ -14,11 +14,11 @@ struct SimTrackerHit <: POD
     position::Vector3d              # the hit position in [mm].
     momentum::Vector3f              # the 3-momentum of the particle at the hits position in [GeV]
     # OneToOneRelations:
-    mcparticleidx::Index{MCParticle}   # MCParticle that caused the hit.
+    mcparticleidx::ObjectID{MCParticle}   # MCParticle that caused the hit.
 end
 
 function SimTrackerHit(;cellID=0, EDep=0, time=0, pathLength=0, quality=0, position=Vector3d(), momentum=Vector3f(), mcparticle=0)
-    SimTrackerHit(0, cellID, EDep, time, pathLength, quality, position, momentum, mcparticle)
+    SimTrackerHit(zero(ObjectID{SimTrackerHit}), cellID, EDep, time, pathLength, quality, position, momentum, mcparticle)
 end
 
 #---Event Data Store (defining the containers for objects and relations)-----------------------
