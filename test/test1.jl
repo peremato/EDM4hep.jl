@@ -65,9 +65,6 @@ for s in getEDStore(SimTrackerHit).objects
     println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle.index)")
 end
 
-#using DataFrames
-#df = DataFrame(EDM4hep.mcparticle_objects)
-
-#using StructArrays
-#sa = StructArray(EDM4hep.mcparticle_objects)
+using DataFrames
+df = DataFrame(getEDStore(MCParticle).objects)
 

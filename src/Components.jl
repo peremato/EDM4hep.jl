@@ -1,5 +1,5 @@
 using Accessors
-export ObjectID, Relation, Vector3d, Vector3f, Vector2i, register
+export ObjectID, Relation, Vector3d, Vector3f, Vector2i, register, relations
 
 """
     Vector3D with doubles
@@ -64,32 +64,32 @@ function update(p::ED) where ED
 end
 
 #---Relation{ED} for implementation of OneToManyRelation---------------------------------------
-struct Relation{ED <: POD}
+struct Relation{ED<:POD,N}
     first::UInt32    # first index (starts with 0)
     last::UInt32     # last index (starts with 0)
-    Relation{ED}(first=0, last=0) where ED = new(first, last)
+    Relation{ED,N}(first=0, last=0) where {ED,N} = new(first, last)
 end
-indices(r::Relation{ED}) where ED = [p.index for p in EDStore_relations(ED)[r.first:r.last-1]]
-#function Base.show(io::IO, r::Relation{ED}) where ED
-#    idxs = indices(r)
-#    print(io, isempty(idxs) ? "$ED#[]" : "$ED#$idxs")
-#end
-Base.iterate(r::Relation{ED}, i=1) where ED = i > (r.last-r.first) ? nothing : (convert(ED, EDStore_relations(ED)[r.first + i]), i + 1)
-Base.getindex(r::Relation{ED}, i) where ED = 0 < i <= (r.last - r.first) ? convert(ED, EDStore_relations(ED)[r.first + i - 1]) : throw(BoundsError(r,i))
+indices(r::Relation{ED,N}) where {ED,N} = [p.index+1 for p in EDStore_relations(ED,N)[r.first+1:r.last]]
+function Base.show(io::IO, r::Relation{ED}) where ED
+    idxs = indices(r)
+    print(io, isempty(idxs) ? "$ED#[]" : "$ED#$idxs")
+end
+Base.iterate(r::Relation{ED,N}, i=1) where {ED,N} = i > (r.last-r.first) ? nothing : (convert(ED, EDStore_relations(ED,N)[r.first + i]), i + 1)
+Base.getindex(r::Relation{ED,N}, i) where {ED,N} = 0 < i <= (r.last - r.first) ? convert(ED, EDStore_relations(ED,N)[r.first + i - 1]) : throw(BoundsError(r,i))
 Base.size(r::Relation{ED}) where ED = (r.last-r.first,)
 Base.length(r::Relation{ED}) where ED = r.last-r.first
 Base.eltype(::Type{Relation{ED}}) where ED = ED
 
 const InitAlloc = 4
-function push(r::Relation{ED}, p::ED) where ED
+function push(r::Relation{ED,N}, p::ED) where {ED,N}
     (;first, last) = r
     length = last-first
-    tail = lastindex(EDStore_relations(ED))
-    append!(EDStore_relations(ED), zeros(ObjectID{ED}, length+1))      # add extended indices at the end
-    EDStore_relations(ED)[tail + 1:tail + length] = EDStore_relations(ED)[first+1:last]  # copy indices
-    EDStore_relations(ED)[first + 1:last] .= zeros(ObjectID{ED},length)                  # reset unused indices
+    tail = lastindex(EDStore_relations(ED,N))
+    append!(EDStore_relations(ED,N), zeros(ObjectID{ED}, length+1))      # add extended indices at the end
+    EDStore_relations(ED,N)[tail + 1:tail + length] = EDStore_relations(ED,N)[first+1:last]  # copy indices
+    EDStore_relations(ED,N)[first + 1:last] .= zeros(ObjectID{ED},length)                  # reset unused indices
     first = tail
     last  = first + length + 1
-    EDStore_relations(ED)[last] = p
-    Relation{ED}(first, last)
+    EDStore_relations(ED,N)[last] = p
+    Relation{ED,N}(first, last)
 end

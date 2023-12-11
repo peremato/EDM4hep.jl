@@ -22,7 +22,7 @@ function SimTrackerHit(;cellID=0, EDep=0, time=0, pathLength=0, quality=0, posit
 end
 
 #---Event Data Store (defining the containers for objects and relations)-----------------------
-
+relations(::Type{SimTrackerHit}) = 0
 
 #---Utility functions for SimTrackerHit----------------------------------------------------------
 function Base.getproperty(obj::SimTrackerHit, sym::Symbol)

@@ -8,6 +8,7 @@ module RootIO
 
     function buildlayout(tree::UnROOT.LazyTree, branch::String, T::Type)
         layout = []
+        relations = []
         fnames = fieldnames(T)
         ftypes = fieldtypes(T)
         splitnames = names(tree)
@@ -20,6 +21,7 @@ module RootIO
                 b = findfirst(x -> x == n * "_begin", splitnames)
                 e = findfirst(x -> x == n * "_end", splitnames)
                 push!(layout, (ft, (b,e)))
+                push!(relations, "_$(branch)_$(fn)")
             elseif ft <: ObjectID{T}         # index of himself
                 push!(layout, -1)
             elseif ft <: ObjectID            # index of another one....
@@ -30,7 +32,7 @@ module RootIO
                 push!(layout, buildlayout(tree, n, ft))
             end
         end
-        (T, Tuple(layout))
+        (T, Tuple(layout), Tuple(relations))
     end
 
     function getStructArray(evt::UnROOT.LazyEvent, layout, len = 0)
@@ -46,7 +48,7 @@ module RootIO
             elseif l == 0
                 push!(sa, zeros(Int64,len))
             elseif l == -1
-                push!(sa, collect(1:len))
+                push!(sa, collect(0:len-1))
             else
                 push!(sa, evt[l])
             end
@@ -80,15 +82,24 @@ module RootIO
         reader.lazytree = LazyTree(reader.file, treename,  keys(reader.btypes))
     end
 
-    function get(reader::Reader, evt::UnROOT.LazyEvent, branchname::String; T::Type=Any, register=true)
-        if !haskey(reader.layouts, branchname)
-            reader.layouts[branchname] = buildlayout(reader.lazytree, branchname, T === Any ? reader.btypes[branchname] : T)
+    function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
+        btype =  btype === Any ? reader.btypes[bname] : btype
+        if !haskey(reader.layouts, bname)
+            reader.layouts[bname] = buildlayout(reader.lazytree, bname, btype)
         end
-        sa = getStructArray(evt, reader.layouts[branchname])
+        sa = getStructArray(evt, reader.layouts[bname])
         if register 
             assignEDStore(sa)
+            get_relations(reader, evt, bname, btype)
+            relations(btype) > 1 && get_relations(reader, evt, bname, btype)
         end
         sa
     end
-
+    function get_relations(reader, evt, bname::String, btype::Type)
+        rbranches = reader.layouts[bname][3]
+        if !isempty(rbranches)
+            t = Tuple(get(reader, evt, rb, btype=ObjectID{btype}; register=false) for rb in rbranches)
+            assignEDStore(t, btype)
+        end
+    end
 end

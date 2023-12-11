@@ -18,18 +18,19 @@ struct MCParticle <: POD
     spin::Vector3f                     # spin (helicity) vector of the particle.
     colorFlow::Vector2i                # color flow as defined by the generator
     # OneToManyRelations
-    parents::Relation{MCParticle}      #  The parents of this particle
-    daughters::Relation{MCParticle}    #  The daughters this particle
+    parents::Relation{MCParticle,1}    #  The parents of this particle
+    daughters::Relation{MCParticle,2}  #  The daughters this particle
 end
 
 function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time=0, mass=0,
                     vertex=Vector3d(), endpoint=Vector3d(), momentum=Vector3f(), momentumAtEndpoint=Vector3f(),
-                    spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle}(), daughters=Relation{MCParticle}())
+                    spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle,1}(), daughters=Relation{MCParticle,2}())
     MCParticle(-1, PDG,generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, 
             parents, daughters)
 end
 
 #---Event Data Store (defining the containers for objects and relations)-----------------------
+relations(::Type{MCParticle}) = 2
 
 #----Utility functions for MCParticle----------------------------------------------------------
 function add_daughter(p::MCParticle, d::MCParticle)

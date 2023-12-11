@@ -16,10 +16,17 @@ for hit in set_hits
     println("Hit $(hit.index) is related to MCParticle $(hit.mcparticle.index) with PDG $(hit.mcparticle.PDG)")
 end
 
-DataFrame(set_hits)
-DataFrame(mcps)[!,14:15]
-parents =  RootIO.get(reader, evt, "_MCParticle_parents"; T=ObjectID{MCParticle}, register=false)
-daughters =  RootIO.get(reader, evt, "_MCParticle_daughters", T=ObjectID{MCParticle}, register=false)
+for p in mcps
+    println("MCParticle $(p.index) with PDG=$(p.PDG) and momentum $(p.momentum) has $(length(p.daughters)) daughters")
+    for d in p.daughters
+        println("   ---> $(d.index) with PDG=$(d.PDG) and momentum $(d.momentum)")
+    end
+end
+
+#DataFrame(set_hits)
+#DataFrame(mcps)[!,14:15]
+#parents =  RootIO.get(reader, evt, "_MCParticle_parents"; T=ObjectID{MCParticle}, register=false)
+#daughters =  RootIO.get(reader, evt, "_MCParticle_daughters", T=ObjectID{MCParticle}, register=false)
 
 #---Loop over events-------------------------------------------------------------------------------
 for (n,e) in enumerate(events)
