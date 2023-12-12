@@ -1,4 +1,5 @@
-using Accessors
+using Accessors     #  To create new inmutable object just changing one property
+using Corpuscles    #  PDG database
 export ObjectID, Relation, Vector3d, Vector3f, Vector2i, register, relations
 
 """

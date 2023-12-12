@@ -55,6 +55,13 @@ function Base.getproperty(obj::MCParticle, sym::Symbol)
     if sym == :energy
         m = obj.momentum
         sqrt(m.x^2 + m.y^2 + m.z^2 + obj.mass^2)
+    elseif sym == :name
+        pdg = getfield(obj,:PDG)
+        try
+            Particle(pdg).name
+        catch
+            string(pdg)
+        end
     else # fallback to getfield
         return getfield(obj, sym)
     end
