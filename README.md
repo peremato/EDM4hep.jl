@@ -16,4 +16,39 @@ p1 = register(p1)
 p1, d1 = add_daugther(p1, MCParticle(...))
 ``` 
 
+## Examples
+### test/test1.jl
+Creates a collection of `MCParticles` and a collection of `SimTrackerHits` in memory, constructing the relations between particle `parents` and `daughters`, as well as, the the one-to-one relation between the simulation hit to the originator `MCParticle`.
+
+### test/read.jl
+An example of reading from a ROOT file created by the C++ implementation of EDM4hep. This is the full code:
+```julia
+using EDM4hep
+using EDM4hep.RootIO
+
+f = "/Users/mato/Downloads/example_edm4hep2.root"
+#f = "https://cernbox.cern.ch/remote.php/dav/public-files/yOmBeyVaiYpj46S/example_edm4hep2.root"
+
+reader = RootIO.Reader(f)
+events = RootIO.get(reader, "events")
+
+evt = events[1];
+set_hits = RootIO.get(reader, evt, "SETCollection")
+mcps =  RootIO.get(reader, evt, "MCParticle")
+
+for hit in set_hits
+    println("Hit $(hit.index) is related to MCParticle $(hit.mcparticle.index) with PDG $(hit.mcparticle.PDG)")
+end
+
+for p in mcps
+    println("MCParticle $(p.index) with PDG=$(p.PDG) and momentum $(p.momentum) and energy $(p.energy) has $(length(p.daughters)) daughters")
+    for d in p.daughters
+        println("   ---> $(d.index) with PDG=$(d.PDG) and momentum $(d.momentum) has $(length(d.parents)) parents")
+        for m in d.parents
+            println("      ---> $(m.index) with PDG=$(m.PDG)")
+        end 
+    end
+end
+
+```
 
