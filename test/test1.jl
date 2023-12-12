@@ -50,7 +50,7 @@ for p in getEDStore(MCParticle).objects
     end
 end
 
-#---Simulation tracking hits
+#---Simulation tracking hits-----------------------------------------------------------------------
 
 const nsh = 5
 for j in 1:nsh
@@ -64,6 +64,7 @@ end
 for s in getEDStore(SimTrackerHit).objects
     println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle.index)")
 end
+
 
 using DataFrames
 df = DataFrame(getEDStore(MCParticle).objects)

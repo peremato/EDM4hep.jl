@@ -12,6 +12,9 @@ struct Vector3d
 end
 Base.convert(::Type{Vector3d}, t::Tuple) = Vector3d(t...)
 Base.show(io::IO, v::Vector3d) = print(io, "($(v.x),$(v.y),$(v.z))")
+Base.:+(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
+Base.:-(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
+Base.:*(v::Vector3d, a::Number) = Vector3d(a*v.x, a*v.y, b*v.z)
 """
     Vector3D with floats
 """
@@ -23,6 +26,9 @@ struct Vector3f
 end
 Base.convert(::Type{Vector3f}, t::Tuple) = Vector3f(t...)
 Base.show(io::IO, v::Vector3f) = print(io, "($(v.x),$(v.y),$(v.z))")
+Base.:+(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
+Base.:-(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
+Base.:*(v::Vector3f, a::Number) = Vector3f(a*v.x, a*v.y, b*v.z)
 """
     Vector2D with Int32
 """
@@ -33,8 +39,13 @@ struct Vector2i
 end
 Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)
 Base.show(io::IO, v::Vector2i) = print(io, "($(v.a),$(v.b))")
+Base.:+(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a + v2.a, v1.b + v2.b)
+Base.:-(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a - v2.a, v1.b - v2.b)
+Base.:*(v::Vector2i, a::Int32) = Vector3d(a*v.a, a*v.b)
 
-#---ObjectID{ED}----------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
+#---ObjectID{ED}-----------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 abstract type POD end
 
 struct ObjectID{ED <: POD} <: POD
@@ -63,7 +74,9 @@ function update(p::ED) where ED
     EDStore_objects(ED)[p.index.index+1] = p
 end
 
-#---Relation{ED} for implementation of OneToManyRelation---------------------------------------
+#--------------------------------------------------------------------------------------------------
+#---Relation{ED} for implementation of OneToManyRelation-------------------------------------------
+#--------------------------------------------------------------------------------------------------
 struct Relation{ED<:POD,N}
     first::UInt32    # first index (starts with 0)
     last::UInt32     # last index (starts with 0)

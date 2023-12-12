@@ -4,7 +4,19 @@ module RootIO
     using EDM4hep
     using StructArrays
 
-    export buildlayout, getStructArray
+    """
+    The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
+    The layouts maps a set of columns in the LazyTree into an object.
+    """
+    mutable struct Reader
+        filename::String
+        treename::String
+        file::ROOTFile
+        btypes::Dict{String, Type}
+        layouts::Dict{String, Tuple}
+        lazytree::LazyTree
+        Reader(filename, treename="events") = new(filename, treename, ROOTFile(filename), Dict{String, Type}(), Dict{String, Tuple}())
+    end
 
     function buildlayout(tree::UnROOT.LazyTree, branch::String, T::Type)
         layout = []
@@ -56,16 +68,13 @@ module RootIO
         StructArray{type}(Tuple(sa))
     end
 
-    mutable struct Reader
-        filename::String
-        treename::String
-        file::ROOTFile
-        btypes::Dict{String, Type}
-        layouts::Dict{String, Tuple}
-        lazytree::LazyTree
-        Reader(filename, treename="events") = new(filename, treename, ROOTFile(filename), Dict{String, Type}(), Dict{String, Tuple}())
-    end
+    """
+    get(reader::Reader, treename::String)
 
+    Opens a 'TTree' in the ROOT file (typically the events tree). 
+    It returns a 'LazyTree' that allows the user to iterate over
+    events. 
+    """
     function get(reader::Reader, treename::String)
         reader.treename = treename
         #---buyild a dinctionary of branches and associted type
@@ -82,24 +91,29 @@ module RootIO
         reader.lazytree = LazyTree(reader.file, treename,  keys(reader.btypes))
     end
 
+    """
+    get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
+
+    Gets an object collection by its name, with the possibility to overwrite the mapping Julia type or use the 
+    type known in the ROOT file (C++ class name). The optonal key parameter `register` indicates is the collection
+    needs to be registered to the `EDStore`.
+    """
     function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
-        btype =  btype === Any ? reader.btypes[bname] : btype
-        if !haskey(reader.layouts, bname)
-            reader.layouts[bname] = buildlayout(reader.lazytree, bname, btype)
+        btype =  btype === Any ? reader.btypes[bname] : btype    # Allow the user to force the actual type
+        if haskey(reader.layouts, bname)                         # Check whether the the layout has been pre-compiled 
+            layout = reader.layouts[bname]
+        else
+            layout = buildlayout(reader.lazytree, bname, btype)
+            reader.layouts[bname] = layout
         end
-        sa = getStructArray(evt, reader.layouts[bname])
+        sa = getStructArray(evt, layout)
         if register 
             assignEDStore(sa)
-            get_relations(reader, evt, bname, btype)
-            relations(btype) > 1 && get_relations(reader, evt, bname, btype)
+            if !isempty(layout[3])  # check if there are relations in this branch 
+                relations = Tuple(get(reader, evt, rb, btype=ObjectID{btype}; register=false) for rb in layout[3])
+                assignEDStore(relations, btype)
+            end
         end
         sa
-    end
-    function get_relations(reader, evt, bname::String, btype::Type)
-        rbranches = reader.layouts[bname][3]
-        if !isempty(rbranches)
-            t = Tuple(get(reader, evt, rb, btype=ObjectID{btype}; register=false) for rb in rbranches)
-            assignEDStore(t, btype)
-        end
     end
 end

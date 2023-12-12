@@ -51,5 +51,14 @@ function add_parent(d::MCParticle, p::MCParticle)
     update(d)
     (d, p)
 end
+function Base.getproperty(obj::MCParticle, sym::Symbol)
+    if sym == :energy
+        m = obj.momentum
+        sqrt(m.x^2 + m.y^2 + m.z^2 + obj.mass^2)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
+
 #---Exports for MCParticle--------------------------------------------------------------------
 export MCParticle, add_daughter, add_parent
