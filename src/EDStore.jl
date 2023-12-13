@@ -8,7 +8,7 @@ end
 
 function initialize!(store::EDStore{ED}) where ED <: POD
     store.objects = ED[]
-    store.relations = tuple((ObjectID{ED}[] for i in 1:relations(ED))...)
+    store.relations = Tuple(ObjectID{ED}[] for i in 1:relations(ED))
 end
 
 function Base.empty!(store::EDStore{ED}) where ED <: POD
@@ -20,14 +20,19 @@ function Base.empty!(store::EDStore{ED}) where ED <: POD
 end
 
 #--- Global Event Data Store-----------------------------------------------------------------------
-const _eventDataStore = Dict( MCParticle => EDStore{MCParticle}(),
-                              SimTrackerHit => EDStore{SimTrackerHit}(),
-                            )
+const _eventDataStore = Dict{DataType, EDStore}()
+#                            Dict( MCParticle => EDStore{MCParticle}(),
+#                              SimTrackerHit => EDStore{SimTrackerHit}(),
+#                            )
+
+function getEDStore(::Type{ED}) where ED
+    global _eventDataStore
+    haskey(_eventDataStore, ED) && return _eventDataStore[ED]
+    _eventDataStore[ED] = EDStore{ED}()
+end
 
 function initEDStore(::Type{ED}) where ED
-    global _eventDataStore
-    !haskey(_eventDataStore, ED) && (_eventDataStore[ED] = EDStore{ED}())
-    _eventDataStore[ED] |> initialize!
+    getEDStore(ED) |> initialize!
 end
 
 function emptyEDStore()
@@ -37,23 +42,25 @@ function emptyEDStore()
     end
 end
 
-function getEDStore(::Type{ED}) where ED
-    _eventDataStore[ED]
-end
-
 function assignEDStore(container::AbstractArray{ED}) where ED
-    _eventDataStore[ED].objects = container
+    getEDStore(ED).objects = container
 end
 function assignEDStore(relations::Tuple, ::Type{ED}) where ED
-    _eventDataStore[ED].relations = relations
+    getEDStore(ED).relations = relations
 end
 
 function EDStore_objects(::Type{ED}) where ED
-    global _eventDataStore
-    _eventDataStore[ED].objects
+    store = getEDStore(ED)
+    if !isdefined(store, :objects)
+        store.objects = ED[]
+    end
+    store.objects
 end
 
 function EDStore_relations(::Type{ED}, N::Int) where ED
-    global _eventDataStore
-    _eventDataStore[ED].relations[N]
+    store = getEDStore(ED)
+    if !isdefined(store, :relations)
+        store.relations = Tuple(ObjectID{ED}[] for i in 1:relations(ED))
+    end
+    store.relations[N]
 end

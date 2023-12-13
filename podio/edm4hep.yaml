@@ -401,8 +401,8 @@ datatypes:
       - int32_t                 algorithmType //type code for the algorithm that has been used to create the vertex - check/set the collection parameters AlgorithmName and AlgorithmType.
     VectorMembers:
       - float               parameters    //additional parameters related to this vertex - check/set the collection parameter "VertexParameterNames" for the parameters meaning.
-    OneToOneRelations:
-      - edm4hep::ReconstructedParticle associatedParticle //reconstructed particle associated to this vertex.
+    #OneToOneRelations:
+    #  - edm4hep::ReconstructedParticle associatedParticle //reconstructed particle associated to this vertex.
 
 
   #------- ReconstructedParticle

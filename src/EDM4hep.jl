@@ -1,8 +1,7 @@
 module EDM4hep
 
     include("Components.jl")
-    include("MCParticle.jl")
-    include("SimTrackerHit.jl")
+    include("Datatypes.jl")
     include("EDStore.jl")
     include("RootIO.jl")
 
