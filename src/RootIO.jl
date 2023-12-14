@@ -38,8 +38,11 @@ module RootIO
             elseif ft <: ObjectID{T}            # index of himself
                 push!(layout, -1)
             elseif ft <: ObjectID               # index of another one....
-                et = eltype(ft)
-                id = findfirst(x -> x == "_$(branch)_$(et)_index", splitnames)
+                na = replace("$(fn)", "_idx" => "")     # remove the added suffix
+                id = findfirst(x -> x == "_$(branch)_$(na)_index", splitnames)
+                if isnothing(id)  # try with case insensitive compare
+                    id = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_index"), splitnames)
+                end
                 push!(layout, id)
             elseif ft <: SVector                # fixed arrarys are translated to SVector
                 s = size(ft)[1]

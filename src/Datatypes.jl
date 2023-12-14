@@ -53,3 +53,18 @@ function Base.getproperty(obj::SimTrackerHit, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+
+#--------------------------------------------------------------------------------------------------
+#---Utility functions for MCRecoTrackerHitPlaneAssociation-----------------------------------------
+#--------------------------------------------------------------------------------------------------
+function Base.getproperty(obj::MCRecoTrackerHitPlaneAssociation, sym::Symbol)
+    if sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(SimTrackerHit, idx)
+    elseif sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(TrackerHitPlane, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
