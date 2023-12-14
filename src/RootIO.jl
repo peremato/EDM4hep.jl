@@ -3,6 +3,7 @@ module RootIO
     using UnROOT
     using EDM4hep
     using StructArrays
+    using StaticArrays
 
     """
     The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
@@ -26,20 +27,24 @@ module RootIO
         splitnames = names(tree)
         for (fn,ft) in zip(fnames, ftypes)
             n = "$(branch)_$(fn)"
-            if isempty(fieldnames(ft))    # atomic type (Int, Float,...)
+            if isempty(fieldnames(ft))          # foundamental type (Int, Float,...)
                 id = findfirst(x -> x == n, splitnames)
                 push!(layout, isnothing(id) ? 0 : id)
-            elseif ft <: Relation         # special treatment becuase 'begin' and 'end' cannot be fieldnames
+            elseif ft <: Relation               # special treatment becuase 'begin' and 'end' cannot be fieldnames
                 b = findfirst(x -> x == n * "_begin", splitnames)
                 e = findfirst(x -> x == n * "_end", splitnames)
                 push!(layout, (ft, (b,e)))
                 push!(relations, "_$(branch)_$(fn)")
-            elseif ft <: ObjectID{T}         # index of himself
+            elseif ft <: ObjectID{T}            # index of himself
                 push!(layout, -1)
-            elseif ft <: ObjectID            # index of another one....
+            elseif ft <: ObjectID               # index of another one....
                 et = eltype(ft)
                 id = findfirst(x -> x == "_$(branch)_$(et)_index", splitnames)
                 push!(layout, id)
+            elseif ft <: SVector                # fixed arrarys are translated to SVector
+                s = size(ft)[1]
+                id = findfirst(x-> x == n * "[$(s)]", splitnames)
+                push!(layout, (ft,(id,s))) 
             else
                 push!(layout, buildlayout(tree, n, ft))
             end
@@ -55,8 +60,13 @@ module RootIO
         sa = AbstractArray[]
         type, inds = layout
         for l in inds
-            if l isa Tuple
-                push!(sa, getStructArray(evt, l, len))
+            if l isa Tuple 
+                if l[1] <: SVector    # (type,(id, size))
+                    ft, (id, s) = l 
+                    push!(sa, StructArray{ft}(reshape(evt[id], s, len);dims=1))
+                else
+                    push!(sa, getStructArray(evt, l, len))
+                end
             elseif l == 0
                 push!(sa, zeros(Int64,len))
             elseif l == -1
