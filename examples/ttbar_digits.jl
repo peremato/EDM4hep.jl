@@ -6,8 +6,8 @@ using Plots
 # To emulate the python collections.defaultdict(list)
 append!(d::Dict{String, Vector}, k::String, v::T) where T = haskey(d,k) ? push!(d[k], v) : d[k] = [v]
 
-const files = ["/Users/mato/Downloads/ttbar_edm4hep_digi.root",
-               "/Users/mato/Downloads/Output_REC.root"]
+cd(@__DIR__)
+const files = ["ttbar_edm4hep_digi.root", "Output_REC.root"]
 
 all_dists = Dict{String,Vector}()  # Collected distributions
 
@@ -32,11 +32,11 @@ end
 for key in ["smearing"]
     new_dist, old_dist = all_dists[key]
     lay = @layout [°;°;°]
-    plot(layout=lay, show=true, size=(1400,1000))
+    plot(layout=lay, show=true, size=(1200,1000))
     for (i,l) in enumerate(fieldnames(eltype(new_dist)))
-        histogram!(getfield.(new_dist, l), subplot=i, title="$(l) differences", label="Gaudi")
-        histogram!(getfield.(old_dist, l), subplot=i, title="$(l) differences", label="Marlin")
+        stephist!(getfield.(new_dist, l), subplot=i, title="Δ$(l)", linewidth=2, label= i==1 ? "Gaudi" : nothing)
+        stephist!(getfield.(old_dist, l), subplot=i, linewidth=2, label=i==1 ? "Marlin" : nothing)
     end
 end
 
-savefig("results.pdf")
+savefig("results.png")
