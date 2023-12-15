@@ -35,7 +35,7 @@ function Base.getproperty(obj::MCParticle, sym::Symbol)
         try
             Particle(pdg).name
         catch
-            string(pdg)
+            "PDG[$pdg]"
         end
     else # fallback to getfield
         return getfield(obj, sym)

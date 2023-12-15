@@ -90,11 +90,10 @@ function gen_datatype(io, key, dtype)
         for r in dtype["OneToOneRelations"]
             t, v, c = split_member(r)
             t = to_julia(t)
-            v = lowercase(v)
             vt = gen_member(v*"_idx", "ObjectID{$(t)}")
             println(io, "    $(vt) $(c)")
             push!(members, v)
-            push!(defvalues, "0")
+            push!(defvalues, "-1")
         end
     end
     nrelations = 0
@@ -103,7 +102,7 @@ function gen_datatype(io, key, dtype)
         for (i,r) in enumerate(dtype["OneToManyRelations"])
             t, v, c = split_member(r)
             t = to_julia(t)
-            v = lowercase(v)
+
             vt = gen_member(v, "Relation{$(t),$(i)}")
             println(io, "    $(vt) $(c)")
             push!(members, v)
@@ -130,6 +129,7 @@ function build_graph(datatypes)
     for (i,dtype) in enumerate(values(datatypes))
         for r in [get(dtype,"OneToOneRelations",[]);get(dtype,"OneToManyRelations",[])]
             t = split_member(r)[1] |> to_julia
+            t == "POD" && continue
             d = findfirst(x->x == t, types)
             i != d && add_edge!(graph, d, i)
         end

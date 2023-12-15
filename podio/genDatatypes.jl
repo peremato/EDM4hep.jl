@@ -84,12 +84,12 @@ struct Cluster <: POD
     #---OneToManyRelations
     clusters::Relation{Cluster,1}    # clusters that have been combined to this cluster.
     hits::Relation{CalorimeterHit,2} # hits that have been combined to this cluster.
-    particleids::Relation{ParticleID,3}  # particle IDs (sorted by their likelihood)
+    particleIDs::Relation{ParticleID,3}  # particle IDs (sorted by their likelihood)
 end
 
 relations(::Type{Cluster}) = 3
-function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,1}(), hits=Relation{CalorimeterHit,2}(), particleids=Relation{ParticleID,3}())
-    Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, clusters, hits, particleids)
+function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,1}(), hits=Relation{CalorimeterHit,2}(), particleIDs=Relation{ParticleID,3}())
+    Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, clusters, hits, particleIDs)
 end
 
 """
@@ -145,7 +145,7 @@ struct SimPrimaryIonizationCluster <: POD
 end
 
 relations(::Type{SimPrimaryIonizationCluster}) = 0
-function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, mcparticle=0)
+function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, mcparticle=-1)
     SimPrimaryIonizationCluster(-1, cellID, time, position, type, mcparticle)
 end
 
@@ -167,7 +167,7 @@ struct MCRecoClusterParticleAssociation <: POD
 end
 
 relations(::Type{MCRecoClusterParticleAssociation}) = 0
-function MCRecoClusterParticleAssociation(;weight=0, rec=0, sim=0)
+function MCRecoClusterParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoClusterParticleAssociation(-1, weight, rec, sim)
 end
 
@@ -189,7 +189,7 @@ struct MCRecoCaloParticleAssociation <: POD
 end
 
 relations(::Type{MCRecoCaloParticleAssociation}) = 0
-function MCRecoCaloParticleAssociation(;weight=0, rec=0, sim=0)
+function MCRecoCaloParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoCaloParticleAssociation(-1, weight, rec, sim)
 end
 
@@ -213,7 +213,7 @@ struct CaloHitContribution <: POD
 end
 
 relations(::Type{CaloHitContribution}) = 0
-function CaloHitContribution(;PDG=0, energy=0, time=0, stepPosition=Vector3f(), particle=0)
+function CaloHitContribution(;PDG=0, energy=0, time=0, stepPosition=Vector3f(), particle=-1)
     CaloHitContribution(-1, PDG, energy, time, stepPosition, particle)
 end
 
@@ -280,7 +280,7 @@ struct MCRecoCaloAssociation <: POD
 end
 
 relations(::Type{MCRecoCaloAssociation}) = 0
-function MCRecoCaloAssociation(;weight=0, rec=0, sim=0)
+function MCRecoCaloAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoCaloAssociation(-1, weight, rec, sim)
 end
 
@@ -301,12 +301,12 @@ struct TrackerPulse <: POD
     covMatrix::SVector{3,Float32}    # lower triangle covariance matrix of the charge(c) and time(t) measurements.
 
     #---OneToOneRelations
-    timeseries_idx::ObjectID{TimeSeries}  # Optionally, the timeSeries that has been used to create the pulse can be stored with the pulse.
+    timeSeries_idx::ObjectID{TimeSeries}  # Optionally, the timeSeries that has been used to create the pulse can be stored with the pulse.
 end
 
 relations(::Type{TrackerPulse}) = 0
-function TrackerPulse(;cellID=0, time=0, charge=0, quality=0, covMatrix=zero(SVector{3,Float32}), timeseries=0)
-    TrackerPulse(-1, cellID, time, charge, quality, covMatrix, timeseries)
+function TrackerPulse(;cellID=0, time=0, charge=0, quality=0, covMatrix=zero(SVector{3,Float32}), timeSeries=-1)
+    TrackerPulse(-1, cellID, time, charge, quality, covMatrix, timeSeries)
 end
 
 """
@@ -390,12 +390,12 @@ struct RecIonizationCluster <: POD
     type::Int16                      # type.
 
     #---OneToManyRelations
-    trackerpulse::Relation{TrackerPulse,1}  # the TrackerPulse used to create the ionization cluster.
+    trackerPulse::Relation{TrackerPulse,1}  # the TrackerPulse used to create the ionization cluster.
 end
 
 relations(::Type{RecIonizationCluster}) = 1
-function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerpulse=Relation{TrackerPulse,1}())
-    RecIonizationCluster(-1, cellID, significance, type, trackerpulse)
+function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Relation{TrackerPulse,1}())
+    RecIonizationCluster(-1, cellID, significance, type, trackerPulse)
 end
 
 """
@@ -414,11 +414,14 @@ struct Vertex <: POD
     position::Vector3f               # [mm] position of the vertex.
     covMatrix::SVector{6,Float32}    # covariance matrix of the position (stored as lower triangle matrix, i.e. cov(xx),cov(y,x),cov(z,x),cov(y,y),... )
     algorithmType::Int32             # type code for the algorithm that has been used to create the vertex - check/set the collection parameters AlgorithmName and AlgorithmType.
+
+    #---OneToOneRelations
+    associatedParticle_idx::ObjectID{POD}  # reconstructed particle associated to this vertex.
 end
 
 relations(::Type{Vertex}) = 0
-function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=zero(SVector{6,Float32}), algorithmType=0)
-    Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType)
+function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=zero(SVector{6,Float32}), algorithmType=0, associatedParticle=-1)
+    Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType, associatedParticle)
 end
 
 """
@@ -439,13 +442,13 @@ struct Track <: POD
     radiusOfInnermostHit::Float32    # radius of the innermost hit that has been used in the track fit
 
     #---OneToManyRelations
-    trackerhits::Relation{TrackerHit,1}  # hits that have been used to create this track
+    trackerHits::Relation{TrackerHit,1}  # hits that have been used to create this track
     tracks::Relation{Track,2}        # tracks (segments) that have been combined to create this track
 end
 
 relations(::Type{Track}) = 2
-function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerhits=Relation{TrackerHit,1}(), tracks=Relation{Track,2}())
-    Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, trackerhits, tracks)
+function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerHits=Relation{TrackerHit,1}(), tracks=Relation{Track,2}())
+    Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, trackerHits, tracks)
 end
 
 """
@@ -466,7 +469,7 @@ struct MCRecoTrackParticleAssociation <: POD
 end
 
 relations(::Type{MCRecoTrackParticleAssociation}) = 0
-function MCRecoTrackParticleAssociation(;weight=0, rec=0, sim=0)
+function MCRecoTrackParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoTrackParticleAssociation(-1, weight, rec, sim)
 end
 
@@ -490,19 +493,19 @@ struct ReconstructedParticle <: POD
     covMatrix::SVector{10,Float32}   # cvariance matrix of the reconstructed particle 4vector (10 parameters). Stored as lower triangle matrix of the four momentum (px,py,pz,E), i.e. cov(px,px), cov(py,##
 
     #---OneToOneRelations
-    startvertex_idx::ObjectID{Vertex}  # start vertex associated to this particle
-    particleidused_idx::ObjectID{ParticleID}  # particle Id used for the kinematics of this particle
+    startVertex_idx::ObjectID{Vertex}  # start vertex associated to this particle
+    particleIDUsed_idx::ObjectID{ParticleID}  # particle Id used for the kinematics of this particle
 
     #---OneToManyRelations
     clusters::Relation{Cluster,1}    # clusters that have been used for this particle.
     tracks::Relation{Track,2}        # tracks that have been used for this particle.
     particles::Relation{ReconstructedParticle,3}  # reconstructed particles that have been combined to this particle.
-    particleids::Relation{ParticleID,4}  # particle Ids (not sorted by their likelihood)
+    particleIDs::Relation{ParticleID,4}  # particle Ids (not sorted by their likelihood)
 end
 
 relations(::Type{ReconstructedParticle}) = 4
-function ReconstructedParticle(;type=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=zero(SVector{10,Float32}), startvertex=0, particleidused=0, clusters=Relation{Cluster,1}(), tracks=Relation{Track,2}(), particles=Relation{ReconstructedParticle,3}(), particleids=Relation{ParticleID,4}())
-    ReconstructedParticle(-1, type, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, startvertex, particleidused, clusters, tracks, particles, particleids)
+function ReconstructedParticle(;type=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=zero(SVector{10,Float32}), startVertex=-1, particleIDUsed=-1, clusters=Relation{Cluster,1}(), tracks=Relation{Track,2}(), particles=Relation{ReconstructedParticle,3}(), particleIDs=Relation{ParticleID,4}())
+    ReconstructedParticle(-1, type, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, startVertex, particleIDUsed, clusters, tracks, particles, particleIDs)
 end
 
 """
@@ -523,7 +526,7 @@ struct MCRecoParticleAssociation <: POD
 end
 
 relations(::Type{MCRecoParticleAssociation}) = 0
-function MCRecoParticleAssociation(;weight=0, rec=0, sim=0)
+function MCRecoParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoParticleAssociation(-1, weight, rec, sim)
 end
 
@@ -545,7 +548,7 @@ struct RecoParticleVertexAssociation <: POD
 end
 
 relations(::Type{RecoParticleVertexAssociation}) = 0
-function RecoParticleVertexAssociation(;weight=0, rec=0, vertex=0)
+function RecoParticleVertexAssociation(;weight=0, rec=-1, vertex=-1)
     RecoParticleVertexAssociation(-1, weight, rec, vertex)
 end
 
@@ -569,7 +572,7 @@ struct RecDqdx <: POD
 end
 
 relations(::Type{RecDqdx}) = 0
-function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), track=0)
+function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), track=-1)
     RecDqdx(-1, dQdx, particleType, type, hypotheses, track)
 end
 
@@ -625,7 +628,7 @@ struct SimTrackerHit <: POD
 end
 
 relations(::Type{SimTrackerHit}) = 0
-function SimTrackerHit(;cellID=0, EDep=0, time=0, pathLength=0, quality=0, position=Vector3d(), momentum=Vector3f(), mcparticle=0)
+function SimTrackerHit(;cellID=0, EDep=0, time=0, pathLength=0, quality=0, position=Vector3d(), momentum=Vector3f(), mcparticle=-1)
     SimTrackerHit(-1, cellID, EDep, time, pathLength, quality, position, momentum, mcparticle)
 end
 
@@ -647,7 +650,7 @@ struct MCRecoTrackerHitPlaneAssociation <: POD
 end
 
 relations(::Type{MCRecoTrackerHitPlaneAssociation}) = 0
-function MCRecoTrackerHitPlaneAssociation(;weight=0, rec=0, sim=0)
+function MCRecoTrackerHitPlaneAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoTrackerHitPlaneAssociation(-1, weight, rec, sim)
 end
 
@@ -669,7 +672,7 @@ struct MCRecoTrackerAssociation <: POD
 end
 
 relations(::Type{MCRecoTrackerAssociation}) = 0
-function MCRecoTrackerAssociation(;weight=0, rec=0, sim=0)
+function MCRecoTrackerAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoTrackerAssociation(-1, weight, rec, sim)
 end
 

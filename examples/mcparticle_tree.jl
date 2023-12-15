@@ -1,5 +1,3 @@
-
-using Revise
 using EDM4hep
 
 # place the following generator event to the MCParticle collection
