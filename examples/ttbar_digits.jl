@@ -32,7 +32,7 @@ end
 for key in ["smearing"]
     new_dist, old_dist = all_dists[key]
     lay = @layout [°;°;°]
-    plot(layout=lay, show=true, size=(1200,1000))
+    plot(layout=lay, show=true, size=(1200,700))
     for (i,l) in enumerate(fieldnames(eltype(new_dist)))
         stephist!(getfield.(new_dist, l), subplot=i, title="Δ$(l)", linewidth=2, label= i==1 ? "Gaudi" : nothing)
         stephist!(getfield.(old_dist, l), subplot=i, linewidth=2, label=i==1 ? "Marlin" : nothing)

@@ -12,14 +12,8 @@ using EDM4hep
 #  7  !d!     1      1    5,5   -2.445   28.816    6.082   29.552    0.010
 #  8  !u~!    1     -2    5,5    3.962  -49.498  -26.687   56.373    0.006
 
-initEDStore(MCParticle)
-initEDStore(SimTrackerHit)
-
 p1 = MCParticle(PDG=2212, mass=0.938, momentum=(0.0, 0.0, 7000.0), generatorStatus=3)
-p1 = register(p1)
-
 p2 = MCParticle(PDG=2212, mass=0.938, momentum=(0.0, 0.0, -7000.0), generatorStatus=3)
-p2 = register(p2)
 
 p3 = MCParticle(PDG=1, mass=0.0, momentum=(0.750, -1.569, 32.191), generatorStatus=3)
 p3, p1 = add_parent(p3, p1)
