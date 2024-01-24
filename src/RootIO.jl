@@ -13,10 +13,31 @@ module RootIO
         filename::String
         treename::String
         file::ROOTFile
+        collectionIDs::Dict{String, UInt32}
         btypes::Dict{String, Type}
         layouts::Dict{String, Tuple}
         lazytree::LazyTree
-        Reader(filename, treename="events") = new(filename, treename, ROOTFile(filename), Dict{String, Type}(), Dict{String, Tuple}())
+        function Reader(filename, treename="events")
+            reader = new(filename, treename)
+            initReader(reader)
+        end
+    end
+
+    function initReader(reader)
+        #---Open the file ------------(need to know which type of file)----------------------------
+        reader.file = ROOTFile(reader.filename)
+        # collection IDs
+        if  "podio_metadata" in keys(reader.file)
+            meta = LazyTree(reader.file, "podio_metadata", [Regex("events___idTable/(.*)") => s"\1"])[1]
+            reader.collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
+        else
+            @warn "ROOT file $filename does not have a 'podio_metadate' tree. Is it a PODIO file?"
+            reader.collectionIDs = Dict{UInt32, String}()
+        end
+        # layouts and branch types
+        reader.btypes = Dict{String, Type}()
+        reader.layouts = Dict{String, Tuple}()
+        return reader
     end
 
     function buildlayout(tree::UnROOT.LazyTree, branch::String, T::Type)
@@ -33,8 +54,8 @@ module RootIO
             elseif ft <: Relation               # special treatment becuase 'begin' and 'end' cannot be fieldnames
                 b = findfirst(x -> x == n * "_begin", splitnames)
                 e = findfirst(x -> x == n * "_end", splitnames)
-                push!(layout, (ft, (b,e)))
-                push!(relations, "_$(branch)_$(fn)")
+                push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
+                push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
             elseif ft <: ObjectID{T}            # index of himself
                 push!(layout, -1)
             elseif ft <: ObjectID               # index of another one....
@@ -43,7 +64,11 @@ module RootIO
                 if isnothing(id)  # try with case insensitive compare
                     id = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_index"), splitnames)
                 end
-                push!(layout, id)
+                cid = findfirst(x -> x == "_$(branch)_$(na)_collectionID", splitnames)
+                if isnothing(cid)  # try with case insensitive compare
+                    cid = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_collectionID"), splitnames)
+                end
+                push!(layout, (ft, (id, cid)))
             elseif ft <: SVector                # fixed arrarys are translated to SVector
                 s = size(ft)[1]
                 id = findfirst(x-> x == n * "[$(s)]", splitnames)
@@ -55,8 +80,8 @@ module RootIO
         (T, Tuple(layout), Tuple(relations))
     end
 
-    function getStructArray(evt::UnROOT.LazyEvent, layout, len = 0)
-        if len == 0  # Need the lengh to fill missing colums
+    function getStructArray(evt::UnROOT.LazyEvent, layout, collid, len = 0)
+        if len == 0  # Need the length to fill missing colums
             n = layout[2][2]    # get the second data member (first may be missing)
             len = length(evt[n])
         end
@@ -68,12 +93,14 @@ module RootIO
                     ft, (id, s) = l 
                     push!(sa, StructArray{ft}(reshape(evt[id], s, len);dims=1))
                 else
-                    push!(sa, getStructArray(evt, l, len))
+                    push!(sa, getStructArray(evt, l, collid, len))
                 end
             elseif l == 0
                 push!(sa, zeros(Int64,len))
             elseif l == -1
                 push!(sa, collect(0:len-1))
+            elseif l == -2
+                push!(sa, fill(collid, len))
             else
                 push!(sa, evt[l])
             end
@@ -119,12 +146,13 @@ module RootIO
             layout = buildlayout(reader.lazytree, bname, btype)
             reader.layouts[bname] = layout
         end
-        sa = getStructArray(evt, layout)
-        if register 
-            assignEDStore(sa)
+        collid = Base.get(reader.collectionIDs, bname, 0)             # The CollectionID has beeen assigned when opening the file
+        sa = getStructArray(evt, layout, collid)
+        if register
+            assignEDStore(sa, collid)
             if !isempty(layout[3])  # check if there are relations in this branch 
-                relations = Tuple(get(reader, evt, rb, btype=ObjectID{btype}; register=false) for rb in layout[3])
-                assignEDStore(relations, btype)
+                relations = Tuple(get(reader, evt, rb, btype=ObjectID{rt}; register=false) for (rb, rt) in layout[3])
+                assignEDStore(relations, btype, collid)
             end
         end
         sa

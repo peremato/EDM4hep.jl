@@ -85,6 +85,7 @@ function gen_datatype(io, key, dtype)
         push!(members,v)
         push!(defvalues, t in fundamental_types ? "0" : contains(t,"SVector") ? "zero($t)" : t*"()")
     end
+    relations1to1 = @NamedTuple{varname::String, totype::String}[]
     if haskey(dtype, "OneToOneRelations")
         println(io, "\n    #---OneToOneRelations")
         for r in dtype["OneToOneRelations"]
@@ -94,25 +95,21 @@ function gen_datatype(io, key, dtype)
             println(io, "    $(vt) $(c)")
             push!(members, v)
             push!(defvalues, "-1")
+            push!(relations1to1, (varname=v, totype=t))
         end
     end
-    nrelations = 0
     if haskey(dtype, "OneToManyRelations")
         println(io, "\n    #---OneToManyRelations")
         for (i,r) in enumerate(dtype["OneToManyRelations"])
             t, v, c = split_member(r)
             t = to_julia(t)
-
             vt = gen_member(v, "Relation{$(t),$(i)}")
             println(io, "    $(vt) $(c)")
             push!(members, v)
             push!(defvalues, "Relation{$(t),$(i)}()")
-            nrelations += 1
         end
     end
     println(io, "end\n")
-    # add relations(::Type{ED}) = <number>
-    println(io,"relations(::Type{$jtype}) = $(nrelations)")
     # add an extra constructor with keyword parameters
     args = join(members, ", ")
     defs = join(["$m=$dv" for (m,dv) in zip(members,defvalues)], ", ")
@@ -121,6 +118,24 @@ function gen_datatype(io, key, dtype)
                     $jtype(-1, $args)
                 end
                 """)
+    # add an Base.getproperty() for the one-to-one relations (for the time being)
+    if !isempty(relations1to1)
+        println(io, "function Base.getproperty(obj::$jtype, sym::Symbol)")
+        for (i, r) in enumerate(relations1to1)
+            if i == 1
+                println(io, "    if sym == :$(r.varname)")
+            else
+                println(io, "    elseif sym == :$(r.varname)")
+            end
+            println(io, "        idx = getfield(obj, :$(r.varname)_idx)")
+            println(io, "        return iszero(idx) ? nothing : convert($(r.totype), idx)")
+        end
+        println(io, """
+                        else # fallback to getfield
+                            return getfield(obj, sym)
+                        end
+                    end""")
+    end
 end
 
 function build_graph(datatypes)

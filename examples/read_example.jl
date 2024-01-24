@@ -1,3 +1,4 @@
+using Revise
 using EDM4hep
 using EDM4hep.RootIO
 
@@ -25,6 +26,14 @@ for p in mcps
             println("      ---> $(m.index) $(m.name)")
         end 
     end
+end
+
+barrel_clusters = RootIO.get(reader, evt, "ECalBarrelCollection")
+contributions = RootIO.get(reader, evt, "AllCaloHitContributionsCombined")
+
+for c in barrel_clusters
+    particles = collect(Set("$(contrib.particle_idx)" for contrib in c.contributions))
+    println("SimCalorimeterHit $(c.index) with CellID $(EDM4hep.hex(c.cellID)),  position $(c.position) and energy $(c.energy) has $(length(c.contributions)) contributions from particles $particles")
 end
 
 #---Loop over events-------------------------------------------------------------------------------

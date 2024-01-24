@@ -14,7 +14,6 @@ struct ParticleID <: POD
     likelihood::Float32              # likelihood of this hypothesis - in a user defined normalization.
 end
 
-relations(::Type{ParticleID}) = 0
 function ParticleID(;type=0, PDG=0, algorithmType=0, likelihood=0)
     ParticleID(-1, type, PDG, algorithmType, likelihood)
 end
@@ -34,7 +33,6 @@ struct TimeSeries <: POD
     interval::Float32                # interval of each sampling [ns].
 end
 
-relations(::Type{TimeSeries}) = 0
 function TimeSeries(;cellID=0, time=0, interval=0)
     TimeSeries(-1, cellID, time, interval)
 end
@@ -57,7 +55,6 @@ struct CalorimeterHit <: POD
     type::Int32                      # type of hit. Mapping of integer types to names via collection parameters "CalorimeterHitTypeNames" and "CalorimeterHitTypeValues".
 end
 
-relations(::Type{CalorimeterHit}) = 0
 function CalorimeterHit(;cellID=0, energy=0, energyError=0, time=0, position=Vector3f(), type=0)
     CalorimeterHit(-1, cellID, energy, energyError, time, position, type)
 end
@@ -87,7 +84,6 @@ struct Cluster <: POD
     particleIDs::Relation{ParticleID,3}  # particle IDs (sorted by their likelihood)
 end
 
-relations(::Type{Cluster}) = 3
 function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,1}(), hits=Relation{CalorimeterHit,2}(), particleIDs=Relation{ParticleID,3}())
     Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, clusters, hits, particleIDs)
 end
@@ -120,7 +116,6 @@ struct MCParticle <: POD
     daughters::Relation{MCParticle,2}  # The daughters this particle.
 end
 
-relations(::Type{MCParticle}) = 2
 function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time=0, mass=0, vertex=Vector3d(), endpoint=Vector3d(), momentum=Vector3f(), momentumAtEndpoint=Vector3f(), spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle,1}(), daughters=Relation{MCParticle,2}())
     MCParticle(-1, PDG, generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, parents, daughters)
 end
@@ -144,11 +139,18 @@ struct SimPrimaryIonizationCluster <: POD
     mcparticle_idx::ObjectID{MCParticle}  # the particle that caused the ionizing collisions.
 end
 
-relations(::Type{SimPrimaryIonizationCluster}) = 0
 function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, mcparticle=-1)
     SimPrimaryIonizationCluster(-1, cellID, time, position, type, mcparticle)
 end
 
+function Base.getproperty(obj::SimPrimaryIonizationCluster, sym::Symbol)
+    if sym == :mcparticle
+        idx = getfield(obj, :mcparticle_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct MCRecoClusterParticleAssociation
 
@@ -166,11 +168,21 @@ struct MCRecoClusterParticleAssociation <: POD
     sim_idx::ObjectID{MCParticle}    # reference to the Monte-Carlo particle
 end
 
-relations(::Type{MCRecoClusterParticleAssociation}) = 0
 function MCRecoClusterParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoClusterParticleAssociation(-1, weight, rec, sim)
 end
 
+function Base.getproperty(obj::MCRecoClusterParticleAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(Cluster, idx)
+    elseif sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct MCRecoCaloParticleAssociation
 
@@ -188,11 +200,21 @@ struct MCRecoCaloParticleAssociation <: POD
     sim_idx::ObjectID{MCParticle}    # reference to the Monte-Carlo particle
 end
 
-relations(::Type{MCRecoCaloParticleAssociation}) = 0
 function MCRecoCaloParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoCaloParticleAssociation(-1, weight, rec, sim)
 end
 
+function Base.getproperty(obj::MCRecoCaloParticleAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(CalorimeterHit, idx)
+    elseif sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct CaloHitContribution
 
@@ -212,11 +234,18 @@ struct CaloHitContribution <: POD
     particle_idx::ObjectID{MCParticle}  # primary MCParticle that caused the shower responsible for this contribution to the hit.
 end
 
-relations(::Type{CaloHitContribution}) = 0
 function CaloHitContribution(;PDG=0, energy=0, time=0, stepPosition=Vector3f(), particle=-1)
     CaloHitContribution(-1, PDG, energy, time, stepPosition, particle)
 end
 
+function Base.getproperty(obj::CaloHitContribution, sym::Symbol)
+    if sym == :particle
+        idx = getfield(obj, :particle_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct SimCalorimeterHit
 
@@ -235,7 +264,6 @@ struct SimCalorimeterHit <: POD
     contributions::Relation{CaloHitContribution,1}  # Monte Carlo step contribution - parallel to particle
 end
 
-relations(::Type{SimCalorimeterHit}) = 1
 function SimCalorimeterHit(;cellID=0, energy=0, position=Vector3f(), contributions=Relation{CaloHitContribution,1}())
     SimCalorimeterHit(-1, cellID, energy, position, contributions)
 end
@@ -257,7 +285,6 @@ struct RawTimeSeries <: POD
     interval::Float32                # interval of each sampling [ns].
 end
 
-relations(::Type{RawTimeSeries}) = 0
 function RawTimeSeries(;cellID=0, quality=0, time=0, charge=0, interval=0)
     RawTimeSeries(-1, cellID, quality, time, charge, interval)
 end
@@ -279,11 +306,21 @@ struct MCRecoCaloAssociation <: POD
     sim_idx::ObjectID{SimCalorimeterHit}  # reference to the simulated hit
 end
 
-relations(::Type{MCRecoCaloAssociation}) = 0
 function MCRecoCaloAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoCaloAssociation(-1, weight, rec, sim)
 end
 
+function Base.getproperty(obj::MCRecoCaloAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(CalorimeterHit, idx)
+    elseif sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(SimCalorimeterHit, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct TrackerPulse
 
@@ -304,11 +341,18 @@ struct TrackerPulse <: POD
     timeSeries_idx::ObjectID{TimeSeries}  # Optionally, the timeSeries that has been used to create the pulse can be stored with the pulse.
 end
 
-relations(::Type{TrackerPulse}) = 0
 function TrackerPulse(;cellID=0, time=0, charge=0, quality=0, covMatrix=zero(SVector{3,Float32}), timeSeries=-1)
     TrackerPulse(-1, cellID, time, charge, quality, covMatrix, timeSeries)
 end
 
+function Base.getproperty(obj::TrackerPulse, sym::Symbol)
+    if sym == :timeSeries
+        idx = getfield(obj, :timeSeries_idx)
+        return iszero(idx) ? nothing : convert(TimeSeries, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct EventHeader
 
@@ -325,7 +369,6 @@ struct EventHeader <: POD
     weight::Float32                  # event weight
 end
 
-relations(::Type{EventHeader}) = 0
 function EventHeader(;eventNumber=0, runNumber=0, timeStamp=0, weight=0)
     EventHeader(-1, eventNumber, runNumber, timeStamp, weight)
 end
@@ -350,7 +393,6 @@ struct TrackerHit <: POD
     covMatrix::SVector{6,Float32}    # covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
 end
 
-relations(::Type{TrackerHit}) = 0
 function TrackerHit(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, position=Vector3d(), covMatrix=zero(SVector{6,Float32}))
     TrackerHit(-1, cellID, type, quality, time, eDep, eDepError, position, covMatrix)
 end
@@ -370,7 +412,6 @@ struct RawCalorimeterHit <: POD
     timeStamp::Int32                 # time stamp for the hit.
 end
 
-relations(::Type{RawCalorimeterHit}) = 0
 function RawCalorimeterHit(;cellID=0, amplitude=0, timeStamp=0)
     RawCalorimeterHit(-1, cellID, amplitude, timeStamp)
 end
@@ -393,7 +434,6 @@ struct RecIonizationCluster <: POD
     trackerPulse::Relation{TrackerPulse,1}  # the TrackerPulse used to create the ionization cluster.
 end
 
-relations(::Type{RecIonizationCluster}) = 1
 function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Relation{TrackerPulse,1}())
     RecIonizationCluster(-1, cellID, significance, type, trackerPulse)
 end
@@ -419,11 +459,18 @@ struct Vertex <: POD
     associatedParticle_idx::ObjectID{POD}  # reconstructed particle associated to this vertex.
 end
 
-relations(::Type{Vertex}) = 0
 function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=zero(SVector{6,Float32}), algorithmType=0, associatedParticle=-1)
     Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType, associatedParticle)
 end
 
+function Base.getproperty(obj::Vertex, sym::Symbol)
+    if sym == :associatedParticle
+        idx = getfield(obj, :associatedParticle_idx)
+        return iszero(idx) ? nothing : convert(POD, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct Track
 
@@ -446,7 +493,6 @@ struct Track <: POD
     tracks::Relation{Track,2}        # tracks (segments) that have been combined to create this track
 end
 
-relations(::Type{Track}) = 2
 function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerHits=Relation{TrackerHit,1}(), tracks=Relation{Track,2}())
     Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, trackerHits, tracks)
 end
@@ -468,11 +514,21 @@ struct MCRecoTrackParticleAssociation <: POD
     sim_idx::ObjectID{MCParticle}    # reference to the Monte-Carlo particle
 end
 
-relations(::Type{MCRecoTrackParticleAssociation}) = 0
 function MCRecoTrackParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoTrackParticleAssociation(-1, weight, rec, sim)
 end
 
+function Base.getproperty(obj::MCRecoTrackParticleAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(Track, idx)
+    elseif sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct ReconstructedParticle
 
@@ -503,11 +559,21 @@ struct ReconstructedParticle <: POD
     particleIDs::Relation{ParticleID,4}  # particle Ids (not sorted by their likelihood)
 end
 
-relations(::Type{ReconstructedParticle}) = 4
 function ReconstructedParticle(;type=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=zero(SVector{10,Float32}), startVertex=-1, particleIDUsed=-1, clusters=Relation{Cluster,1}(), tracks=Relation{Track,2}(), particles=Relation{ReconstructedParticle,3}(), particleIDs=Relation{ParticleID,4}())
     ReconstructedParticle(-1, type, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, startVertex, particleIDUsed, clusters, tracks, particles, particleIDs)
 end
 
+function Base.getproperty(obj::ReconstructedParticle, sym::Symbol)
+    if sym == :startVertex
+        idx = getfield(obj, :startVertex_idx)
+        return iszero(idx) ? nothing : convert(Vertex, idx)
+    elseif sym == :particleIDUsed
+        idx = getfield(obj, :particleIDUsed_idx)
+        return iszero(idx) ? nothing : convert(ParticleID, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct MCRecoParticleAssociation
 
@@ -525,11 +591,21 @@ struct MCRecoParticleAssociation <: POD
     sim_idx::ObjectID{MCParticle}    # reference to the Monte-Carlo particle
 end
 
-relations(::Type{MCRecoParticleAssociation}) = 0
 function MCRecoParticleAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoParticleAssociation(-1, weight, rec, sim)
 end
 
+function Base.getproperty(obj::MCRecoParticleAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(ReconstructedParticle, idx)
+    elseif sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct RecoParticleVertexAssociation
 
@@ -547,11 +623,21 @@ struct RecoParticleVertexAssociation <: POD
     vertex_idx::ObjectID{Vertex}     # reference to the vertex
 end
 
-relations(::Type{RecoParticleVertexAssociation}) = 0
 function RecoParticleVertexAssociation(;weight=0, rec=-1, vertex=-1)
     RecoParticleVertexAssociation(-1, weight, rec, vertex)
 end
 
+function Base.getproperty(obj::RecoParticleVertexAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(ReconstructedParticle, idx)
+    elseif sym == :vertex
+        idx = getfield(obj, :vertex_idx)
+        return iszero(idx) ? nothing : convert(Vertex, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct RecDqdx
 
@@ -571,11 +657,18 @@ struct RecDqdx <: POD
     track_idx::ObjectID{Track}       # the corresponding track.
 end
 
-relations(::Type{RecDqdx}) = 0
 function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), track=-1)
     RecDqdx(-1, dQdx, particleType, type, hypotheses, track)
 end
 
+function Base.getproperty(obj::RecDqdx, sym::Symbol)
+    if sym == :track
+        idx = getfield(obj, :track_idx)
+        return iszero(idx) ? nothing : convert(Track, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct TrackerHitPlane
 
@@ -600,7 +693,6 @@ struct TrackerHitPlane <: POD
     covMatrix::SVector{6,Float32}    # covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
 end
 
-relations(::Type{TrackerHitPlane}) = 0
 function TrackerHitPlane(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, u=Vector2f(), v=Vector2f(), du=0, dv=0, position=Vector3d(), covMatrix=zero(SVector{6,Float32}))
     TrackerHitPlane(-1, cellID, type, quality, time, eDep, eDepError, u, v, du, dv, position, covMatrix)
 end
@@ -627,11 +719,18 @@ struct SimTrackerHit <: POD
     mcparticle_idx::ObjectID{MCParticle}  # MCParticle that caused the hit.
 end
 
-relations(::Type{SimTrackerHit}) = 0
 function SimTrackerHit(;cellID=0, EDep=0, time=0, pathLength=0, quality=0, position=Vector3d(), momentum=Vector3f(), mcparticle=-1)
     SimTrackerHit(-1, cellID, EDep, time, pathLength, quality, position, momentum, mcparticle)
 end
 
+function Base.getproperty(obj::SimTrackerHit, sym::Symbol)
+    if sym == :mcparticle
+        idx = getfield(obj, :mcparticle_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct MCRecoTrackerHitPlaneAssociation
 
@@ -649,11 +748,21 @@ struct MCRecoTrackerHitPlaneAssociation <: POD
     sim_idx::ObjectID{SimTrackerHit} # reference to the simulated hit
 end
 
-relations(::Type{MCRecoTrackerHitPlaneAssociation}) = 0
 function MCRecoTrackerHitPlaneAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoTrackerHitPlaneAssociation(-1, weight, rec, sim)
 end
 
+function Base.getproperty(obj::MCRecoTrackerHitPlaneAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(TrackerHitPlane, idx)
+    elseif sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(SimTrackerHit, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 """
 struct MCRecoTrackerAssociation
 
@@ -671,9 +780,19 @@ struct MCRecoTrackerAssociation <: POD
     sim_idx::ObjectID{SimTrackerHit} # reference to the simulated hit
 end
 
-relations(::Type{MCRecoTrackerAssociation}) = 0
 function MCRecoTrackerAssociation(;weight=0, rec=-1, sim=-1)
     MCRecoTrackerAssociation(-1, weight, rec, sim)
 end
 
+function Base.getproperty(obj::MCRecoTrackerAssociation, sym::Symbol)
+    if sym == :rec
+        idx = getfield(obj, :rec_idx)
+        return iszero(idx) ? nothing : convert(TrackerHit, idx)
+    elseif sym == :sim
+        idx = getfield(obj, :sim_idx)
+        return iszero(idx) ? nothing : convert(SimTrackerHit, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
 export ParticleID, TimeSeries, CalorimeterHit, Cluster, MCParticle, SimPrimaryIonizationCluster, MCRecoClusterParticleAssociation, MCRecoCaloParticleAssociation, CaloHitContribution, SimCalorimeterHit, RawTimeSeries, MCRecoCaloAssociation, TrackerPulse, EventHeader, TrackerHit, RawCalorimeterHit, RecIonizationCluster, Vertex, Track, MCRecoTrackParticleAssociation, ReconstructedParticle, MCRecoParticleAssociation, RecoParticleVertexAssociation, RecDqdx, TrackerHitPlane, SimTrackerHit, MCRecoTrackerHitPlaneAssociation, MCRecoTrackerAssociation
