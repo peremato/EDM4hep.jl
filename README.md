@@ -35,7 +35,7 @@ There are a number of issues and problems still to be revolved. We keep track of
 - Need to generate and support `VectorMembers`. For the time being are ignored.
 - Handle cyclic datatype dependencies. In EDM4hep there is one case that is not yet resolved. `Vertex` depends on `ReconstructedParticle` in a one-to-one relation and `ReconstructedParticle` relates to `Vertex`. Use the abstract class in this case
 - ~~Better handle collectionID in one-to-many relations~~
-- Be able to read RNTuple files in addition to TTree files.
+- ~~Be able to read RNTuple files in addition to TTree files~~
  
 ## Examples
 ### examples/mcparticle_tree.jl

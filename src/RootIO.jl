@@ -13,9 +13,10 @@ module RootIO
         filename::String
         treename::String
         file::ROOTFile
+        isRNTuple::Bool
         collectionIDs::Dict{String, UInt32}
-        btypes::Dict{String, Type}
-        layouts::Dict{String, Tuple}
+        btypes::Dict{String, Type} 
+        layouts::Dict{String, Tuple}    # for TTree only
         lazytree::LazyTree
         function Reader(filename, treename="events")
             reader = new(filename, treename)
@@ -28,8 +29,16 @@ module RootIO
         reader.file = ROOTFile(reader.filename)
         # collection IDs
         if  "podio_metadata" in keys(reader.file)
-            meta = LazyTree(reader.file, "podio_metadata", [Regex("events___idTable/(.*)") => s"\1"])[1]
-            reader.collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
+            rtuple = reader.file["podio_metadata"]
+            if rtuple isa UnROOT.RNTuple
+                reader.isRNTuple = true
+                meta = LazyTree(rtuple, ["events___idTable", "events_collectionNames"])[1]
+                reader.collectionIDs = Dict(meta.events_collectionNames .=> meta.events___idTable)
+            else
+                reader.isRNTuple = false
+                meta = LazyTree(reader.file, "podio_metadata", [Regex("events___idTable/(.*)") => s"\1"])[1]
+                reader.collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
+            end
         else
             @warn "ROOT file $filename does not have a 'podio_metadate' tree. Is it a PODIO file?"
             reader.collectionIDs = Dict{UInt32, String}()
@@ -40,7 +49,8 @@ module RootIO
         return reader
     end
 
-    function buildlayout(tree::UnROOT.LazyTree, branch::String, T::Type)
+
+    function buildlayoutTTree(tree::UnROOT.LazyTree, branch::String, T::Type)
         layout = []
         relations = []
         fnames = fieldnames(T)
@@ -74,13 +84,26 @@ module RootIO
                 id = findfirst(x-> x == n * "[$(s)]", splitnames)
                 push!(layout, (ft,(id,s))) 
             else
-                push!(layout, buildlayout(tree, n, ft))
+                push!(layout, buildlayoutTTree(tree, n, ft))
             end
         end
         (T, Tuple(layout), Tuple(relations))
     end
 
-    function getStructArray(evt::UnROOT.LazyEvent, layout, collid, len = 0)
+    function buildlayoutRNTuple(tree::UnROOT.LazyTree, branch::String, T::Type)
+        relations = []
+        fnames = fieldnames(T)
+        ftypes = fieldtypes(T)
+        for (fn,ft) in zip(fnames, ftypes)
+            if ft <: Relation
+                push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+            end
+        end
+        (T, (), Tuple(relations))
+    end
+   
+    # Only for TTree-------
+    function getStructArrayTTree(evt::UnROOT.LazyEvent, layout, collid, len = 0)
         if len == 0  # Need the length to fill missing colums
             n = layout[2][2]    # get the second data member (first may be missing)
             len = length(evt[n])
@@ -93,7 +116,7 @@ module RootIO
                     ft, (id, s) = l 
                     push!(sa, StructArray{ft}(reshape(evt[id], s, len);dims=1))
                 else
-                    push!(sa, getStructArray(evt, l, collid, len))
+                    push!(sa, getStructArrayTTree(evt, l, collid, len))
                 end
             elseif l == 0
                 push!(sa, zeros(Int64,len))
@@ -108,6 +131,47 @@ module RootIO
         StructArray{type}(Tuple(sa))
     end
 
+    #---Only for RNTuple
+
+
+    function getStructArrayRNTuple(evt::UnROOT.LazyEvent, branch, collection, layout, collid, len = 0)
+        type = layout[1]
+        pnames = propertynames(collection)
+        ftypes = fieldtypes(type)
+        fnames = fieldnames(type)
+        if len == 0  # Need the length to fill missing colums
+            len = length(getproperty(collection, pnames[1]))
+        end
+        sa = AbstractArray[]
+        for (fn, ft) in zip(fnames, ftypes)
+            if isempty(fieldnames(ft))          # fundamental type (Int, Float,...)
+                if fn in pnames
+                    push!(sa, getproperty(collection, fn))
+                else
+                    push!(sa, zeros(ft,len))
+                end
+            elseif ft <: SVector
+                push!(sa, getproperty(collection, fn))  # no reshaping to be done, it is already an SVector  
+            elseif ft == ObjectID{type}
+                push!(sa, collect(0:len-1))
+            elseif ft <: ObjectID                       # index of another one....
+                na = replace("$(fn)", "_idx" => "", "mcparticle" => "MCParticle")     # remove the added suffix
+                br = "_$(branch)_$(na)"
+                se = getproperty(evt, Symbol(br))
+                @show na, propertynames(se)
+                push!(sa, StructArray{ft}((se.index, se.collectionID)))
+            elseif ft <: Relation               # special treatment becuase 'begin' and 'end' cannot be fieldnames
+                bsym = Symbol("$fn" * "_begin")
+                esym = Symbol("$fn" * "_end")
+                push!(sa, StructArray{ft}((getproperty(collection, bsym), getproperty(collection, esym), fill(collid,len))))
+            else
+                se = getproperty(collection, fn)
+                push!(sa, getStructArrayRNTuple(evt, branch, se, (ft,(),()), collid, len))
+            end
+        end
+        StructArray{type}(Tuple(sa))
+    end
+
     """
     get(reader::Reader, treename::String)
 
@@ -117,16 +181,31 @@ module RootIO
     """
     function get(reader::Reader, treename::String)
         reader.treename = treename
-        #---buyild a dinctionary of branches and associted type
+        #---buyild a dictionary of branches and associted type
         tree = reader.file[treename]
-        pattern = r".+::([a-zA-Z]+?)(Data>|>)"
-        for (i,key) in enumerate(keys(tree))
-            classname = tree.fBranches[i].fClassName
-            result = match(pattern, classname)
-            if result !== nothing
-                classname = result.captures[1]
-                reader.btypes[key] = getproperty(EDM4hep, Symbol(classname))
+        pattern = r"(edm4hep|podio)::([a-zA-Z]+?)(Data>|>)"
+        if tree isa UnROOT.TTree
+            for (i,key) in enumerate(keys(tree))
+                classname = tree.fBranches[i].fClassName
+                result = match(pattern, classname)
+                if result !== nothing
+                    classname = result.captures[2]
+                    reader.btypes[key] = getproperty(EDM4hep, Symbol(classname))
+                end
             end
+        elseif tree isa UnROOT.RNTuple
+            for fr in tree.header.field_records
+                fieldname = fr.field_name
+                classname = fr.type_name
+                bnames = keys(tree)
+                result = match(pattern, classname)
+                if result !== nothing
+                    classname = result.captures[2]
+                    reader.btypes[fieldname] = getproperty(EDM4hep, Symbol(classname))
+                end
+            end
+        else
+            error("$treename is not a TTree or RNutple")
         end
         reader.lazytree = LazyTree(reader.file, treename,  keys(reader.btypes))
     end
@@ -143,11 +222,20 @@ module RootIO
         if haskey(reader.layouts, bname)                         # Check whether the the layout has been pre-compiled 
             layout = reader.layouts[bname]
         else
-            layout = buildlayout(reader.lazytree, bname, btype)
+            if reader.isRNTuple
+                layout = buildlayoutRNTuple(reader.lazytree, bname, btype)
+            else
+                layout = buildlayoutTTree(reader.lazytree, bname, btype)
+            end
             reader.layouts[bname] = layout
         end
         collid = Base.get(reader.collectionIDs, bname, 0)             # The CollectionID has beeen assigned when opening the file
-        sa = getStructArray(evt, layout, collid)
+        if reader.isRNTuple
+            sbranch = Symbol(bname)
+            sa = getStructArrayRNTuple(evt, sbranch, getproperty(evt, sbranch), layout, collid)
+        else
+            sa = getStructArrayTTree(evt, layout, collid)
+        end
         if register
             assignEDStore(sa, collid)
             if !isempty(layout[3])  # check if there are relations in this branch 
