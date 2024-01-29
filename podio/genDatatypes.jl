@@ -12,10 +12,13 @@ struct ParticleID <: POD
     PDG::Int32                       # PDG code of this id - ( 999999 ) if unknown.
     algorithmType::Int32             # type of the algorithm/module that created this hypothesis
     likelihood::Float32              # likelihood of this hypothesis - in a user defined normalization.
+
+    #---VectorMembers
+    parameters::PVector{ParticleID,Float32,1}  # parameters associated with this hypothesis. Check/set collection parameters ParameterNames_PIDAlgorithmTypeName for decoding the indices.
 end
 
-function ParticleID(;type=0, PDG=0, algorithmType=0, likelihood=0)
-    ParticleID(-1, type, PDG, algorithmType, likelihood)
+function ParticleID(;type=0, PDG=0, algorithmType=0, likelihood=0, parameters=PVector{ParticleID,Float32,1}())
+    ParticleID(-1, type, PDG, algorithmType, likelihood, parameters)
 end
 
 """
@@ -31,10 +34,13 @@ struct TimeSeries <: POD
     cellID::UInt64                   # cell id.
     time::Float32                    # begin time [ns].
     interval::Float32                # interval of each sampling [ns].
+
+    #---VectorMembers
+    amplitude::PVector{TimeSeries,Float32,1}  # calibrated detector data.
 end
 
-function TimeSeries(;cellID=0, time=0, interval=0)
-    TimeSeries(-1, cellID, time, interval)
+function TimeSeries(;cellID=0, time=0, interval=0, amplitude=PVector{TimeSeries,Float32,1}())
+    TimeSeries(-1, cellID, time, interval, amplitude)
 end
 
 """
@@ -82,10 +88,14 @@ struct Cluster <: POD
     clusters::Relation{Cluster,1}    # clusters that have been combined to this cluster.
     hits::Relation{CalorimeterHit,2} # hits that have been combined to this cluster.
     particleIDs::Relation{ParticleID,3}  # particle IDs (sorted by their likelihood)
+
+    #---VectorMembers
+    shapeParameters::PVector{Cluster,Float32,1}  # shape parameters - check/set collection parameter ClusterShapeParameters for size and names of parameters.
+    subdetectorEnergies::PVector{Cluster,Float32,2}  # energy observed in a particular subdetector. Check/set collection parameter ClusterSubdetectorNames for decoding the indices of the array.
 end
 
-function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,1}(), hits=Relation{CalorimeterHit,2}(), particleIDs=Relation{ParticleID,3}())
-    Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, clusters, hits, particleIDs)
+function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,1}(), hits=Relation{CalorimeterHit,2}(), particleIDs=Relation{ParticleID,3}(), shapeParameters=PVector{Cluster,Float32,1}(), subdetectorEnergies=PVector{Cluster,Float32,2}())
+    Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, clusters, hits, particleIDs, shapeParameters, subdetectorEnergies)
 end
 
 """
@@ -137,10 +147,17 @@ struct SimPrimaryIonizationCluster <: POD
 
     #---OneToOneRelations
     mcparticle_idx::ObjectID{MCParticle}  # the particle that caused the ionizing collisions.
+
+    #---VectorMembers
+    electronCellID::PVector{SimPrimaryIonizationCluster,UInt64,1}  # cell id.
+    electronTime::PVector{SimPrimaryIonizationCluster,Float32,2}  # the time in the lab frame [ns].
+    electronPosition::PVector{SimPrimaryIonizationCluster,Vector3d,3}  # the position in the lab frame [mm].
+    pulseTime::PVector{SimPrimaryIonizationCluster,Float32,4}  # the pulse's time in the lab frame [ns].
+    pulseAmplitude::PVector{SimPrimaryIonizationCluster,Float32,5}  # the pulse's amplitude [fC].
 end
 
-function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, mcparticle=-1)
-    SimPrimaryIonizationCluster(-1, cellID, time, position, type, mcparticle)
+function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, mcparticle=-1, electronCellID=PVector{SimPrimaryIonizationCluster,UInt64,1}(), electronTime=PVector{SimPrimaryIonizationCluster,Float32,2}(), electronPosition=PVector{SimPrimaryIonizationCluster,Vector3d,3}(), pulseTime=PVector{SimPrimaryIonizationCluster,Float32,4}(), pulseAmplitude=PVector{SimPrimaryIonizationCluster,Float32,5}())
+    SimPrimaryIonizationCluster(-1, cellID, time, position, type, mcparticle, electronCellID, electronTime, electronPosition, pulseTime, pulseAmplitude)
 end
 
 function Base.getproperty(obj::SimPrimaryIonizationCluster, sym::Symbol)
@@ -283,10 +300,13 @@ struct RawTimeSeries <: POD
     time::Float32                    # time of the hit [ns].
     charge::Float32                  # integrated charge of the hit [fC].
     interval::Float32                # interval of each sampling [ns].
+
+    #---VectorMembers
+    adcCounts::PVector{RawTimeSeries,Int32,1}  # raw data (32-bit) word at i.
 end
 
-function RawTimeSeries(;cellID=0, quality=0, time=0, charge=0, interval=0)
-    RawTimeSeries(-1, cellID, quality, time, charge, interval)
+function RawTimeSeries(;cellID=0, quality=0, time=0, charge=0, interval=0, adcCounts=PVector{RawTimeSeries,Int32,1}())
+    RawTimeSeries(-1, cellID, quality, time, charge, interval, adcCounts)
 end
 
 """
@@ -391,10 +411,13 @@ struct TrackerHit <: POD
     eDepError::Float32               # error measured on EDep [GeV].
     position::Vector3d               # hit position in [mm].
     covMatrix::SVector{6,Float32}    # covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
+
+    #---VectorMembers
+    rawHits::PVector{TrackerHit,ObjectID,1}  # raw data hits. Check getType to get actual data type.
 end
 
-function TrackerHit(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, position=Vector3d(), covMatrix=zero(SVector{6,Float32}))
-    TrackerHit(-1, cellID, type, quality, time, eDep, eDepError, position, covMatrix)
+function TrackerHit(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, position=Vector3d(), covMatrix=zero(SVector{6,Float32}), rawHits=PVector{TrackerHit,ObjectID,1}())
+    TrackerHit(-1, cellID, type, quality, time, eDep, eDepError, position, covMatrix, rawHits)
 end
 
 """
@@ -457,10 +480,13 @@ struct Vertex <: POD
 
     #---OneToOneRelations
     associatedParticle_idx::ObjectID{POD}  # reconstructed particle associated to this vertex.
+
+    #---VectorMembers
+    parameters::PVector{Vertex,Float32,1}  # additional parameters related to this vertex - check/set the collection parameter "VertexParameterNames" for the parameters meaning.
 end
 
-function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=zero(SVector{6,Float32}), algorithmType=0, associatedParticle=-1)
-    Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType, associatedParticle)
+function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=zero(SVector{6,Float32}), algorithmType=0, associatedParticle=-1, parameters=PVector{Vertex,Float32,1}())
+    Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType, associatedParticle, parameters)
 end
 
 function Base.getproperty(obj::Vertex, sym::Symbol)
@@ -491,10 +517,15 @@ struct Track <: POD
     #---OneToManyRelations
     trackerHits::Relation{TrackerHit,1}  # hits that have been used to create this track
     tracks::Relation{Track,2}        # tracks (segments) that have been combined to create this track
+
+    #---VectorMembers
+    subdetectorHitNumbers::PVector{Track,Int32,1}  # number of hits in particular subdetectors.Check/set collection variable TrackSubdetectorNames for decoding the indices
+    trackStates::PVector{Track,TrackState,2}  # track states
+    dxQuantities::PVector{Track,Quantity,3}  # different measurements of dx quantities
 end
 
-function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerHits=Relation{TrackerHit,1}(), tracks=Relation{Track,2}())
-    Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, trackerHits, tracks)
+function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerHits=Relation{TrackerHit,1}(), tracks=Relation{Track,2}(), subdetectorHitNumbers=PVector{Track,Int32,1}(), trackStates=PVector{Track,TrackState,2}(), dxQuantities=PVector{Track,Quantity,3}())
+    Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, trackerHits, tracks, subdetectorHitNumbers, trackStates, dxQuantities)
 end
 
 """
@@ -655,10 +686,13 @@ struct RecDqdx <: POD
 
     #---OneToOneRelations
     track_idx::ObjectID{Track}       # the corresponding track.
+
+    #---VectorMembers
+    hitData::PVector{RecDqdx,HitLevelData,1}  # hit level data
 end
 
-function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), track=-1)
-    RecDqdx(-1, dQdx, particleType, type, hypotheses, track)
+function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), track=-1, hitData=PVector{RecDqdx,HitLevelData,1}())
+    RecDqdx(-1, dQdx, particleType, type, hypotheses, track, hitData)
 end
 
 function Base.getproperty(obj::RecDqdx, sym::Symbol)
@@ -691,10 +725,13 @@ struct TrackerHitPlane <: POD
     dv::Float32                      # measurement error along the direction
     position::Vector3d               # hit position in [mm].
     covMatrix::SVector{6,Float32}    # covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
+
+    #---VectorMembers
+    rawHits::PVector{TrackerHitPlane,ObjectID,1}  # raw data hits. Check getType to get actual data type.
 end
 
-function TrackerHitPlane(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, u=Vector2f(), v=Vector2f(), du=0, dv=0, position=Vector3d(), covMatrix=zero(SVector{6,Float32}))
-    TrackerHitPlane(-1, cellID, type, quality, time, eDep, eDepError, u, v, du, dv, position, covMatrix)
+function TrackerHitPlane(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, u=Vector2f(), v=Vector2f(), du=0, dv=0, position=Vector3d(), covMatrix=zero(SVector{6,Float32}), rawHits=PVector{TrackerHitPlane,ObjectID,1}())
+    TrackerHitPlane(-1, cellID, type, quality, time, eDep, eDepError, u, v, du, dv, position, covMatrix, rawHits)
 end
 
 """

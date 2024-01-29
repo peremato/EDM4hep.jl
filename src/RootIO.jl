@@ -5,6 +5,13 @@ module RootIO
     using StructArrays
     using StaticArrays
 
+    const builtin_types = Dict("int" => Int32, "float" => Float32, "double" => Float64,
+    "bool" => Bool, "long" => Int64, "unsigned int" => UInt32, 
+    "int16_t" => Int16, "int32_t" => Int32,  "uint64_t" => UInt64, "uint32_t" => UInt32, 
+    "unsigned long" => UInt64, "char" => Char, "short" => Int16,
+    "long long" => Int64, "unsigned long long" => UInt64,
+    "string" => String)
+
     """
     The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
     The layouts maps a set of columns in the LazyTree into an object.
@@ -53,6 +60,7 @@ module RootIO
     function buildlayoutTTree(tree::UnROOT.LazyTree, branch::String, T::Type)
         layout = []
         relations = []
+        vmembers = []
         fnames = fieldnames(T)
         ftypes = fieldtypes(T)
         splitnames = names(tree)
@@ -66,6 +74,11 @@ module RootIO
                 e = findfirst(x -> x == n * "_end", splitnames)
                 push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
                 push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+            elseif ft <: PVector
+                b = findfirst(x -> x == n * "_begin", splitnames)
+                e = findfirst(x -> x == n * "_end", splitnames)
+                push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
+                push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
             elseif ft <: ObjectID{T}            # index of himself
                 push!(layout, -1)
             elseif ft <: ObjectID               # index of another one....
@@ -87,19 +100,22 @@ module RootIO
                 push!(layout, buildlayoutTTree(tree, n, ft))
             end
         end
-        (T, Tuple(layout), Tuple(relations))
+        (T, Tuple(layout), Tuple(relations), Tuple(vmembers))
     end
 
     function buildlayoutRNTuple(tree::UnROOT.LazyTree, branch::String, T::Type)
         relations = []
+        vmembers = []
         fnames = fieldnames(T)
         ftypes = fieldtypes(T)
         for (fn,ft) in zip(fnames, ftypes)
             if ft <: Relation
                 push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+            elseif ft <: PVector
+                push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
             end
         end
-        (T, (), Tuple(relations))
+        (T, (), Tuple(relations), Tuple(vmembers))
     end
    
     # Only for TTree-------
@@ -158,11 +174,15 @@ module RootIO
                 na = replace("$(fn)", "_idx" => "", "mcparticle" => "MCParticle")     # remove the added suffix
                 br = "_$(branch)_$(na)"
                 se = getproperty(evt, Symbol(br))
-                @show na, propertynames(se)
                 push!(sa, StructArray{ft}((se.index, se.collectionID)))
-            elseif ft <: Relation               # special treatment becuase 'begin' and 'end' cannot be fieldnames
+            elseif ft <: Relation               # special treatment because 'begin' and 'end' cannot be fieldnames
                 bsym = Symbol("$fn" * "_begin")
                 esym = Symbol("$fn" * "_end")
+                push!(sa, StructArray{ft}((getproperty(collection, bsym), getproperty(collection, esym), fill(collid,len))))
+            elseif ft <: PVector               # special treatment becuase 'begin' and 'end' cannot be fieldnames
+                bsym = Symbol("$fn" * "_begin")
+                esym = Symbol("$fn" * "_end")
+                v = StructArray{ft}((getproperty(collection, bsym), getproperty(collection, esym), fill(collid,len)))
                 push!(sa, StructArray{ft}((getproperty(collection, bsym), getproperty(collection, esym), fill(collid,len))))
             else
                 se = getproperty(collection, fn)
@@ -183,23 +203,35 @@ module RootIO
         reader.treename = treename
         #---buyild a dictionary of branches and associted type
         tree = reader.file[treename]
-        pattern = r"(edm4hep|podio)::([a-zA-Z]+?)(Data>|>)"
+        pattern = r"(edm4hep|podio)::([a-zA-Z]+?)(Data$|$)"
+        vpattern = r"(std::)?vector<(std::)?(.*)>"
         if tree isa UnROOT.TTree
             for (i,key) in enumerate(keys(tree))
                 classname = tree.fBranches[i].fClassName
+                result = match(vpattern, classname)
+                isnothing(result) && continue
+                classname = result.captures[3]
                 result = match(pattern, classname)
-                if result !== nothing
+                if isnothing(result) # Primitive type
+                    reader.btypes[key] = builtin_types[classname]
+                else
                     classname = result.captures[2]
                     reader.btypes[key] = getproperty(EDM4hep, Symbol(classname))
                 end
             end
         elseif tree isa UnROOT.RNTuple
             for fr in tree.header.field_records
+                fr.struct_role != 0x0001 && continue
                 fieldname = fr.field_name
+                fieldname == "_0" && continue
                 classname = fr.type_name
-                bnames = keys(tree)
+                result = match(vpattern, classname)
+                isnothing(result) && continue
+                classname = result.captures[3]
                 result = match(pattern, classname)
-                if result !== nothing
+                if isnothing(result) # Primitive type
+                    reader.btypes[fieldname] = Base.get(builtin_types, classname, Nothing)
+                else
                     classname = result.captures[2]
                     reader.btypes[fieldname] = getproperty(EDM4hep, Symbol(classname))
                 end
@@ -230,17 +262,39 @@ module RootIO
             reader.layouts[bname] = layout
         end
         collid = Base.get(reader.collectionIDs, bname, 0)             # The CollectionID has beeen assigned when opening the file
-        if reader.isRNTuple
-            sbranch = Symbol(bname)
-            sa = getStructArrayRNTuple(evt, sbranch, getproperty(evt, sbranch), layout, collid)
+        sbranch = Symbol(bname)
+        if isprimitivetype(layout[1])
+            sa = hasproperty(evt, sbranch) ? getproperty(evt,sbranch) : layout[1][]
         else
-            sa = getStructArrayTTree(evt, layout, collid)
+            if reader.isRNTuple
+                sa = getStructArrayRNTuple(evt, sbranch, getproperty(evt, sbranch), layout, collid)
+            else
+                sa = getStructArrayTTree(evt, layout, collid)
+            end
         end
         if register
             assignEDStore(sa, collid)
-            if !isempty(layout[3])  # check if there are relations in this branch 
-                relations = Tuple(get(reader, evt, rb, btype=ObjectID{rt}; register=false) for (rb, rt) in layout[3])
-                assignEDStore(relations, btype, collid)
+            if !isempty(layout[3])  # check if there are relations in this branch
+                rels = []
+                for (rb, rt) in layout[3]
+                    try
+                        sr = get(reader, evt, rb, btype=ObjectID{rt}; register=false)
+                        push!(rels, sr)
+                    catch e
+                        if e isa MethodError
+                            sr = ObjectID{rt}[]
+                            push!(rels, sr)
+                        else
+                            rethrow()
+                        end
+                    end
+                end
+                relations = Tuple(rels)
+                assignEDStore_relations(relations, btype, collid)
+            end
+            if !isempty(layout[4])  # check if there are vector members in this branch
+                vmembers = Tuple(get(reader, evt, rb, btype=rt; register=false) for (rb, rt) in layout[4])
+                assignEDStore_vmembers(vmembers, btype, collid)
             end
         end
         sa

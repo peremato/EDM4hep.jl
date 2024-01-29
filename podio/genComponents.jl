@@ -1,7 +1,7 @@
 """
     Vector3d
 """
-struct Vector3d
+struct Vector3d <: POD
     x::Float64                       
     y::Float64                       
     z::Float64                       
@@ -11,7 +11,7 @@ end
 """
     Quantity
 """
-struct Quantity
+struct Quantity <: POD
     type::Int16                      # flag identifying how to interpret the quantity
     value::Float32                   # value of the quantity
     error::Float32                   # error on the value of the quantity
@@ -21,7 +21,7 @@ end
 """
     Vector3f
 """
-struct Vector3f
+struct Vector3f <: POD
     x::Float32                       
     y::Float32                       
     z::Float32                       
@@ -31,7 +31,7 @@ end
 """
     TrackState
 """
-struct TrackState
+struct TrackState <: POD
     location::Int32                  # for use with At{Other|IP|FirstHit|LastHit|Calorimeter|Vertex}|LastLocation
     D0::Float32                      # transverse impact parameter
     phi::Float32                     # azimuthal angle
@@ -47,7 +47,7 @@ end
 """
     Hypothesis
 """
-struct Hypothesis
+struct Hypothesis <: POD
     chi2::Float32                    # chi2
     expected::Float32                # expected value
     sigma::Float32                   # sigma value
@@ -57,7 +57,7 @@ end
 """
     Vector2i
 """
-struct Vector2i
+struct Vector2i <: POD
     a::Int32                         
     b::Int32                         
     Vector2i(a=0, b=0) = new(a, b)
@@ -66,7 +66,7 @@ end
 """
     HitLevelData
 """
-struct HitLevelData
+struct HitLevelData <: POD
     cellID::UInt64                   # cell id
     N::UInt32                        # number of reconstructed ionization cluster.
     eDep::Float32                    # reconstructed energy deposit [GeV].
@@ -77,7 +77,7 @@ end
 """
     Vector2f
 """
-struct Vector2f
+struct Vector2f <: POD
     a::Float32                       
     b::Float32                       
     Vector2f(a=0, b=0) = new(a, b)

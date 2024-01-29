@@ -1,0 +1,1766 @@
+root [2] using ROOT::Experimental::ENTupleInfo;
+root [3] using ROOT::Experimental::RNTupleReader;
+root [4] ntuple = RNTupleReader::Open("events","Output_REC_rntuple.root")
+Warning in <[ROOT.NTuple] Warning /Users/sftnight/build/workspace/lcg_release_pipeline/build/projects/ROOT-6.30.02/src/ROOT/6.30.02/tree/ntuple/v7/src/RNTupleSerialize.cxx:1398 in static ROOT::Experimental::RResult<void> ROOT::Experimental::Internal::RNTupleSerializer::DeserializeHeaderV1(const void *, std::uint32_t, RNTupleDescriptorBuilder &)>: Pre-release format version: RC 1
+(std::unique_ptr<ROOT::Experimental::RNTupleReader, std::default_delete<ROOT::Experimental::RNTupleReader> > &) std::unique_ptr -> 0x600002744c80
+root [5] ntuple->PrintInfo();
+************************************ NTUPLE ************************************
+* N-Tuple : events                                                             *
+* Entries : 25                                                                 *
+********************************************************************************
+* Field 1                  : AllCaloHitContributionsCombined (std::vector<ed...*
+*   Field 1.1              : _0 (edm4hep::CaloHitContributionData)             *
+*     Field 1.1.1          : PDG (std::int32_t)                                *
+*     Field 1.1.2          : energy (float)                                    *
+*     Field 1.1.3          : time (float)                                      *
+*     Field 1.1.4          : stepPosition (edm4hep::Vector3f)                  *
+*       Field 1.1.4.1      : x (float)                                         *
+*       Field 1.1.4.2      : y (float)                                         *
+*       Field 1.1.4.3      : z (float)                                         *
+* Field 2                  : _AllCaloHitContributionsCombined_particle (std:...*
+*   Field 2.1              : _0 (podio::ObjectID)                              *
+*     Field 2.1.1          : index (std::int32_t)                              *
+*     Field 2.1.2          : collectionID (std::uint32_t)                      *
+* Field 3                  : BeamCal_Hits (std::vector<edm4hep::CalorimeterH...*
+*   Field 3.1              : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 3.1.1          : cellID (std::uint64_t)                            *
+*     Field 3.1.2          : energy (float)                                    *
+*     Field 3.1.3          : energyError (float)                               *
+*     Field 3.1.4          : time (float)                                      *
+*     Field 3.1.5          : position (edm4hep::Vector3f)                      *
+*       Field 3.1.5.1      : x (float)                                         *
+*       Field 3.1.5.2      : y (float)                                         *
+*       Field 3.1.5.3      : z (float)                                         *
+*     Field 3.1.6          : type (std::int32_t)                               *
+* Field 4                  : BeamCalClusters (std::vector<edm4hep::ClusterDa...*
+*   Field 4.1              : _0 (edm4hep::ClusterData)                         *
+*     Field 4.1.1          : type (std::int32_t)                               *
+*     Field 4.1.2          : energy (float)                                    *
+*     Field 4.1.3          : energyError (float)                               *
+*     Field 4.1.4          : position (edm4hep::Vector3f)                      *
+*       Field 4.1.4.1      : x (float)                                         *
+*       Field 4.1.4.2      : y (float)                                         *
+*       Field 4.1.4.3      : z (float)                                         *
+*     Field 4.1.5          : positionError (std::array<float,6>)               *
+*       Field 4.1.5.1      : _0 (float)                                        *
+*     Field 4.1.6          : iTheta (float)                                    *
+*     Field 4.1.7          : phi (float)                                       *
+*     Field 4.1.8          : directionError (edm4hep::Vector3f)                *
+*       Field 4.1.8.1      : x (float)                                         *
+*       Field 4.1.8.2      : y (float)                                         *
+*       Field 4.1.8.3      : z (float)                                         *
+*     Field 4.1.9          : shapeParameters_begin (std::uint32_t)             *
+*     Field 4.1.10         : shapeParameters_end (std::uint32_t)               *
+*     Field 4.1.11         : subdetectorEnergies_begin (std::uint32_t)         *
+*     Field 4.1.12         : subdetectorEnergies_end (std::uint32_t)           *
+*     Field 4.1.13         : clusters_begin (std::uint32_t)                    *
+*     Field 4.1.14         : clusters_end (std::uint32_t)                      *
+*     Field 4.1.15         : hits_begin (std::uint32_t)                        *
+*     Field 4.1.16         : hits_end (std::uint32_t)                          *
+*     Field 4.1.17         : particleIDs_begin (std::uint32_t)                 *
+*     Field 4.1.18         : particleIDs_end (std::uint32_t)                   *
+* Field 5                  : _BeamCalClusters_clusters (std::vector<podio::O...*
+*   Field 5.1              : _0 (podio::ObjectID)                              *
+*     Field 5.1.1          : index (std::int32_t)                              *
+*     Field 5.1.2          : collectionID (std::uint32_t)                      *
+* Field 6                  : _BeamCalClusters_hits (std::vector<podio::Objec...*
+*   Field 6.1              : _0 (podio::ObjectID)                              *
+*     Field 6.1.1          : index (std::int32_t)                              *
+*     Field 6.1.2          : collectionID (std::uint32_t)                      *
+* Field 7                  : _BeamCalClusters_particleIDs (std::vector<podio...*
+*   Field 7.1              : _0 (podio::ObjectID)                              *
+*     Field 7.1.1          : index (std::int32_t)                              *
+*     Field 7.1.2          : collectionID (std::uint32_t)                      *
+* Field 8                  : _BeamCalClusters_shapeParameters (std::vector<f...*
+*   Field 8.1              : _0 (float)                                        *
+* Field 9                  : _BeamCalClusters_subdetectorEnergies (std::vect...*
+*   Field 9.1              : _0 (float)                                        *
+* Field 10                 : BeamCalClusters_particleIDs (std::vector<edm4he...*
+*   Field 10.1             : _0 (edm4hep::ParticleIDData)                      *
+*     Field 10.1.1         : type (std::int32_t)                               *
+*     Field 10.1.2         : PDG (std::int32_t)                                *
+*     Field 10.1.3         : algorithmType (std::int32_t)                      *
+*     Field 10.1.4         : likelihood (float)                                *
+*     Field 10.1.5         : parameters_begin (std::uint32_t)                  *
+*     Field 10.1.6         : parameters_end (std::uint32_t)                    *
+* Field 11                 : _BeamCalClusters_particleIDs_parameters (std::v...*
+*   Field 11.1             : _0 (float)                                        *
+* Field 12                 : BeamCalCollection (std::vector<edm4hep::SimCalo...*
+*   Field 12.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 12.1.1         : cellID (std::uint64_t)                            *
+*     Field 12.1.2         : energy (float)                                    *
+*     Field 12.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 12.1.3.1     : x (float)                                         *
+*       Field 12.1.3.2     : y (float)                                         *
+*       Field 12.1.3.3     : z (float)                                         *
+*     Field 12.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 12.1.5         : contributions_end (std::uint32_t)                 *
+* Field 13                 : _BeamCalCollection_contributions (std::vector<p...*
+*   Field 13.1             : _0 (podio::ObjectID)                              *
+*     Field 13.1.1         : index (std::int32_t)                              *
+*     Field 13.1.2         : collectionID (std::uint32_t)                      *
+* Field 14                 : BeamCalRecoParticles (std::vector<edm4hep::Reco...*
+*   Field 14.1             : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 14.1.1         : type (std::int32_t)                               *
+*     Field 14.1.2         : energy (float)                                    *
+*     Field 14.1.3         : momentum (edm4hep::Vector3f)                      *
+*       Field 14.1.3.1     : x (float)                                         *
+*       Field 14.1.3.2     : y (float)                                         *
+*       Field 14.1.3.3     : z (float)                                         *
+*     Field 14.1.4         : referencePoint (edm4hep::Vector3f)                *
+*       Field 14.1.4.1     : x (float)                                         *
+*       Field 14.1.4.2     : y (float)                                         *
+*       Field 14.1.4.3     : z (float)                                         *
+*     Field 14.1.5         : charge (float)                                    *
+*     Field 14.1.6         : mass (float)                                      *
+*     Field 14.1.7         : goodnessOfPID (float)                             *
+*     Field 14.1.8         : covMatrix (std::array<float,10>)                  *
+*       Field 14.1.8.1     : _0 (float)                                        *
+*     Field 14.1.9         : clusters_begin (std::uint32_t)                    *
+*     Field 14.1.10        : clusters_end (std::uint32_t)                      *
+*     Field 14.1.11        : tracks_begin (std::uint32_t)                      *
+*     Field 14.1.12        : tracks_end (std::uint32_t)                        *
+*     Field 14.1.13        : particles_begin (std::uint32_t)                   *
+*     Field 14.1.14        : particles_end (std::uint32_t)                     *
+*     Field 14.1.15        : particleIDs_begin (std::uint32_t)                 *
+*     Field 14.1.16        : particleIDs_end (std::uint32_t)                   *
+* Field 15                 : _BeamCalRecoParticles_clusters (std::vector<pod...*
+*   Field 15.1             : _0 (podio::ObjectID)                              *
+*     Field 15.1.1         : index (std::int32_t)                              *
+*     Field 15.1.2         : collectionID (std::uint32_t)                      *
+* Field 16                 : _BeamCalRecoParticles_tracks (std::vector<podio...*
+*   Field 16.1             : _0 (podio::ObjectID)                              *
+*     Field 16.1.1         : index (std::int32_t)                              *
+*     Field 16.1.2         : collectionID (std::uint32_t)                      *
+* Field 17                 : _BeamCalRecoParticles_particles (std::vector<po...*
+*   Field 17.1             : _0 (podio::ObjectID)                              *
+*     Field 17.1.1         : index (std::int32_t)                              *
+*     Field 17.1.2         : collectionID (std::uint32_t)                      *
+* Field 18                 : _BeamCalRecoParticles_particleIDs (std::vector<...*
+*   Field 18.1             : _0 (podio::ObjectID)                              *
+*     Field 18.1.1         : index (std::int32_t)                              *
+*     Field 18.1.2         : collectionID (std::uint32_t)                      *
+* Field 19                 : _BeamCalRecoParticles_startVertex (std::vector<...*
+*   Field 19.1             : _0 (podio::ObjectID)                              *
+*     Field 19.1.1         : index (std::int32_t)                              *
+*     Field 19.1.2         : collectionID (std::uint32_t)                      *
+* Field 20                 : _BeamCalRecoParticles_particleIDUsed (std::vect...*
+*   Field 20.1             : _0 (podio::ObjectID)                              *
+*     Field 20.1.1         : index (std::int32_t)                              *
+*     Field 20.1.2         : collectionID (std::uint32_t)                      *
+* Field 21                 : BeamCalRecoParticles_particleIDs (std::vector<e...*
+*   Field 21.1             : _0 (edm4hep::ParticleIDData)                      *
+*     Field 21.1.1         : type (std::int32_t)                               *
+*     Field 21.1.2         : PDG (std::int32_t)                                *
+*     Field 21.1.3         : algorithmType (std::int32_t)                      *
+*     Field 21.1.4         : likelihood (float)                                *
+*     Field 21.1.5         : parameters_begin (std::uint32_t)                  *
+*     Field 21.1.6         : parameters_end (std::uint32_t)                    *
+* Field 22                 : _BeamCalRecoParticles_particleIDs_parameters (s...*
+*   Field 22.1             : _0 (float)                                        *
+* Field 23                 : BuildUpVertices (std::vector<edm4hep::VertexData>)*
+*   Field 23.1             : _0 (edm4hep::VertexData)                          *
+*     Field 23.1.1         : primary (std::int32_t)                            *
+*     Field 23.1.2         : chi2 (float)                                      *
+*     Field 23.1.3         : probability (float)                               *
+*     Field 23.1.4         : position (edm4hep::Vector3f)                      *
+*       Field 23.1.4.1     : x (float)                                         *
+*       Field 23.1.4.2     : y (float)                                         *
+*       Field 23.1.4.3     : z (float)                                         *
+*     Field 23.1.5         : covMatrix (std::array<float,6>)                   *
+*       Field 23.1.5.1     : _0 (float)                                        *
+*     Field 23.1.6         : algorithmType (std::int32_t)                      *
+*     Field 23.1.7         : parameters_begin (std::uint32_t)                  *
+*     Field 23.1.8         : parameters_end (std::uint32_t)                    *
+* Field 24                 : _BuildUpVertices_associatedParticle (std::vecto...*
+*   Field 24.1             : _0 (podio::ObjectID)                              *
+*     Field 24.1.1         : index (std::int32_t)                              *
+*     Field 24.1.2         : collectionID (std::uint32_t)                      *
+* Field 25                 : _BuildUpVertices_parameters (std::vector<float>)  *
+*   Field 25.1             : _0 (float)                                        *
+* Field 26                 : BuildUpVertices_RP (std::vector<edm4hep::Recons...*
+*   Field 26.1             : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 26.1.1         : type (std::int32_t)                               *
+*     Field 26.1.2         : energy (float)                                    *
+*     Field 26.1.3         : momentum (edm4hep::Vector3f)                      *
+*       Field 26.1.3.1     : x (float)                                         *
+*       Field 26.1.3.2     : y (float)                                         *
+*       Field 26.1.3.3     : z (float)                                         *
+*     Field 26.1.4         : referencePoint (edm4hep::Vector3f)                *
+*       Field 26.1.4.1     : x (float)                                         *
+*       Field 26.1.4.2     : y (float)                                         *
+*       Field 26.1.4.3     : z (float)                                         *
+*     Field 26.1.5         : charge (float)                                    *
+*     Field 26.1.6         : mass (float)                                      *
+*     Field 26.1.7         : goodnessOfPID (float)                             *
+*     Field 26.1.8         : covMatrix (std::array<float,10>)                  *
+*       Field 26.1.8.1     : _0 (float)                                        *
+*     Field 26.1.9         : clusters_begin (std::uint32_t)                    *
+*     Field 26.1.10        : clusters_end (std::uint32_t)                      *
+*     Field 26.1.11        : tracks_begin (std::uint32_t)                      *
+*     Field 26.1.12        : tracks_end (std::uint32_t)                        *
+*     Field 26.1.13        : particles_begin (std::uint32_t)                   *
+*     Field 26.1.14        : particles_end (std::uint32_t)                     *
+*     Field 26.1.15        : particleIDs_begin (std::uint32_t)                 *
+*     Field 26.1.16        : particleIDs_end (std::uint32_t)                   *
+* Field 27                 : _BuildUpVertices_RP_clusters (std::vector<podio...*
+*   Field 27.1             : _0 (podio::ObjectID)                              *
+*     Field 27.1.1         : index (std::int32_t)                              *
+*     Field 27.1.2         : collectionID (std::uint32_t)                      *
+* Field 28                 : _BuildUpVertices_RP_tracks (std::vector<podio::...*
+*   Field 28.1             : _0 (podio::ObjectID)                              *
+*     Field 28.1.1         : index (std::int32_t)                              *
+*     Field 28.1.2         : collectionID (std::uint32_t)                      *
+* Field 29                 : _BuildUpVertices_RP_particles (std::vector<podi...*
+*   Field 29.1             : _0 (podio::ObjectID)                              *
+*     Field 29.1.1         : index (std::int32_t)                              *
+*     Field 29.1.2         : collectionID (std::uint32_t)                      *
+* Field 30                 : _BuildUpVertices_RP_particleIDs (std::vector<po...*
+*   Field 30.1             : _0 (podio::ObjectID)                              *
+*     Field 30.1.1         : index (std::int32_t)                              *
+*     Field 30.1.2         : collectionID (std::uint32_t)                      *
+* Field 31                 : _BuildUpVertices_RP_startVertex (std::vector<po...*
+*   Field 31.1             : _0 (podio::ObjectID)                              *
+*     Field 31.1.1         : index (std::int32_t)                              *
+*     Field 31.1.2         : collectionID (std::uint32_t)                      *
+* Field 32                 : _BuildUpVertices_RP_particleIDUsed (std::vector...*
+*   Field 32.1             : _0 (podio::ObjectID)                              *
+*     Field 32.1.1         : index (std::int32_t)                              *
+*     Field 32.1.2         : collectionID (std::uint32_t)                      *
+* Field 33                 : BuildUpVertices_RP_particleIDs (std::vector<edm...*
+*   Field 33.1             : _0 (edm4hep::ParticleIDData)                      *
+*     Field 33.1.1         : type (std::int32_t)                               *
+*     Field 33.1.2         : PDG (std::int32_t)                                *
+*     Field 33.1.3         : algorithmType (std::int32_t)                      *
+*     Field 33.1.4         : likelihood (float)                                *
+*     Field 33.1.5         : parameters_begin (std::uint32_t)                  *
+*     Field 33.1.6         : parameters_end (std::uint32_t)                    *
+* Field 34                 : _BuildUpVertices_RP_particleIDs_parameters (std...*
+*   Field 34.1             : _0 (float)                                        *
+* Field 35                 : BuildUpVertices_V0 (std::vector<edm4hep::Vertex...*
+*   Field 35.1             : _0 (edm4hep::VertexData)                          *
+*     Field 35.1.1         : primary (std::int32_t)                            *
+*     Field 35.1.2         : chi2 (float)                                      *
+*     Field 35.1.3         : probability (float)                               *
+*     Field 35.1.4         : position (edm4hep::Vector3f)                      *
+*       Field 35.1.4.1     : x (float)                                         *
+*       Field 35.1.4.2     : y (float)                                         *
+*       Field 35.1.4.3     : z (float)                                         *
+*     Field 35.1.5         : covMatrix (std::array<float,6>)                   *
+*       Field 35.1.5.1     : _0 (float)                                        *
+*     Field 35.1.6         : algorithmType (std::int32_t)                      *
+*     Field 35.1.7         : parameters_begin (std::uint32_t)                  *
+*     Field 35.1.8         : parameters_end (std::uint32_t)                    *
+* Field 36                 : _BuildUpVertices_V0_associatedParticle (std::ve...*
+*   Field 36.1             : _0 (podio::ObjectID)                              *
+*     Field 36.1.1         : index (std::int32_t)                              *
+*     Field 36.1.2         : collectionID (std::uint32_t)                      *
+* Field 37                 : _BuildUpVertices_V0_parameters (std::vector<flo...*
+*   Field 37.1             : _0 (float)                                        *
+* Field 38                 : BuildUpVertices_V0_RP (std::vector<edm4hep::Rec...*
+*   Field 38.1             : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 38.1.1         : type (std::int32_t)                               *
+*     Field 38.1.2         : energy (float)                                    *
+*     Field 38.1.3         : momentum (edm4hep::Vector3f)                      *
+*       Field 38.1.3.1     : x (float)                                         *
+*       Field 38.1.3.2     : y (float)                                         *
+*       Field 38.1.3.3     : z (float)                                         *
+*     Field 38.1.4         : referencePoint (edm4hep::Vector3f)                *
+*       Field 38.1.4.1     : x (float)                                         *
+*       Field 38.1.4.2     : y (float)                                         *
+*       Field 38.1.4.3     : z (float)                                         *
+*     Field 38.1.5         : charge (float)                                    *
+*     Field 38.1.6         : mass (float)                                      *
+*     Field 38.1.7         : goodnessOfPID (float)                             *
+*     Field 38.1.8         : covMatrix (std::array<float,10>)                  *
+*       Field 38.1.8.1     : _0 (float)                                        *
+*     Field 38.1.9         : clusters_begin (std::uint32_t)                    *
+*     Field 38.1.10        : clusters_end (std::uint32_t)                      *
+*     Field 38.1.11        : tracks_begin (std::uint32_t)                      *
+*     Field 38.1.12        : tracks_end (std::uint32_t)                        *
+*     Field 38.1.13        : particles_begin (std::uint32_t)                   *
+*     Field 38.1.14        : particles_end (std::uint32_t)                     *
+*     Field 38.1.15        : particleIDs_begin (std::uint32_t)                 *
+*     Field 38.1.16        : particleIDs_end (std::uint32_t)                   *
+* Field 39                 : _BuildUpVertices_V0_RP_clusters (std::vector<po...*
+*   Field 39.1             : _0 (podio::ObjectID)                              *
+*     Field 39.1.1         : index (std::int32_t)                              *
+*     Field 39.1.2         : collectionID (std::uint32_t)                      *
+* Field 40                 : _BuildUpVertices_V0_RP_tracks (std::vector<podi...*
+*   Field 40.1             : _0 (podio::ObjectID)                              *
+*     Field 40.1.1         : index (std::int32_t)                              *
+*     Field 40.1.2         : collectionID (std::uint32_t)                      *
+* Field 41                 : _BuildUpVertices_V0_RP_particles (std::vector<p...*
+*   Field 41.1             : _0 (podio::ObjectID)                              *
+*     Field 41.1.1         : index (std::int32_t)                              *
+*     Field 41.1.2         : collectionID (std::uint32_t)                      *
+* Field 42                 : _BuildUpVertices_V0_RP_particleIDs (std::vector...*
+*   Field 42.1             : _0 (podio::ObjectID)                              *
+*     Field 42.1.1         : index (std::int32_t)                              *
+*     Field 42.1.2         : collectionID (std::uint32_t)                      *
+* Field 43                 : _BuildUpVertices_V0_RP_startVertex (std::vector...*
+*   Field 43.1             : _0 (podio::ObjectID)                              *
+*     Field 43.1.1         : index (std::int32_t)                              *
+*     Field 43.1.2         : collectionID (std::uint32_t)                      *
+* Field 44                 : _BuildUpVertices_V0_RP_particleIDUsed (std::vec...*
+*   Field 44.1             : _0 (podio::ObjectID)                              *
+*     Field 44.1.1         : index (std::int32_t)                              *
+*     Field 44.1.2         : collectionID (std::uint32_t)                      *
+* Field 45                 : BuildUpVertices_V0_RP_particleIDs (std::vector<...*
+*   Field 45.1             : _0 (edm4hep::ParticleIDData)                      *
+*     Field 45.1.1         : type (std::int32_t)                               *
+*     Field 45.1.2         : PDG (std::int32_t)                                *
+*     Field 45.1.3         : algorithmType (std::int32_t)                      *
+*     Field 45.1.4         : likelihood (float)                                *
+*     Field 45.1.5         : parameters_begin (std::uint32_t)                  *
+*     Field 45.1.6         : parameters_end (std::uint32_t)                    *
+* Field 46                 : _BuildUpVertices_V0_RP_particleIDs_parameters (...*
+*   Field 46.1             : _0 (float)                                        *
+* Field 47                 : DebugHits_objIdx (std::vector<podio::ObjectID>)   *
+*   Field 47.1             : _0 (podio::ObjectID)                              *
+*     Field 47.1.1         : index (std::int32_t)                              *
+*     Field 47.1.2         : collectionID (std::uint32_t)                      *
+* Field 48                 : ECALBarrel (std::vector<edm4hep::CalorimeterHit...*
+*   Field 48.1             : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 48.1.1         : cellID (std::uint64_t)                            *
+*     Field 48.1.2         : energy (float)                                    *
+*     Field 48.1.3         : energyError (float)                               *
+*     Field 48.1.4         : time (float)                                      *
+*     Field 48.1.5         : position (edm4hep::Vector3f)                      *
+*       Field 48.1.5.1     : x (float)                                         *
+*       Field 48.1.5.2     : y (float)                                         *
+*       Field 48.1.5.3     : z (float)                                         *
+*     Field 48.1.6         : type (std::int32_t)                               *
+* Field 49                 : ECalBarrelCollection (std::vector<edm4hep::SimC...*
+*   Field 49.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 49.1.1         : cellID (std::uint64_t)                            *
+*     Field 49.1.2         : energy (float)                                    *
+*     Field 49.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 49.1.3.1     : x (float)                                         *
+*       Field 49.1.3.2     : y (float)                                         *
+*       Field 49.1.3.3     : z (float)                                         *
+*     Field 49.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 49.1.5         : contributions_end (std::uint32_t)                 *
+* Field 50                 : _ECalBarrelCollection_contributions (std::vecto...*
+*   Field 50.1             : _0 (podio::ObjectID)                              *
+*     Field 50.1.1         : index (std::int32_t)                              *
+*     Field 50.1.2         : collectionID (std::uint32_t)                      *
+* Field 51                 : ECALEndcap (std::vector<edm4hep::CalorimeterHit...*
+*   Field 51.1             : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 51.1.1         : cellID (std::uint64_t)                            *
+*     Field 51.1.2         : energy (float)                                    *
+*     Field 51.1.3         : energyError (float)                               *
+*     Field 51.1.4         : time (float)                                      *
+*     Field 51.1.5         : position (edm4hep::Vector3f)                      *
+*       Field 51.1.5.1     : x (float)                                         *
+*       Field 51.1.5.2     : y (float)                                         *
+*       Field 51.1.5.3     : z (float)                                         *
+*     Field 51.1.6         : type (std::int32_t)                               *
+* Field 52                 : ECalEndcapCollection (std::vector<edm4hep::SimC...*
+*   Field 52.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 52.1.1         : cellID (std::uint64_t)                            *
+*     Field 52.1.2         : energy (float)                                    *
+*     Field 52.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 52.1.3.1     : x (float)                                         *
+*       Field 52.1.3.2     : y (float)                                         *
+*       Field 52.1.3.3     : z (float)                                         *
+*     Field 52.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 52.1.5         : contributions_end (std::uint32_t)                 *
+* Field 53                 : _ECalEndcapCollection_contributions (std::vecto...*
+*   Field 53.1             : _0 (podio::ObjectID)                              *
+*     Field 53.1.1         : index (std::int32_t)                              *
+*     Field 53.1.2         : collectionID (std::uint32_t)                      *
+* Field 54                 : ECALOther (std::vector<edm4hep::CalorimeterHitD...*
+*   Field 54.1             : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 54.1.1         : cellID (std::uint64_t)                            *
+*     Field 54.1.2         : energy (float)                                    *
+*     Field 54.1.3         : energyError (float)                               *
+*     Field 54.1.4         : time (float)                                      *
+*     Field 54.1.5         : position (edm4hep::Vector3f)                      *
+*       Field 54.1.5.1     : x (float)                                         *
+*       Field 54.1.5.2     : y (float)                                         *
+*       Field 54.1.5.3     : z (float)                                         *
+*     Field 54.1.6         : type (std::int32_t)                               *
+* Field 55                 : ECalPlugCollection (std::vector<edm4hep::SimCal...*
+*   Field 55.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 55.1.1         : cellID (std::uint64_t)                            *
+*     Field 55.1.2         : energy (float)                                    *
+*     Field 55.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 55.1.3.1     : x (float)                                         *
+*       Field 55.1.3.2     : y (float)                                         *
+*       Field 55.1.3.3     : z (float)                                         *
+*     Field 55.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 55.1.5         : contributions_end (std::uint32_t)                 *
+* Field 56                 : _ECalPlugCollection_contributions (std::vector<...*
+*   Field 56.1             : _0 (podio::ObjectID)                              *
+*     Field 56.1.1         : index (std::int32_t)                              *
+*     Field 56.1.2         : collectionID (std::uint32_t)                      *
+* Field 57                 : EventHeader (std::vector<edm4hep::EventHeaderDa...*
+*   Field 57.1             : _0 (edm4hep::EventHeaderData)                     *
+*     Field 57.1.1         : eventNumber (std::int32_t)                        *
+*     Field 57.1.2         : runNumber (std::int32_t)                          *
+*     Field 57.1.3         : timeStamp (std::uint64_t)                         *
+*     Field 57.1.4         : weight (float)                                    *
+* Field 58                 : HCALBarrel (std::vector<edm4hep::CalorimeterHit...*
+*   Field 58.1             : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 58.1.1         : cellID (std::uint64_t)                            *
+*     Field 58.1.2         : energy (float)                                    *
+*     Field 58.1.3         : energyError (float)                               *
+*     Field 58.1.4         : time (float)                                      *
+*     Field 58.1.5         : position (edm4hep::Vector3f)                      *
+*       Field 58.1.5.1     : x (float)                                         *
+*       Field 58.1.5.2     : y (float)                                         *
+*       Field 58.1.5.3     : z (float)                                         *
+*     Field 58.1.6         : type (std::int32_t)                               *
+* Field 59                 : HCalBarrelCollection (std::vector<edm4hep::SimC...*
+*   Field 59.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 59.1.1         : cellID (std::uint64_t)                            *
+*     Field 59.1.2         : energy (float)                                    *
+*     Field 59.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 59.1.3.1     : x (float)                                         *
+*       Field 59.1.3.2     : y (float)                                         *
+*       Field 59.1.3.3     : z (float)                                         *
+*     Field 59.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 59.1.5         : contributions_end (std::uint32_t)                 *
+* Field 60                 : _HCalBarrelCollection_contributions (std::vecto...*
+*   Field 60.1             : _0 (podio::ObjectID)                              *
+*     Field 60.1.1         : index (std::int32_t)                              *
+*     Field 60.1.2         : collectionID (std::uint32_t)                      *
+* Field 61                 : HCALEndcap (std::vector<edm4hep::CalorimeterHit...*
+*   Field 61.1             : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 61.1.1         : cellID (std::uint64_t)                            *
+*     Field 61.1.2         : energy (float)                                    *
+*     Field 61.1.3         : energyError (float)                               *
+*     Field 61.1.4         : time (float)                                      *
+*     Field 61.1.5         : position (edm4hep::Vector3f)                      *
+*       Field 61.1.5.1     : x (float)                                         *
+*       Field 61.1.5.2     : y (float)                                         *
+*       Field 61.1.5.3     : z (float)                                         *
+*     Field 61.1.6         : type (std::int32_t)                               *
+* Field 62                 : HCalEndcapCollection (std::vector<edm4hep::SimC...*
+*   Field 62.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 62.1.1         : cellID (std::uint64_t)                            *
+*     Field 62.1.2         : energy (float)                                    *
+*     Field 62.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 62.1.3.1     : x (float)                                         *
+*       Field 62.1.3.2     : y (float)                                         *
+*       Field 62.1.3.3     : z (float)                                         *
+*     Field 62.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 62.1.5         : contributions_end (std::uint32_t)                 *
+* Field 63                 : _HCalEndcapCollection_contributions (std::vecto...*
+*   Field 63.1             : _0 (podio::ObjectID)                              *
+*     Field 63.1.1         : index (std::int32_t)                              *
+*     Field 63.1.2         : collectionID (std::uint32_t)                      *
+* Field 64                 : HCALOther (std::vector<edm4hep::CalorimeterHitD...*
+*   Field 64.1             : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 64.1.1         : cellID (std::uint64_t)                            *
+*     Field 64.1.2         : energy (float)                                    *
+*     Field 64.1.3         : energyError (float)                               *
+*     Field 64.1.4         : time (float)                                      *
+*     Field 64.1.5         : position (edm4hep::Vector3f)                      *
+*       Field 64.1.5.1     : x (float)                                         *
+*       Field 64.1.5.2     : y (float)                                         *
+*       Field 64.1.5.3     : z (float)                                         *
+*     Field 64.1.6         : type (std::int32_t)                               *
+* Field 65                 : HCalRingCollection (std::vector<edm4hep::SimCal...*
+*   Field 65.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 65.1.1         : cellID (std::uint64_t)                            *
+*     Field 65.1.2         : energy (float)                                    *
+*     Field 65.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 65.1.3.1     : x (float)                                         *
+*       Field 65.1.3.2     : y (float)                                         *
+*       Field 65.1.3.3     : z (float)                                         *
+*     Field 65.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 65.1.5         : contributions_end (std::uint32_t)                 *
+* Field 66                 : _HCalRingCollection_contributions (std::vector<...*
+*   Field 66.1             : _0 (podio::ObjectID)                              *
+*     Field 66.1.1         : index (std::int32_t)                              *
+*     Field 66.1.2         : collectionID (std::uint32_t)                      *
+* Field 67                 : InnerTrackerBarrelCollection (std::vector<edm4h...*
+*   Field 67.1             : _0 (edm4hep::SimTrackerHitData)                   *
+*     Field 67.1.1         : cellID (std::uint64_t)                            *
+*     Field 67.1.2         : EDep (float)                                      *
+*     Field 67.1.3         : time (float)                                      *
+*     Field 67.1.4         : pathLength (float)                                *
+*     Field 67.1.5         : quality (std::int32_t)                            *
+*     Field 67.1.6         : position (edm4hep::Vector3d)                      *
+*       Field 67.1.6.1     : x (double)                                        *
+*       Field 67.1.6.2     : y (double)                                        *
+*       Field 67.1.6.3     : z (double)                                        *
+*     Field 67.1.7         : momentum (edm4hep::Vector3f)                      *
+*       Field 67.1.7.1     : x (float)                                         *
+*       Field 67.1.7.2     : y (float)                                         *
+*       Field 67.1.7.3     : z (float)                                         *
+* Field 68                 : _InnerTrackerBarrelCollection_MCParticle (std::...*
+*   Field 68.1             : _0 (podio::ObjectID)                              *
+*     Field 68.1.1         : index (std::int32_t)                              *
+*     Field 68.1.2         : collectionID (std::uint32_t)                      *
+* Field 69                 : InnerTrackerBarrelHitsRelations (std::vector<ed...*
+*   Field 69.1             : _0 (edm4hep::MCRecoTrackerHitPlaneAssociationData)*
+*     Field 69.1.1         : weight (float)                                    *
+* Field 70                 : _InnerTrackerBarrelHitsRelations_rec (std::vect...*
+*   Field 70.1             : _0 (podio::ObjectID)                              *
+*     Field 70.1.1         : index (std::int32_t)                              *
+*     Field 70.1.2         : collectionID (std::uint32_t)                      *
+* Field 71                 : _InnerTrackerBarrelHitsRelations_sim (std::vect...*
+*   Field 71.1             : _0 (podio::ObjectID)                              *
+*     Field 71.1.1         : index (std::int32_t)                              *
+*     Field 71.1.2         : collectionID (std::uint32_t)                      *
+* Field 72                 : InnerTrackerEndcapCollection (std::vector<edm4h...*
+*   Field 72.1             : _0 (edm4hep::SimTrackerHitData)                   *
+*     Field 72.1.1         : cellID (std::uint64_t)                            *
+*     Field 72.1.2         : EDep (float)                                      *
+*     Field 72.1.3         : time (float)                                      *
+*     Field 72.1.4         : pathLength (float)                                *
+*     Field 72.1.5         : quality (std::int32_t)                            *
+*     Field 72.1.6         : position (edm4hep::Vector3d)                      *
+*       Field 72.1.6.1     : x (double)                                        *
+*       Field 72.1.6.2     : y (double)                                        *
+*       Field 72.1.6.3     : z (double)                                        *
+*     Field 72.1.7         : momentum (edm4hep::Vector3f)                      *
+*       Field 72.1.7.1     : x (float)                                         *
+*       Field 72.1.7.2     : y (float)                                         *
+*       Field 72.1.7.3     : z (float)                                         *
+* Field 73                 : _InnerTrackerEndcapCollection_MCParticle (std::...*
+*   Field 73.1             : _0 (podio::ObjectID)                              *
+*     Field 73.1.1         : index (std::int32_t)                              *
+*     Field 73.1.2         : collectionID (std::uint32_t)                      *
+* Field 74                 : InnerTrackerEndcapHitsRelations (std::vector<ed...*
+*   Field 74.1             : _0 (edm4hep::MCRecoTrackerHitPlaneAssociationData)*
+*     Field 74.1.1         : weight (float)                                    *
+* Field 75                 : _InnerTrackerEndcapHitsRelations_rec (std::vect...*
+*   Field 75.1             : _0 (podio::ObjectID)                              *
+*     Field 75.1.1         : index (std::int32_t)                              *
+*     Field 75.1.2         : collectionID (std::uint32_t)                      *
+* Field 76                 : _InnerTrackerEndcapHitsRelations_sim (std::vect...*
+*   Field 76.1             : _0 (podio::ObjectID)                              *
+*     Field 76.1.1         : index (std::int32_t)                              *
+*     Field 76.1.2         : collectionID (std::uint32_t)                      *
+* Field 77                 : ITrackerEndcapHits (std::vector<edm4hep::Tracke...*
+*   Field 77.1             : _0 (edm4hep::TrackerHitPlaneData)                 *
+*     Field 77.1.1         : cellID (std::uint64_t)                            *
+*     Field 77.1.2         : type (std::int32_t)                               *
+*     Field 77.1.3         : quality (std::int32_t)                            *
+*     Field 77.1.4         : time (float)                                      *
+*     Field 77.1.5         : eDep (float)                                      *
+*     Field 77.1.6         : eDepError (float)                                 *
+*     Field 77.1.7         : u (edm4hep::Vector2f)                             *
+*       Field 77.1.7.1     : a (float)                                         *
+*       Field 77.1.7.2     : b (float)                                         *
+*     Field 77.1.8         : v (edm4hep::Vector2f)                             *
+*       Field 77.1.8.1     : a (float)                                         *
+*       Field 77.1.8.2     : b (float)                                         *
+*     Field 77.1.9         : du (float)                                        *
+*     Field 77.1.10        : dv (float)                                        *
+*     Field 77.1.11        : position (edm4hep::Vector3d)                      *
+*       Field 77.1.11.1    : x (double)                                        *
+*       Field 77.1.11.2    : y (double)                                        *
+*       Field 77.1.11.3    : z (double)                                        *
+*     Field 77.1.12        : covMatrix (std::array<float,6>)                   *
+*       Field 77.1.12.1    : _0 (float)                                        *
+*     Field 77.1.13        : rawHits_begin (std::uint32_t)                     *
+*     Field 77.1.14        : rawHits_end (std::uint32_t)                       *
+* Field 78                 : _ITrackerEndcapHits_rawHits (std::vector<edm4he...*
+*   Field 78.1             : _0 (edm4hep::ObjectID)                            *
+*     Field 78.1.1         : index (std::int32_t)                              *
+*     Field 78.1.2         : collectionID (std::int32_t)                       *
+* Field 79                 : ITrackerHits (std::vector<edm4hep::TrackerHitPl...*
+*   Field 79.1             : _0 (edm4hep::TrackerHitPlaneData)                 *
+*     Field 79.1.1         : cellID (std::uint64_t)                            *
+*     Field 79.1.2         : type (std::int32_t)                               *
+*     Field 79.1.3         : quality (std::int32_t)                            *
+*     Field 79.1.4         : time (float)                                      *
+*     Field 79.1.5         : eDep (float)                                      *
+*     Field 79.1.6         : eDepError (float)                                 *
+*     Field 79.1.7         : u (edm4hep::Vector2f)                             *
+*       Field 79.1.7.1     : a (float)                                         *
+*       Field 79.1.7.2     : b (float)                                         *
+*     Field 79.1.8         : v (edm4hep::Vector2f)                             *
+*       Field 79.1.8.1     : a (float)                                         *
+*       Field 79.1.8.2     : b (float)                                         *
+*     Field 79.1.9         : du (float)                                        *
+*     Field 79.1.10        : dv (float)                                        *
+*     Field 79.1.11        : position (edm4hep::Vector3d)                      *
+*       Field 79.1.11.1    : x (double)                                        *
+*       Field 79.1.11.2    : y (double)                                        *
+*       Field 79.1.11.3    : z (double)                                        *
+*     Field 79.1.12        : covMatrix (std::array<float,6>)                   *
+*       Field 79.1.12.1    : _0 (float)                                        *
+*     Field 79.1.13        : rawHits_begin (std::uint32_t)                     *
+*     Field 79.1.14        : rawHits_end (std::uint32_t)                       *
+* Field 80                 : _ITrackerHits_rawHits (std::vector<edm4hep::Obj...*
+*   Field 80.1             : _0 (edm4hep::ObjectID)                            *
+*     Field 80.1.1         : index (std::int32_t)                              *
+*     Field 80.1.2         : collectionID (std::int32_t)                       *
+* Field 81                 : LE_LooseSelectedPandoraPFOs_objIdx (std::vector...*
+*   Field 81.1             : _0 (podio::ObjectID)                              *
+*     Field 81.1.1         : index (std::int32_t)                              *
+*     Field 81.1.2         : collectionID (std::uint32_t)                      *
+* Field 82                 : LE_SelectedPandoraPFOs_objIdx (std::vector<podi...*
+*   Field 82.1             : _0 (podio::ObjectID)                              *
+*     Field 82.1.1         : index (std::int32_t)                              *
+*     Field 82.1.2         : collectionID (std::uint32_t)                      *
+* Field 83                 : LE_TightSelectedPandoraPFOs_objIdx (std::vector...*
+*   Field 83.1             : _0 (podio::ObjectID)                              *
+*     Field 83.1.1         : index (std::int32_t)                              *
+*     Field 83.1.2         : collectionID (std::uint32_t)                      *
+* Field 84                 : LooseSelectedPandoraPFOs_objIdx (std::vector<po...*
+*   Field 84.1             : _0 (podio::ObjectID)                              *
+*     Field 84.1.1         : index (std::int32_t)                              *
+*     Field 84.1.2         : collectionID (std::uint32_t)                      *
+* Field 85                 : LumiCal_Hits (std::vector<edm4hep::CalorimeterH...*
+*   Field 85.1             : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 85.1.1         : cellID (std::uint64_t)                            *
+*     Field 85.1.2         : energy (float)                                    *
+*     Field 85.1.3         : energyError (float)                               *
+*     Field 85.1.4         : time (float)                                      *
+*     Field 85.1.5         : position (edm4hep::Vector3f)                      *
+*       Field 85.1.5.1     : x (float)                                         *
+*       Field 85.1.5.2     : y (float)                                         *
+*       Field 85.1.5.3     : z (float)                                         *
+*     Field 85.1.6         : type (std::int32_t)                               *
+* Field 86                 : LumiCalClusters (std::vector<edm4hep::ClusterDa...*
+*   Field 86.1             : _0 (edm4hep::ClusterData)                         *
+*     Field 86.1.1         : type (std::int32_t)                               *
+*     Field 86.1.2         : energy (float)                                    *
+*     Field 86.1.3         : energyError (float)                               *
+*     Field 86.1.4         : position (edm4hep::Vector3f)                      *
+*       Field 86.1.4.1     : x (float)                                         *
+*       Field 86.1.4.2     : y (float)                                         *
+*       Field 86.1.4.3     : z (float)                                         *
+*     Field 86.1.5         : positionError (std::array<float,6>)               *
+*       Field 86.1.5.1     : _0 (float)                                        *
+*     Field 86.1.6         : iTheta (float)                                    *
+*     Field 86.1.7         : phi (float)                                       *
+*     Field 86.1.8         : directionError (edm4hep::Vector3f)                *
+*       Field 86.1.8.1     : x (float)                                         *
+*       Field 86.1.8.2     : y (float)                                         *
+*       Field 86.1.8.3     : z (float)                                         *
+*     Field 86.1.9         : shapeParameters_begin (std::uint32_t)             *
+*     Field 86.1.10        : shapeParameters_end (std::uint32_t)               *
+*     Field 86.1.11        : subdetectorEnergies_begin (std::uint32_t)         *
+*     Field 86.1.12        : subdetectorEnergies_end (std::uint32_t)           *
+*     Field 86.1.13        : clusters_begin (std::uint32_t)                    *
+*     Field 86.1.14        : clusters_end (std::uint32_t)                      *
+*     Field 86.1.15        : hits_begin (std::uint32_t)                        *
+*     Field 86.1.16        : hits_end (std::uint32_t)                          *
+*     Field 86.1.17        : particleIDs_begin (std::uint32_t)                 *
+*     Field 86.1.18        : particleIDs_end (std::uint32_t)                   *
+* Field 87                 : _LumiCalClusters_clusters (std::vector<podio::O...*
+*   Field 87.1             : _0 (podio::ObjectID)                              *
+*     Field 87.1.1         : index (std::int32_t)                              *
+*     Field 87.1.2         : collectionID (std::uint32_t)                      *
+* Field 88                 : _LumiCalClusters_hits (std::vector<podio::Objec...*
+*   Field 88.1             : _0 (podio::ObjectID)                              *
+*     Field 88.1.1         : index (std::int32_t)                              *
+*     Field 88.1.2         : collectionID (std::uint32_t)                      *
+* Field 89                 : _LumiCalClusters_particleIDs (std::vector<podio...*
+*   Field 89.1             : _0 (podio::ObjectID)                              *
+*     Field 89.1.1         : index (std::int32_t)                              *
+*     Field 89.1.2         : collectionID (std::uint32_t)                      *
+* Field 90                 : _LumiCalClusters_shapeParameters (std::vector<f...*
+*   Field 90.1             : _0 (float)                                        *
+* Field 91                 : _LumiCalClusters_subdetectorEnergies (std::vect...*
+*   Field 91.1             : _0 (float)                                        *
+* Field 92                 : LumiCalClusters_particleIDs (std::vector<edm4he...*
+*   Field 92.1             : _0 (edm4hep::ParticleIDData)                      *
+*     Field 92.1.1         : type (std::int32_t)                               *
+*     Field 92.1.2         : PDG (std::int32_t)                                *
+*     Field 92.1.3         : algorithmType (std::int32_t)                      *
+*     Field 92.1.4         : likelihood (float)                                *
+*     Field 92.1.5         : parameters_begin (std::uint32_t)                  *
+*     Field 92.1.6         : parameters_end (std::uint32_t)                    *
+* Field 93                 : _LumiCalClusters_particleIDs_parameters (std::v...*
+*   Field 93.1             : _0 (float)                                        *
+* Field 94                 : LumiCalCollection (std::vector<edm4hep::SimCalo...*
+*   Field 94.1             : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 94.1.1         : cellID (std::uint64_t)                            *
+*     Field 94.1.2         : energy (float)                                    *
+*     Field 94.1.3         : position (edm4hep::Vector3f)                      *
+*       Field 94.1.3.1     : x (float)                                         *
+*       Field 94.1.3.2     : y (float)                                         *
+*       Field 94.1.3.3     : z (float)                                         *
+*     Field 94.1.4         : contributions_begin (std::uint32_t)               *
+*     Field 94.1.5         : contributions_end (std::uint32_t)                 *
+* Field 95                 : _LumiCalCollection_contributions (std::vector<p...*
+*   Field 95.1             : _0 (podio::ObjectID)                              *
+*     Field 95.1.1         : index (std::int32_t)                              *
+*     Field 95.1.2         : collectionID (std::uint32_t)                      *
+* Field 96                 : LumiCalRecoParticles (std::vector<edm4hep::Reco...*
+*   Field 96.1             : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 96.1.1         : type (std::int32_t)                               *
+*     Field 96.1.2         : energy (float)                                    *
+*     Field 96.1.3         : momentum (edm4hep::Vector3f)                      *
+*       Field 96.1.3.1     : x (float)                                         *
+*       Field 96.1.3.2     : y (float)                                         *
+*       Field 96.1.3.3     : z (float)                                         *
+*     Field 96.1.4         : referencePoint (edm4hep::Vector3f)                *
+*       Field 96.1.4.1     : x (float)                                         *
+*       Field 96.1.4.2     : y (float)                                         *
+*       Field 96.1.4.3     : z (float)                                         *
+*     Field 96.1.5         : charge (float)                                    *
+*     Field 96.1.6         : mass (float)                                      *
+*     Field 96.1.7         : goodnessOfPID (float)                             *
+*     Field 96.1.8         : covMatrix (std::array<float,10>)                  *
+*       Field 96.1.8.1     : _0 (float)                                        *
+*     Field 96.1.9         : clusters_begin (std::uint32_t)                    *
+*     Field 96.1.10        : clusters_end (std::uint32_t)                      *
+*     Field 96.1.11        : tracks_begin (std::uint32_t)                      *
+*     Field 96.1.12        : tracks_end (std::uint32_t)                        *
+*     Field 96.1.13        : particles_begin (std::uint32_t)                   *
+*     Field 96.1.14        : particles_end (std::uint32_t)                     *
+*     Field 96.1.15        : particleIDs_begin (std::uint32_t)                 *
+*     Field 96.1.16        : particleIDs_end (std::uint32_t)                   *
+* Field 97                 : _LumiCalRecoParticles_clusters (std::vector<pod...*
+*   Field 97.1             : _0 (podio::ObjectID)                              *
+*     Field 97.1.1         : index (std::int32_t)                              *
+*     Field 97.1.2         : collectionID (std::uint32_t)                      *
+* Field 98                 : _LumiCalRecoParticles_tracks (std::vector<podio...*
+*   Field 98.1             : _0 (podio::ObjectID)                              *
+*     Field 98.1.1         : index (std::int32_t)                              *
+*     Field 98.1.2         : collectionID (std::uint32_t)                      *
+* Field 99                 : _LumiCalRecoParticles_particles (std::vector<po...*
+*   Field 99.1             : _0 (podio::ObjectID)                              *
+*     Field 99.1.1         : index (std::int32_t)                              *
+*     Field 99.1.2         : collectionID (std::uint32_t)                      *
+* Field 100                : _LumiCalRecoParticles_particleIDs (std::vector<...*
+*   Field 100.1            : _0 (podio::ObjectID)                              *
+*     Field 100.1.1        : index (std::int32_t)                              *
+*     Field 100.1.2        : collectionID (std::uint32_t)                      *
+* Field 101                : _LumiCalRecoParticles_startVertex (std::vector<...*
+*   Field 101.1            : _0 (podio::ObjectID)                              *
+*     Field 101.1.1        : index (std::int32_t)                              *
+*     Field 101.1.2        : collectionID (std::uint32_t)                      *
+* Field 102                : _LumiCalRecoParticles_particleIDUsed (std::vect...*
+*   Field 102.1            : _0 (podio::ObjectID)                              *
+*     Field 102.1.1        : index (std::int32_t)                              *
+*     Field 102.1.2        : collectionID (std::uint32_t)                      *
+* Field 103                : LumiCalRecoParticles_particleIDs (std::vector<e...*
+*   Field 103.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 103.1.1        : type (std::int32_t)                               *
+*     Field 103.1.2        : PDG (std::int32_t)                                *
+*     Field 103.1.3        : algorithmType (std::int32_t)                      *
+*     Field 103.1.4        : likelihood (float)                                *
+*     Field 103.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 103.1.6        : parameters_end (std::uint32_t)                    *
+* Field 104                : _LumiCalRecoParticles_particleIDs_parameters (s...*
+*   Field 104.1            : _0 (float)                                        *
+* Field 105                : MCParticle (std::vector<edm4hep::MCParticleData>) *
+*   Field 105.1            : _0 (edm4hep::MCParticleData)                      *
+*     Field 105.1.1        : PDG (std::int32_t)                                *
+*     Field 105.1.2        : generatorStatus (std::int32_t)                    *
+*     Field 105.1.3        : simulatorStatus (std::int32_t)                    *
+*     Field 105.1.4        : charge (float)                                    *
+*     Field 105.1.5        : time (float)                                      *
+*     Field 105.1.6        : mass (double)                                     *
+*     Field 105.1.7        : vertex (edm4hep::Vector3d)                        *
+*       Field 105.1.7.1    : x (double)                                        *
+*       Field 105.1.7.2    : y (double)                                        *
+*       Field 105.1.7.3    : z (double)                                        *
+*     Field 105.1.8        : endpoint (edm4hep::Vector3d)                      *
+*       Field 105.1.8.1    : x (double)                                        *
+*       Field 105.1.8.2    : y (double)                                        *
+*       Field 105.1.8.3    : z (double)                                        *
+*     Field 105.1.9        : momentum (edm4hep::Vector3f)                      *
+*       Field 105.1.9.1    : x (float)                                         *
+*       Field 105.1.9.2    : y (float)                                         *
+*       Field 105.1.9.3    : z (float)                                         *
+*     Field 105.1.10       : momentumAtEndpoint (edm4hep::Vector3f)            *
+*       Field 105.1.10.1   : x (float)                                         *
+*       Field 105.1.10.2   : y (float)                                         *
+*       Field 105.1.10.3   : z (float)                                         *
+*     Field 105.1.11       : spin (edm4hep::Vector3f)                          *
+*       Field 105.1.11.1   : x (float)                                         *
+*       Field 105.1.11.2   : y (float)                                         *
+*       Field 105.1.11.3   : z (float)                                         *
+*     Field 105.1.12       : colorFlow (edm4hep::Vector2i)                     *
+*       Field 105.1.12.1   : a (std::int32_t)                                  *
+*       Field 105.1.12.2   : b (std::int32_t)                                  *
+*     Field 105.1.13       : parents_begin (std::uint32_t)                     *
+*     Field 105.1.14       : parents_end (std::uint32_t)                       *
+*     Field 105.1.15       : daughters_begin (std::uint32_t)                   *
+*     Field 105.1.16       : daughters_end (std::uint32_t)                     *
+* Field 106                : _MCParticle_parents (std::vector<podio::ObjectID>)*
+*   Field 106.1            : _0 (podio::ObjectID)                              *
+*     Field 106.1.1        : index (std::int32_t)                              *
+*     Field 106.1.2        : collectionID (std::uint32_t)                      *
+* Field 107                : _MCParticle_daughters (std::vector<podio::Objec...*
+*   Field 107.1            : _0 (podio::ObjectID)                              *
+*     Field 107.1.1        : index (std::int32_t)                              *
+*     Field 107.1.2        : collectionID (std::uint32_t)                      *
+* Field 108                : MergedClusters_objIdx (std::vector<podio::Objec...*
+*   Field 108.1            : _0 (podio::ObjectID)                              *
+*     Field 108.1.1        : index (std::int32_t)                              *
+*     Field 108.1.2        : collectionID (std::uint32_t)                      *
+* Field 109                : MergedRecoParticles_objIdx (std::vector<podio::...*
+*   Field 109.1            : _0 (podio::ObjectID)                              *
+*     Field 109.1.1        : index (std::int32_t)                              *
+*     Field 109.1.2        : collectionID (std::uint32_t)                      *
+* Field 110                : MUON (std::vector<edm4hep::CalorimeterHitData>)   *
+*   Field 110.1            : _0 (edm4hep::CalorimeterHitData)                  *
+*     Field 110.1.1        : cellID (std::uint64_t)                            *
+*     Field 110.1.2        : energy (float)                                    *
+*     Field 110.1.3        : energyError (float)                               *
+*     Field 110.1.4        : time (float)                                      *
+*     Field 110.1.5        : position (edm4hep::Vector3f)                      *
+*       Field 110.1.5.1    : x (float)                                         *
+*       Field 110.1.5.2    : y (float)                                         *
+*       Field 110.1.5.3    : z (float)                                         *
+*     Field 110.1.6        : type (std::int32_t)                               *
+* Field 111                : OTrackerEndcapHits (std::vector<edm4hep::Tracke...*
+*   Field 111.1            : _0 (edm4hep::TrackerHitPlaneData)                 *
+*     Field 111.1.1        : cellID (std::uint64_t)                            *
+*     Field 111.1.2        : type (std::int32_t)                               *
+*     Field 111.1.3        : quality (std::int32_t)                            *
+*     Field 111.1.4        : time (float)                                      *
+*     Field 111.1.5        : eDep (float)                                      *
+*     Field 111.1.6        : eDepError (float)                                 *
+*     Field 111.1.7        : u (edm4hep::Vector2f)                             *
+*       Field 111.1.7.1    : a (float)                                         *
+*       Field 111.1.7.2    : b (float)                                         *
+*     Field 111.1.8        : v (edm4hep::Vector2f)                             *
+*       Field 111.1.8.1    : a (float)                                         *
+*       Field 111.1.8.2    : b (float)                                         *
+*     Field 111.1.9        : du (float)                                        *
+*     Field 111.1.10       : dv (float)                                        *
+*     Field 111.1.11       : position (edm4hep::Vector3d)                      *
+*       Field 111.1.11.1   : x (double)                                        *
+*       Field 111.1.11.2   : y (double)                                        *
+*       Field 111.1.11.3   : z (double)                                        *
+*     Field 111.1.12       : covMatrix (std::array<float,6>)                   *
+*       Field 111.1.12.1   : _0 (float)                                        *
+*     Field 111.1.13       : rawHits_begin (std::uint32_t)                     *
+*     Field 111.1.14       : rawHits_end (std::uint32_t)                       *
+* Field 112                : _OTrackerEndcapHits_rawHits (std::vector<edm4he...*
+*   Field 112.1            : _0 (edm4hep::ObjectID)                            *
+*     Field 112.1.1        : index (std::int32_t)                              *
+*     Field 112.1.2        : collectionID (std::int32_t)                       *
+* Field 113                : OTrackerHits (std::vector<edm4hep::TrackerHitPl...*
+*   Field 113.1            : _0 (edm4hep::TrackerHitPlaneData)                 *
+*     Field 113.1.1        : cellID (std::uint64_t)                            *
+*     Field 113.1.2        : type (std::int32_t)                               *
+*     Field 113.1.3        : quality (std::int32_t)                            *
+*     Field 113.1.4        : time (float)                                      *
+*     Field 113.1.5        : eDep (float)                                      *
+*     Field 113.1.6        : eDepError (float)                                 *
+*     Field 113.1.7        : u (edm4hep::Vector2f)                             *
+*       Field 113.1.7.1    : a (float)                                         *
+*       Field 113.1.7.2    : b (float)                                         *
+*     Field 113.1.8        : v (edm4hep::Vector2f)                             *
+*       Field 113.1.8.1    : a (float)                                         *
+*       Field 113.1.8.2    : b (float)                                         *
+*     Field 113.1.9        : du (float)                                        *
+*     Field 113.1.10       : dv (float)                                        *
+*     Field 113.1.11       : position (edm4hep::Vector3d)                      *
+*       Field 113.1.11.1   : x (double)                                        *
+*       Field 113.1.11.2   : y (double)                                        *
+*       Field 113.1.11.3   : z (double)                                        *
+*     Field 113.1.12       : covMatrix (std::array<float,6>)                   *
+*       Field 113.1.12.1   : _0 (float)                                        *
+*     Field 113.1.13       : rawHits_begin (std::uint32_t)                     *
+*     Field 113.1.14       : rawHits_end (std::uint32_t)                       *
+* Field 114                : _OTrackerHits_rawHits (std::vector<edm4hep::Obj...*
+*   Field 114.1            : _0 (edm4hep::ObjectID)                            *
+*     Field 114.1.1        : index (std::int32_t)                              *
+*     Field 114.1.2        : collectionID (std::int32_t)                       *
+* Field 115                : OuterTrackerBarrelCollection (std::vector<edm4h...*
+*   Field 115.1            : _0 (edm4hep::SimTrackerHitData)                   *
+*     Field 115.1.1        : cellID (std::uint64_t)                            *
+*     Field 115.1.2        : EDep (float)                                      *
+*     Field 115.1.3        : time (float)                                      *
+*     Field 115.1.4        : pathLength (float)                                *
+*     Field 115.1.5        : quality (std::int32_t)                            *
+*     Field 115.1.6        : position (edm4hep::Vector3d)                      *
+*       Field 115.1.6.1    : x (double)                                        *
+*       Field 115.1.6.2    : y (double)                                        *
+*       Field 115.1.6.3    : z (double)                                        *
+*     Field 115.1.7        : momentum (edm4hep::Vector3f)                      *
+*       Field 115.1.7.1    : x (float)                                         *
+*       Field 115.1.7.2    : y (float)                                         *
+*       Field 115.1.7.3    : z (float)                                         *
+* Field 116                : _OuterTrackerBarrelCollection_MCParticle (std::...*
+*   Field 116.1            : _0 (podio::ObjectID)                              *
+*     Field 116.1.1        : index (std::int32_t)                              *
+*     Field 116.1.2        : collectionID (std::uint32_t)                      *
+* Field 117                : OuterTrackerBarrelHitsRelations (std::vector<ed...*
+*   Field 117.1            : _0 (edm4hep::MCRecoTrackerHitPlaneAssociationData)*
+*     Field 117.1.1        : weight (float)                                    *
+* Field 118                : _OuterTrackerBarrelHitsRelations_rec (std::vect...*
+*   Field 118.1            : _0 (podio::ObjectID)                              *
+*     Field 118.1.1        : index (std::int32_t)                              *
+*     Field 118.1.2        : collectionID (std::uint32_t)                      *
+* Field 119                : _OuterTrackerBarrelHitsRelations_sim (std::vect...*
+*   Field 119.1            : _0 (podio::ObjectID)                              *
+*     Field 119.1.1        : index (std::int32_t)                              *
+*     Field 119.1.2        : collectionID (std::uint32_t)                      *
+* Field 120                : OuterTrackerEndcapCollection (std::vector<edm4h...*
+*   Field 120.1            : _0 (edm4hep::SimTrackerHitData)                   *
+*     Field 120.1.1        : cellID (std::uint64_t)                            *
+*     Field 120.1.2        : EDep (float)                                      *
+*     Field 120.1.3        : time (float)                                      *
+*     Field 120.1.4        : pathLength (float)                                *
+*     Field 120.1.5        : quality (std::int32_t)                            *
+*     Field 120.1.6        : position (edm4hep::Vector3d)                      *
+*       Field 120.1.6.1    : x (double)                                        *
+*       Field 120.1.6.2    : y (double)                                        *
+*       Field 120.1.6.3    : z (double)                                        *
+*     Field 120.1.7        : momentum (edm4hep::Vector3f)                      *
+*       Field 120.1.7.1    : x (float)                                         *
+*       Field 120.1.7.2    : y (float)                                         *
+*       Field 120.1.7.3    : z (float)                                         *
+* Field 121                : _OuterTrackerEndcapCollection_MCParticle (std::...*
+*   Field 121.1            : _0 (podio::ObjectID)                              *
+*     Field 121.1.1        : index (std::int32_t)                              *
+*     Field 121.1.2        : collectionID (std::uint32_t)                      *
+* Field 122                : OuterTrackerEndcapHitsRelations (std::vector<ed...*
+*   Field 122.1            : _0 (edm4hep::MCRecoTrackerHitPlaneAssociationData)*
+*     Field 122.1.1        : weight (float)                                    *
+* Field 123                : _OuterTrackerEndcapHitsRelations_rec (std::vect...*
+*   Field 123.1            : _0 (podio::ObjectID)                              *
+*     Field 123.1.1        : index (std::int32_t)                              *
+*     Field 123.1.2        : collectionID (std::uint32_t)                      *
+* Field 124                : _OuterTrackerEndcapHitsRelations_sim (std::vect...*
+*   Field 124.1            : _0 (podio::ObjectID)                              *
+*     Field 124.1.1        : index (std::int32_t)                              *
+*     Field 124.1.2        : collectionID (std::uint32_t)                      *
+* Field 125                : PandoraClusters (std::vector<edm4hep::ClusterDa...*
+*   Field 125.1            : _0 (edm4hep::ClusterData)                         *
+*     Field 125.1.1        : type (std::int32_t)                               *
+*     Field 125.1.2        : energy (float)                                    *
+*     Field 125.1.3        : energyError (float)                               *
+*     Field 125.1.4        : position (edm4hep::Vector3f)                      *
+*       Field 125.1.4.1    : x (float)                                         *
+*       Field 125.1.4.2    : y (float)                                         *
+*       Field 125.1.4.3    : z (float)                                         *
+*     Field 125.1.5        : positionError (std::array<float,6>)               *
+*       Field 125.1.5.1    : _0 (float)                                        *
+*     Field 125.1.6        : iTheta (float)                                    *
+*     Field 125.1.7        : phi (float)                                       *
+*     Field 125.1.8        : directionError (edm4hep::Vector3f)                *
+*       Field 125.1.8.1    : x (float)                                         *
+*       Field 125.1.8.2    : y (float)                                         *
+*       Field 125.1.8.3    : z (float)                                         *
+*     Field 125.1.9        : shapeParameters_begin (std::uint32_t)             *
+*     Field 125.1.10       : shapeParameters_end (std::uint32_t)               *
+*     Field 125.1.11       : subdetectorEnergies_begin (std::uint32_t)         *
+*     Field 125.1.12       : subdetectorEnergies_end (std::uint32_t)           *
+*     Field 125.1.13       : clusters_begin (std::uint32_t)                    *
+*     Field 125.1.14       : clusters_end (std::uint32_t)                      *
+*     Field 125.1.15       : hits_begin (std::uint32_t)                        *
+*     Field 125.1.16       : hits_end (std::uint32_t)                          *
+*     Field 125.1.17       : particleIDs_begin (std::uint32_t)                 *
+*     Field 125.1.18       : particleIDs_end (std::uint32_t)                   *
+* Field 126                : _PandoraClusters_clusters (std::vector<podio::O...*
+*   Field 126.1            : _0 (podio::ObjectID)                              *
+*     Field 126.1.1        : index (std::int32_t)                              *
+*     Field 126.1.2        : collectionID (std::uint32_t)                      *
+* Field 127                : _PandoraClusters_hits (std::vector<podio::Objec...*
+*   Field 127.1            : _0 (podio::ObjectID)                              *
+*     Field 127.1.1        : index (std::int32_t)                              *
+*     Field 127.1.2        : collectionID (std::uint32_t)                      *
+* Field 128                : _PandoraClusters_particleIDs (std::vector<podio...*
+*   Field 128.1            : _0 (podio::ObjectID)                              *
+*     Field 128.1.1        : index (std::int32_t)                              *
+*     Field 128.1.2        : collectionID (std::uint32_t)                      *
+* Field 129                : _PandoraClusters_shapeParameters (std::vector<f...*
+*   Field 129.1            : _0 (float)                                        *
+* Field 130                : _PandoraClusters_subdetectorEnergies (std::vect...*
+*   Field 130.1            : _0 (float)                                        *
+* Field 131                : PandoraClusters_particleIDs (std::vector<edm4he...*
+*   Field 131.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 131.1.1        : type (std::int32_t)                               *
+*     Field 131.1.2        : PDG (std::int32_t)                                *
+*     Field 131.1.3        : algorithmType (std::int32_t)                      *
+*     Field 131.1.4        : likelihood (float)                                *
+*     Field 131.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 131.1.6        : parameters_end (std::uint32_t)                    *
+* Field 132                : _PandoraClusters_particleIDs_parameters (std::v...*
+*   Field 132.1            : _0 (float)                                        *
+* Field 133                : PandoraPFOs (std::vector<edm4hep::Reconstructed...*
+*   Field 133.1            : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 133.1.1        : type (std::int32_t)                               *
+*     Field 133.1.2        : energy (float)                                    *
+*     Field 133.1.3        : momentum (edm4hep::Vector3f)                      *
+*       Field 133.1.3.1    : x (float)                                         *
+*       Field 133.1.3.2    : y (float)                                         *
+*       Field 133.1.3.3    : z (float)                                         *
+*     Field 133.1.4        : referencePoint (edm4hep::Vector3f)                *
+*       Field 133.1.4.1    : x (float)                                         *
+*       Field 133.1.4.2    : y (float)                                         *
+*       Field 133.1.4.3    : z (float)                                         *
+*     Field 133.1.5        : charge (float)                                    *
+*     Field 133.1.6        : mass (float)                                      *
+*     Field 133.1.7        : goodnessOfPID (float)                             *
+*     Field 133.1.8        : covMatrix (std::array<float,10>)                  *
+*       Field 133.1.8.1    : _0 (float)                                        *
+*     Field 133.1.9        : clusters_begin (std::uint32_t)                    *
+*     Field 133.1.10       : clusters_end (std::uint32_t)                      *
+*     Field 133.1.11       : tracks_begin (std::uint32_t)                      *
+*     Field 133.1.12       : tracks_end (std::uint32_t)                        *
+*     Field 133.1.13       : particles_begin (std::uint32_t)                   *
+*     Field 133.1.14       : particles_end (std::uint32_t)                     *
+*     Field 133.1.15       : particleIDs_begin (std::uint32_t)                 *
+*     Field 133.1.16       : particleIDs_end (std::uint32_t)                   *
+* Field 134                : _PandoraPFOs_clusters (std::vector<podio::Objec...*
+*   Field 134.1            : _0 (podio::ObjectID)                              *
+*     Field 134.1.1        : index (std::int32_t)                              *
+*     Field 134.1.2        : collectionID (std::uint32_t)                      *
+* Field 135                : _PandoraPFOs_tracks (std::vector<podio::ObjectID>)*
+*   Field 135.1            : _0 (podio::ObjectID)                              *
+*     Field 135.1.1        : index (std::int32_t)                              *
+*     Field 135.1.2        : collectionID (std::uint32_t)                      *
+* Field 136                : _PandoraPFOs_particles (std::vector<podio::Obje...*
+*   Field 136.1            : _0 (podio::ObjectID)                              *
+*     Field 136.1.1        : index (std::int32_t)                              *
+*     Field 136.1.2        : collectionID (std::uint32_t)                      *
+* Field 137                : _PandoraPFOs_particleIDs (std::vector<podio::Ob...*
+*   Field 137.1            : _0 (podio::ObjectID)                              *
+*     Field 137.1.1        : index (std::int32_t)                              *
+*     Field 137.1.2        : collectionID (std::uint32_t)                      *
+* Field 138                : _PandoraPFOs_startVertex (std::vector<podio::Ob...*
+*   Field 138.1            : _0 (podio::ObjectID)                              *
+*     Field 138.1.1        : index (std::int32_t)                              *
+*     Field 138.1.2        : collectionID (std::uint32_t)                      *
+* Field 139                : _PandoraPFOs_particleIDUsed (std::vector<podio:...*
+*   Field 139.1            : _0 (podio::ObjectID)                              *
+*     Field 139.1.1        : index (std::int32_t)                              *
+*     Field 139.1.2        : collectionID (std::uint32_t)                      *
+* Field 140                : PandoraPFOs_particleIDs (std::vector<edm4hep::P...*
+*   Field 140.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 140.1.1        : type (std::int32_t)                               *
+*     Field 140.1.2        : PDG (std::int32_t)                                *
+*     Field 140.1.3        : algorithmType (std::int32_t)                      *
+*     Field 140.1.4        : likelihood (float)                                *
+*     Field 140.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 140.1.6        : parameters_end (std::uint32_t)                    *
+* Field 141                : _PandoraPFOs_particleIDs_parameters (std::vecto...*
+*   Field 141.1            : _0 (float)                                        *
+* Field 142                : PandoraStartVertices (std::vector<edm4hep::Vert...*
+*   Field 142.1            : _0 (edm4hep::VertexData)                          *
+*     Field 142.1.1        : primary (std::int32_t)                            *
+*     Field 142.1.2        : chi2 (float)                                      *
+*     Field 142.1.3        : probability (float)                               *
+*     Field 142.1.4        : position (edm4hep::Vector3f)                      *
+*       Field 142.1.4.1    : x (float)                                         *
+*       Field 142.1.4.2    : y (float)                                         *
+*       Field 142.1.4.3    : z (float)                                         *
+*     Field 142.1.5        : covMatrix (std::array<float,6>)                   *
+*       Field 142.1.5.1    : _0 (float)                                        *
+*     Field 142.1.6        : algorithmType (std::int32_t)                      *
+*     Field 142.1.7        : parameters_begin (std::uint32_t)                  *
+*     Field 142.1.8        : parameters_end (std::uint32_t)                    *
+* Field 143                : _PandoraStartVertices_associatedParticle (std::...*
+*   Field 143.1            : _0 (podio::ObjectID)                              *
+*     Field 143.1.1        : index (std::int32_t)                              *
+*     Field 143.1.2        : collectionID (std::uint32_t)                      *
+* Field 144                : _PandoraStartVertices_parameters (std::vector<f...*
+*   Field 144.1            : _0 (float)                                        *
+* Field 145                : PFOsFromJets_objIdx (std::vector<podio::ObjectID>)*
+*   Field 145.1            : _0 (podio::ObjectID)                              *
+*     Field 145.1.1        : index (std::int32_t)                              *
+*     Field 145.1.2        : collectionID (std::uint32_t)                      *
+* Field 146                : PrimaryVertices (std::vector<edm4hep::VertexData>)*
+*   Field 146.1            : _0 (edm4hep::VertexData)                          *
+*     Field 146.1.1        : primary (std::int32_t)                            *
+*     Field 146.1.2        : chi2 (float)                                      *
+*     Field 146.1.3        : probability (float)                               *
+*     Field 146.1.4        : position (edm4hep::Vector3f)                      *
+*       Field 146.1.4.1    : x (float)                                         *
+*       Field 146.1.4.2    : y (float)                                         *
+*       Field 146.1.4.3    : z (float)                                         *
+*     Field 146.1.5        : covMatrix (std::array<float,6>)                   *
+*       Field 146.1.5.1    : _0 (float)                                        *
+*     Field 146.1.6        : algorithmType (std::int32_t)                      *
+*     Field 146.1.7        : parameters_begin (std::uint32_t)                  *
+*     Field 146.1.8        : parameters_end (std::uint32_t)                    *
+* Field 147                : _PrimaryVertices_associatedParticle (std::vecto...*
+*   Field 147.1            : _0 (podio::ObjectID)                              *
+*     Field 147.1.1        : index (std::int32_t)                              *
+*     Field 147.1.2        : collectionID (std::uint32_t)                      *
+* Field 148                : _PrimaryVertices_parameters (std::vector<float>)  *
+*   Field 148.1            : _0 (float)                                        *
+* Field 149                : PrimaryVertices_RP (std::vector<edm4hep::Recons...*
+*   Field 149.1            : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 149.1.1        : type (std::int32_t)                               *
+*     Field 149.1.2        : energy (float)                                    *
+*     Field 149.1.3        : momentum (edm4hep::Vector3f)                      *
+*       Field 149.1.3.1    : x (float)                                         *
+*       Field 149.1.3.2    : y (float)                                         *
+*       Field 149.1.3.3    : z (float)                                         *
+*     Field 149.1.4        : referencePoint (edm4hep::Vector3f)                *
+*       Field 149.1.4.1    : x (float)                                         *
+*       Field 149.1.4.2    : y (float)                                         *
+*       Field 149.1.4.3    : z (float)                                         *
+*     Field 149.1.5        : charge (float)                                    *
+*     Field 149.1.6        : mass (float)                                      *
+*     Field 149.1.7        : goodnessOfPID (float)                             *
+*     Field 149.1.8        : covMatrix (std::array<float,10>)                  *
+*       Field 149.1.8.1    : _0 (float)                                        *
+*     Field 149.1.9        : clusters_begin (std::uint32_t)                    *
+*     Field 149.1.10       : clusters_end (std::uint32_t)                      *
+*     Field 149.1.11       : tracks_begin (std::uint32_t)                      *
+*     Field 149.1.12       : tracks_end (std::uint32_t)                        *
+*     Field 149.1.13       : particles_begin (std::uint32_t)                   *
+*     Field 149.1.14       : particles_end (std::uint32_t)                     *
+*     Field 149.1.15       : particleIDs_begin (std::uint32_t)                 *
+*     Field 149.1.16       : particleIDs_end (std::uint32_t)                   *
+* Field 150                : _PrimaryVertices_RP_clusters (std::vector<podio...*
+*   Field 150.1            : _0 (podio::ObjectID)                              *
+*     Field 150.1.1        : index (std::int32_t)                              *
+*     Field 150.1.2        : collectionID (std::uint32_t)                      *
+* Field 151                : _PrimaryVertices_RP_tracks (std::vector<podio::...*
+*   Field 151.1            : _0 (podio::ObjectID)                              *
+*     Field 151.1.1        : index (std::int32_t)                              *
+*     Field 151.1.2        : collectionID (std::uint32_t)                      *
+* Field 152                : _PrimaryVertices_RP_particles (std::vector<podi...*
+*   Field 152.1            : _0 (podio::ObjectID)                              *
+*     Field 152.1.1        : index (std::int32_t)                              *
+*     Field 152.1.2        : collectionID (std::uint32_t)                      *
+* Field 153                : _PrimaryVertices_RP_particleIDs (std::vector<po...*
+*   Field 153.1            : _0 (podio::ObjectID)                              *
+*     Field 153.1.1        : index (std::int32_t)                              *
+*     Field 153.1.2        : collectionID (std::uint32_t)                      *
+* Field 154                : _PrimaryVertices_RP_startVertex (std::vector<po...*
+*   Field 154.1            : _0 (podio::ObjectID)                              *
+*     Field 154.1.1        : index (std::int32_t)                              *
+*     Field 154.1.2        : collectionID (std::uint32_t)                      *
+* Field 155                : _PrimaryVertices_RP_particleIDUsed (std::vector...*
+*   Field 155.1            : _0 (podio::ObjectID)                              *
+*     Field 155.1.1        : index (std::int32_t)                              *
+*     Field 155.1.2        : collectionID (std::uint32_t)                      *
+* Field 156                : PrimaryVertices_RP_particleIDs (std::vector<edm...*
+*   Field 156.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 156.1.1        : type (std::int32_t)                               *
+*     Field 156.1.2        : PDG (std::int32_t)                                *
+*     Field 156.1.3        : algorithmType (std::int32_t)                      *
+*     Field 156.1.4        : likelihood (float)                                *
+*     Field 156.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 156.1.6        : parameters_end (std::uint32_t)                    *
+* Field 157                : _PrimaryVertices_RP_particleIDs_parameters (std...*
+*   Field 157.1            : _0 (float)                                        *
+* Field 158                : RefinedVertexJets (std::vector<edm4hep::Reconst...*
+*   Field 158.1            : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 158.1.1        : type (std::int32_t)                               *
+*     Field 158.1.2        : energy (float)                                    *
+*     Field 158.1.3        : momentum (edm4hep::Vector3f)                      *
+*       Field 158.1.3.1    : x (float)                                         *
+*       Field 158.1.3.2    : y (float)                                         *
+*       Field 158.1.3.3    : z (float)                                         *
+*     Field 158.1.4        : referencePoint (edm4hep::Vector3f)                *
+*       Field 158.1.4.1    : x (float)                                         *
+*       Field 158.1.4.2    : y (float)                                         *
+*       Field 158.1.4.3    : z (float)                                         *
+*     Field 158.1.5        : charge (float)                                    *
+*     Field 158.1.6        : mass (float)                                      *
+*     Field 158.1.7        : goodnessOfPID (float)                             *
+*     Field 158.1.8        : covMatrix (std::array<float,10>)                  *
+*       Field 158.1.8.1    : _0 (float)                                        *
+*     Field 158.1.9        : clusters_begin (std::uint32_t)                    *
+*     Field 158.1.10       : clusters_end (std::uint32_t)                      *
+*     Field 158.1.11       : tracks_begin (std::uint32_t)                      *
+*     Field 158.1.12       : tracks_end (std::uint32_t)                        *
+*     Field 158.1.13       : particles_begin (std::uint32_t)                   *
+*     Field 158.1.14       : particles_end (std::uint32_t)                     *
+*     Field 158.1.15       : particleIDs_begin (std::uint32_t)                 *
+*     Field 158.1.16       : particleIDs_end (std::uint32_t)                   *
+* Field 159                : _RefinedVertexJets_clusters (std::vector<podio:...*
+*   Field 159.1            : _0 (podio::ObjectID)                              *
+*     Field 159.1.1        : index (std::int32_t)                              *
+*     Field 159.1.2        : collectionID (std::uint32_t)                      *
+* Field 160                : _RefinedVertexJets_tracks (std::vector<podio::O...*
+*   Field 160.1            : _0 (podio::ObjectID)                              *
+*     Field 160.1.1        : index (std::int32_t)                              *
+*     Field 160.1.2        : collectionID (std::uint32_t)                      *
+* Field 161                : _RefinedVertexJets_particles (std::vector<podio...*
+*   Field 161.1            : _0 (podio::ObjectID)                              *
+*     Field 161.1.1        : index (std::int32_t)                              *
+*     Field 161.1.2        : collectionID (std::uint32_t)                      *
+* Field 162                : _RefinedVertexJets_particleIDs (std::vector<pod...*
+*   Field 162.1            : _0 (podio::ObjectID)                              *
+*     Field 162.1.1        : index (std::int32_t)                              *
+*     Field 162.1.2        : collectionID (std::uint32_t)                      *
+* Field 163                : _RefinedVertexJets_startVertex (std::vector<pod...*
+*   Field 163.1            : _0 (podio::ObjectID)                              *
+*     Field 163.1.1        : index (std::int32_t)                              *
+*     Field 163.1.2        : collectionID (std::uint32_t)                      *
+* Field 164                : _RefinedVertexJets_particleIDUsed (std::vector<...*
+*   Field 164.1            : _0 (podio::ObjectID)                              *
+*     Field 164.1.1        : index (std::int32_t)                              *
+*     Field 164.1.2        : collectionID (std::uint32_t)                      *
+* Field 165                : RefinedVertexJets_particleIDs (std::vector<edm4...*
+*   Field 165.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 165.1.1        : type (std::int32_t)                               *
+*     Field 165.1.2        : PDG (std::int32_t)                                *
+*     Field 165.1.3        : algorithmType (std::int32_t)                      *
+*     Field 165.1.4        : likelihood (float)                                *
+*     Field 165.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 165.1.6        : parameters_end (std::uint32_t)                    *
+* Field 166                : _RefinedVertexJets_particleIDs_parameters (std:...*
+*   Field 166.1            : _0 (float)                                        *
+* Field 167                : RefinedVertexJets_rel (std::vector<edm4hep::Rec...*
+*   Field 167.1            : _0 (edm4hep::RecoParticleVertexAssociationData)   *
+*     Field 167.1.1        : weight (float)                                    *
+* Field 168                : _RefinedVertexJets_rel_rec (std::vector<podio::...*
+*   Field 168.1            : _0 (podio::ObjectID)                              *
+*     Field 168.1.1        : index (std::int32_t)                              *
+*     Field 168.1.2        : collectionID (std::uint32_t)                      *
+* Field 169                : _RefinedVertexJets_rel_vertex (std::vector<podi...*
+*   Field 169.1            : _0 (podio::ObjectID)                              *
+*     Field 169.1.1        : index (std::int32_t)                              *
+*     Field 169.1.2        : collectionID (std::uint32_t)                      *
+* Field 170                : RefinedVertexJets_vtx (std::vector<edm4hep::Ver...*
+*   Field 170.1            : _0 (edm4hep::VertexData)                          *
+*     Field 170.1.1        : primary (std::int32_t)                            *
+*     Field 170.1.2        : chi2 (float)                                      *
+*     Field 170.1.3        : probability (float)                               *
+*     Field 170.1.4        : position (edm4hep::Vector3f)                      *
+*       Field 170.1.4.1    : x (float)                                         *
+*       Field 170.1.4.2    : y (float)                                         *
+*       Field 170.1.4.3    : z (float)                                         *
+*     Field 170.1.5        : covMatrix (std::array<float,6>)                   *
+*       Field 170.1.5.1    : _0 (float)                                        *
+*     Field 170.1.6        : algorithmType (std::int32_t)                      *
+*     Field 170.1.7        : parameters_begin (std::uint32_t)                  *
+*     Field 170.1.8        : parameters_end (std::uint32_t)                    *
+* Field 171                : _RefinedVertexJets_vtx_associatedParticle (std:...*
+*   Field 171.1            : _0 (podio::ObjectID)                              *
+*     Field 171.1.1        : index (std::int32_t)                              *
+*     Field 171.1.2        : collectionID (std::uint32_t)                      *
+* Field 172                : _RefinedVertexJets_vtx_parameters (std::vector<...*
+*   Field 172.1            : _0 (float)                                        *
+* Field 173                : RefinedVertexJets_vtx_RP (std::vector<edm4hep::...*
+*   Field 173.1            : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 173.1.1        : type (std::int32_t)                               *
+*     Field 173.1.2        : energy (float)                                    *
+*     Field 173.1.3        : momentum (edm4hep::Vector3f)                      *
+*       Field 173.1.3.1    : x (float)                                         *
+*       Field 173.1.3.2    : y (float)                                         *
+*       Field 173.1.3.3    : z (float)                                         *
+*     Field 173.1.4        : referencePoint (edm4hep::Vector3f)                *
+*       Field 173.1.4.1    : x (float)                                         *
+*       Field 173.1.4.2    : y (float)                                         *
+*       Field 173.1.4.3    : z (float)                                         *
+*     Field 173.1.5        : charge (float)                                    *
+*     Field 173.1.6        : mass (float)                                      *
+*     Field 173.1.7        : goodnessOfPID (float)                             *
+*     Field 173.1.8        : covMatrix (std::array<float,10>)                  *
+*       Field 173.1.8.1    : _0 (float)                                        *
+*     Field 173.1.9        : clusters_begin (std::uint32_t)                    *
+*     Field 173.1.10       : clusters_end (std::uint32_t)                      *
+*     Field 173.1.11       : tracks_begin (std::uint32_t)                      *
+*     Field 173.1.12       : tracks_end (std::uint32_t)                        *
+*     Field 173.1.13       : particles_begin (std::uint32_t)                   *
+*     Field 173.1.14       : particles_end (std::uint32_t)                     *
+*     Field 173.1.15       : particleIDs_begin (std::uint32_t)                 *
+*     Field 173.1.16       : particleIDs_end (std::uint32_t)                   *
+* Field 174                : _RefinedVertexJets_vtx_RP_clusters (std::vector...*
+*   Field 174.1            : _0 (podio::ObjectID)                              *
+*     Field 174.1.1        : index (std::int32_t)                              *
+*     Field 174.1.2        : collectionID (std::uint32_t)                      *
+* Field 175                : _RefinedVertexJets_vtx_RP_tracks (std::vector<p...*
+*   Field 175.1            : _0 (podio::ObjectID)                              *
+*     Field 175.1.1        : index (std::int32_t)                              *
+*     Field 175.1.2        : collectionID (std::uint32_t)                      *
+* Field 176                : _RefinedVertexJets_vtx_RP_particles (std::vecto...*
+*   Field 176.1            : _0 (podio::ObjectID)                              *
+*     Field 176.1.1        : index (std::int32_t)                              *
+*     Field 176.1.2        : collectionID (std::uint32_t)                      *
+* Field 177                : _RefinedVertexJets_vtx_RP_particleIDs (std::vec...*
+*   Field 177.1            : _0 (podio::ObjectID)                              *
+*     Field 177.1.1        : index (std::int32_t)                              *
+*     Field 177.1.2        : collectionID (std::uint32_t)                      *
+* Field 178                : _RefinedVertexJets_vtx_RP_startVertex (std::vec...*
+*   Field 178.1            : _0 (podio::ObjectID)                              *
+*     Field 178.1.1        : index (std::int32_t)                              *
+*     Field 178.1.2        : collectionID (std::uint32_t)                      *
+* Field 179                : _RefinedVertexJets_vtx_RP_particleIDUsed (std::...*
+*   Field 179.1            : _0 (podio::ObjectID)                              *
+*     Field 179.1.1        : index (std::int32_t)                              *
+*     Field 179.1.2        : collectionID (std::uint32_t)                      *
+* Field 180                : RefinedVertexJets_vtx_RP_particleIDs (std::vect...*
+*   Field 180.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 180.1.1        : type (std::int32_t)                               *
+*     Field 180.1.2        : PDG (std::int32_t)                                *
+*     Field 180.1.3        : algorithmType (std::int32_t)                      *
+*     Field 180.1.4        : likelihood (float)                                *
+*     Field 180.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 180.1.6        : parameters_end (std::uint32_t)                    *
+* Field 181                : _RefinedVertexJets_vtx_RP_particleIDs_parameter...*
+*   Field 181.1            : _0 (float)                                        *
+* Field 182                : RefinedVertices (std::vector<edm4hep::VertexData>)*
+*   Field 182.1            : _0 (edm4hep::VertexData)                          *
+*     Field 182.1.1        : primary (std::int32_t)                            *
+*     Field 182.1.2        : chi2 (float)                                      *
+*     Field 182.1.3        : probability (float)                               *
+*     Field 182.1.4        : position (edm4hep::Vector3f)                      *
+*       Field 182.1.4.1    : x (float)                                         *
+*       Field 182.1.4.2    : y (float)                                         *
+*       Field 182.1.4.3    : z (float)                                         *
+*     Field 182.1.5        : covMatrix (std::array<float,6>)                   *
+*       Field 182.1.5.1    : _0 (float)                                        *
+*     Field 182.1.6        : algorithmType (std::int32_t)                      *
+*     Field 182.1.7        : parameters_begin (std::uint32_t)                  *
+*     Field 182.1.8        : parameters_end (std::uint32_t)                    *
+* Field 183                : _RefinedVertices_associatedParticle (std::vecto...*
+*   Field 183.1            : _0 (podio::ObjectID)                              *
+*     Field 183.1.1        : index (std::int32_t)                              *
+*     Field 183.1.2        : collectionID (std::uint32_t)                      *
+* Field 184                : _RefinedVertices_parameters (std::vector<float>)  *
+*   Field 184.1            : _0 (float)                                        *
+* Field 185                : RefinedVertices_RP (std::vector<edm4hep::Recons...*
+*   Field 185.1            : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 185.1.1        : type (std::int32_t)                               *
+*     Field 185.1.2        : energy (float)                                    *
+*     Field 185.1.3        : momentum (edm4hep::Vector3f)                      *
+*       Field 185.1.3.1    : x (float)                                         *
+*       Field 185.1.3.2    : y (float)                                         *
+*       Field 185.1.3.3    : z (float)                                         *
+*     Field 185.1.4        : referencePoint (edm4hep::Vector3f)                *
+*       Field 185.1.4.1    : x (float)                                         *
+*       Field 185.1.4.2    : y (float)                                         *
+*       Field 185.1.4.3    : z (float)                                         *
+*     Field 185.1.5        : charge (float)                                    *
+*     Field 185.1.6        : mass (float)                                      *
+*     Field 185.1.7        : goodnessOfPID (float)                             *
+*     Field 185.1.8        : covMatrix (std::array<float,10>)                  *
+*       Field 185.1.8.1    : _0 (float)                                        *
+*     Field 185.1.9        : clusters_begin (std::uint32_t)                    *
+*     Field 185.1.10       : clusters_end (std::uint32_t)                      *
+*     Field 185.1.11       : tracks_begin (std::uint32_t)                      *
+*     Field 185.1.12       : tracks_end (std::uint32_t)                        *
+*     Field 185.1.13       : particles_begin (std::uint32_t)                   *
+*     Field 185.1.14       : particles_end (std::uint32_t)                     *
+*     Field 185.1.15       : particleIDs_begin (std::uint32_t)                 *
+*     Field 185.1.16       : particleIDs_end (std::uint32_t)                   *
+* Field 186                : _RefinedVertices_RP_clusters (std::vector<podio...*
+*   Field 186.1            : _0 (podio::ObjectID)                              *
+*     Field 186.1.1        : index (std::int32_t)                              *
+*     Field 186.1.2        : collectionID (std::uint32_t)                      *
+* Field 187                : _RefinedVertices_RP_tracks (std::vector<podio::...*
+*   Field 187.1            : _0 (podio::ObjectID)                              *
+*     Field 187.1.1        : index (std::int32_t)                              *
+*     Field 187.1.2        : collectionID (std::uint32_t)                      *
+* Field 188                : _RefinedVertices_RP_particles (std::vector<podi...*
+*   Field 188.1            : _0 (podio::ObjectID)                              *
+*     Field 188.1.1        : index (std::int32_t)                              *
+*     Field 188.1.2        : collectionID (std::uint32_t)                      *
+* Field 189                : _RefinedVertices_RP_particleIDs (std::vector<po...*
+*   Field 189.1            : _0 (podio::ObjectID)                              *
+*     Field 189.1.1        : index (std::int32_t)                              *
+*     Field 189.1.2        : collectionID (std::uint32_t)                      *
+* Field 190                : _RefinedVertices_RP_startVertex (std::vector<po...*
+*   Field 190.1            : _0 (podio::ObjectID)                              *
+*     Field 190.1.1        : index (std::int32_t)                              *
+*     Field 190.1.2        : collectionID (std::uint32_t)                      *
+* Field 191                : _RefinedVertices_RP_particleIDUsed (std::vector...*
+*   Field 191.1            : _0 (podio::ObjectID)                              *
+*     Field 191.1.1        : index (std::int32_t)                              *
+*     Field 191.1.2        : collectionID (std::uint32_t)                      *
+* Field 192                : RefinedVertices_RP_particleIDs (std::vector<edm...*
+*   Field 192.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 192.1.1        : type (std::int32_t)                               *
+*     Field 192.1.2        : PDG (std::int32_t)                                *
+*     Field 192.1.3        : algorithmType (std::int32_t)                      *
+*     Field 192.1.4        : likelihood (float)                                *
+*     Field 192.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 192.1.6        : parameters_end (std::uint32_t)                    *
+* Field 193                : _RefinedVertices_RP_particleIDs_parameters (std...*
+*   Field 193.1            : _0 (float)                                        *
+* Field 194                : RelationCaloHit (std::vector<edm4hep::MCRecoCal...*
+*   Field 194.1            : _0 (edm4hep::MCRecoCaloAssociationData)           *
+*     Field 194.1.1        : weight (float)                                    *
+* Field 195                : _RelationCaloHit_rec (std::vector<podio::Object...*
+*   Field 195.1            : _0 (podio::ObjectID)                              *
+*     Field 195.1.1        : index (std::int32_t)                              *
+*     Field 195.1.2        : collectionID (std::uint32_t)                      *
+* Field 196                : _RelationCaloHit_sim (std::vector<podio::Object...*
+*   Field 196.1            : _0 (podio::ObjectID)                              *
+*     Field 196.1.1        : index (std::int32_t)                              *
+*     Field 196.1.2        : collectionID (std::uint32_t)                      *
+* Field 197                : RelationMuonHit (std::vector<edm4hep::MCRecoCal...*
+*   Field 197.1            : _0 (edm4hep::MCRecoCaloAssociationData)           *
+*     Field 197.1.1        : weight (float)                                    *
+* Field 198                : _RelationMuonHit_rec (std::vector<podio::Object...*
+*   Field 198.1            : _0 (podio::ObjectID)                              *
+*     Field 198.1.1        : index (std::int32_t)                              *
+*     Field 198.1.2        : collectionID (std::uint32_t)                      *
+* Field 199                : _RelationMuonHit_sim (std::vector<podio::Object...*
+*   Field 199.1            : _0 (podio::ObjectID)                              *
+*     Field 199.1.1        : index (std::int32_t)                              *
+*     Field 199.1.2        : collectionID (std::uint32_t)                      *
+* Field 200                : SelectedPandoraPFOs_objIdx (std::vector<podio::...*
+*   Field 200.1            : _0 (podio::ObjectID)                              *
+*     Field 200.1.1        : index (std::int32_t)                              *
+*     Field 200.1.2        : collectionID (std::uint32_t)                      *
+* Field 201                : SiTracks (std::vector<edm4hep::TrackData>)        *
+*   Field 201.1            : _0 (edm4hep::TrackData)                           *
+*     Field 201.1.1        : type (std::int32_t)                               *
+*     Field 201.1.2        : chi2 (float)                                      *
+*     Field 201.1.3        : ndf (std::int32_t)                                *
+*     Field 201.1.4        : dEdx (float)                                      *
+*     Field 201.1.5        : dEdxError (float)                                 *
+*     Field 201.1.6        : radiusOfInnermostHit (float)                      *
+*     Field 201.1.7        : subdetectorHitNumbers_begin (std::uint32_t)       *
+*     Field 201.1.8        : subdetectorHitNumbers_end (std::uint32_t)         *
+*     Field 201.1.9        : trackStates_begin (std::uint32_t)                 *
+*     Field 201.1.10       : trackStates_end (std::uint32_t)                   *
+*     Field 201.1.11       : dxQuantities_begin (std::uint32_t)                *
+*     Field 201.1.12       : dxQuantities_end (std::uint32_t)                  *
+*     Field 201.1.13       : trackerHits_begin (std::uint32_t)                 *
+*     Field 201.1.14       : trackerHits_end (std::uint32_t)                   *
+*     Field 201.1.15       : tracks_begin (std::uint32_t)                      *
+*     Field 201.1.16       : tracks_end (std::uint32_t)                        *
+* Field 202                : _SiTracks_trackerHits (std::vector<podio::Objec...*
+*   Field 202.1            : _0 (podio::ObjectID)                              *
+*     Field 202.1.1        : index (std::int32_t)                              *
+*     Field 202.1.2        : collectionID (std::uint32_t)                      *
+* Field 203                : _SiTracks_tracks (std::vector<podio::ObjectID>)   *
+*   Field 203.1            : _0 (podio::ObjectID)                              *
+*     Field 203.1.1        : index (std::int32_t)                              *
+*     Field 203.1.2        : collectionID (std::uint32_t)                      *
+* Field 204                : _SiTracks_subdetectorHitNumbers (std::vector<st...*
+*   Field 204.1            : _0 (std::int32_t)                                 *
+* Field 205                : _SiTracks_trackStates (std::vector<edm4hep::Tra...*
+*   Field 205.1            : _0 (edm4hep::TrackState)                          *
+*     Field 205.1.1        : location (std::int32_t)                           *
+*     Field 205.1.2        : D0 (float)                                        *
+*     Field 205.1.3        : phi (float)                                       *
+*     Field 205.1.4        : omega (float)                                     *
+*     Field 205.1.5        : Z0 (float)                                        *
+*     Field 205.1.6        : tanLambda (float)                                 *
+*     Field 205.1.7        : time (float)                                      *
+*     Field 205.1.8        : referencePoint (edm4hep::Vector3f)                *
+*       Field 205.1.8.1    : x (float)                                         *
+*       Field 205.1.8.2    : y (float)                                         *
+*       Field 205.1.8.3    : z (float)                                         *
+*     Field 205.1.9        : covMatrix (std::array<float,21>)                  *
+*       Field 205.1.9.1    : _0 (float)                                        *
+* Field 206                : _SiTracks_dxQuantities (std::vector<edm4hep::Qu...*
+*   Field 206.1            : _0 (edm4hep::Quantity)                            *
+*     Field 206.1.1        : type (std::int16_t)                               *
+*     Field 206.1.2        : value (float)                                     *
+*     Field 206.1.3        : error (float)                                     *
+* Field 207                : SiTracks_Refitted (std::vector<edm4hep::TrackDa...*
+*   Field 207.1            : _0 (edm4hep::TrackData)                           *
+*     Field 207.1.1        : type (std::int32_t)                               *
+*     Field 207.1.2        : chi2 (float)                                      *
+*     Field 207.1.3        : ndf (std::int32_t)                                *
+*     Field 207.1.4        : dEdx (float)                                      *
+*     Field 207.1.5        : dEdxError (float)                                 *
+*     Field 207.1.6        : radiusOfInnermostHit (float)                      *
+*     Field 207.1.7        : subdetectorHitNumbers_begin (std::uint32_t)       *
+*     Field 207.1.8        : subdetectorHitNumbers_end (std::uint32_t)         *
+*     Field 207.1.9        : trackStates_begin (std::uint32_t)                 *
+*     Field 207.1.10       : trackStates_end (std::uint32_t)                   *
+*     Field 207.1.11       : dxQuantities_begin (std::uint32_t)                *
+*     Field 207.1.12       : dxQuantities_end (std::uint32_t)                  *
+*     Field 207.1.13       : trackerHits_begin (std::uint32_t)                 *
+*     Field 207.1.14       : trackerHits_end (std::uint32_t)                   *
+*     Field 207.1.15       : tracks_begin (std::uint32_t)                      *
+*     Field 207.1.16       : tracks_end (std::uint32_t)                        *
+* Field 208                : _SiTracks_Refitted_trackerHits (std::vector<pod...*
+*   Field 208.1            : _0 (podio::ObjectID)                              *
+*     Field 208.1.1        : index (std::int32_t)                              *
+*     Field 208.1.2        : collectionID (std::uint32_t)                      *
+* Field 209                : _SiTracks_Refitted_tracks (std::vector<podio::O...*
+*   Field 209.1            : _0 (podio::ObjectID)                              *
+*     Field 209.1.1        : index (std::int32_t)                              *
+*     Field 209.1.2        : collectionID (std::uint32_t)                      *
+* Field 210                : _SiTracks_Refitted_subdetectorHitNumbers (std::...*
+*   Field 210.1            : _0 (std::int32_t)                                 *
+* Field 211                : _SiTracks_Refitted_trackStates (std::vector<edm...*
+*   Field 211.1            : _0 (edm4hep::TrackState)                          *
+*     Field 211.1.1        : location (std::int32_t)                           *
+*     Field 211.1.2        : D0 (float)                                        *
+*     Field 211.1.3        : phi (float)                                       *
+*     Field 211.1.4        : omega (float)                                     *
+*     Field 211.1.5        : Z0 (float)                                        *
+*     Field 211.1.6        : tanLambda (float)                                 *
+*     Field 211.1.7        : time (float)                                      *
+*     Field 211.1.8        : referencePoint (edm4hep::Vector3f)                *
+*       Field 211.1.8.1    : x (float)                                         *
+*       Field 211.1.8.2    : y (float)                                         *
+*       Field 211.1.8.3    : z (float)                                         *
+*     Field 211.1.9        : covMatrix (std::array<float,21>)                  *
+*       Field 211.1.9.1    : _0 (float)                                        *
+* Field 212                : _SiTracks_Refitted_dxQuantities (std::vector<ed...*
+*   Field 212.1            : _0 (edm4hep::Quantity)                            *
+*     Field 212.1.1        : type (std::int16_t)                               *
+*     Field 212.1.2        : value (float)                                     *
+*     Field 212.1.3        : error (float)                                     *
+* Field 213                : SiTracksCT (std::vector<edm4hep::TrackData>)      *
+*   Field 213.1            : _0 (edm4hep::TrackData)                           *
+*     Field 213.1.1        : type (std::int32_t)                               *
+*     Field 213.1.2        : chi2 (float)                                      *
+*     Field 213.1.3        : ndf (std::int32_t)                                *
+*     Field 213.1.4        : dEdx (float)                                      *
+*     Field 213.1.5        : dEdxError (float)                                 *
+*     Field 213.1.6        : radiusOfInnermostHit (float)                      *
+*     Field 213.1.7        : subdetectorHitNumbers_begin (std::uint32_t)       *
+*     Field 213.1.8        : subdetectorHitNumbers_end (std::uint32_t)         *
+*     Field 213.1.9        : trackStates_begin (std::uint32_t)                 *
+*     Field 213.1.10       : trackStates_end (std::uint32_t)                   *
+*     Field 213.1.11       : dxQuantities_begin (std::uint32_t)                *
+*     Field 213.1.12       : dxQuantities_end (std::uint32_t)                  *
+*     Field 213.1.13       : trackerHits_begin (std::uint32_t)                 *
+*     Field 213.1.14       : trackerHits_end (std::uint32_t)                   *
+*     Field 213.1.15       : tracks_begin (std::uint32_t)                      *
+*     Field 213.1.16       : tracks_end (std::uint32_t)                        *
+* Field 214                : _SiTracksCT_trackerHits (std::vector<podio::Obj...*
+*   Field 214.1            : _0 (podio::ObjectID)                              *
+*     Field 214.1.1        : index (std::int32_t)                              *
+*     Field 214.1.2        : collectionID (std::uint32_t)                      *
+* Field 215                : _SiTracksCT_tracks (std::vector<podio::ObjectID>) *
+*   Field 215.1            : _0 (podio::ObjectID)                              *
+*     Field 215.1.1        : index (std::int32_t)                              *
+*     Field 215.1.2        : collectionID (std::uint32_t)                      *
+* Field 216                : _SiTracksCT_subdetectorHitNumbers (std::vector<...*
+*   Field 216.1            : _0 (std::int32_t)                                 *
+* Field 217                : _SiTracksCT_trackStates (std::vector<edm4hep::T...*
+*   Field 217.1            : _0 (edm4hep::TrackState)                          *
+*     Field 217.1.1        : location (std::int32_t)                           *
+*     Field 217.1.2        : D0 (float)                                        *
+*     Field 217.1.3        : phi (float)                                       *
+*     Field 217.1.4        : omega (float)                                     *
+*     Field 217.1.5        : Z0 (float)                                        *
+*     Field 217.1.6        : tanLambda (float)                                 *
+*     Field 217.1.7        : time (float)                                      *
+*     Field 217.1.8        : referencePoint (edm4hep::Vector3f)                *
+*       Field 217.1.8.1    : x (float)                                         *
+*       Field 217.1.8.2    : y (float)                                         *
+*       Field 217.1.8.3    : z (float)                                         *
+*     Field 217.1.9        : covMatrix (std::array<float,21>)                  *
+*       Field 217.1.9.1    : _0 (float)                                        *
+* Field 218                : _SiTracksCT_dxQuantities (std::vector<edm4hep::...*
+*   Field 218.1            : _0 (edm4hep::Quantity)                            *
+*     Field 218.1.1        : type (std::int16_t)                               *
+*     Field 218.1.2        : value (float)                                     *
+*     Field 218.1.3        : error (float)                                     *
+* Field 219                : TightSelectedPandoraPFOs_objIdx (std::vector<po...*
+*   Field 219.1            : _0 (podio::ObjectID)                              *
+*     Field 219.1.1        : index (std::int32_t)                              *
+*     Field 219.1.2        : collectionID (std::uint32_t)                      *
+* Field 220                : VertexBarrelCollection (std::vector<edm4hep::Si...*
+*   Field 220.1            : _0 (edm4hep::SimTrackerHitData)                   *
+*     Field 220.1.1        : cellID (std::uint64_t)                            *
+*     Field 220.1.2        : EDep (float)                                      *
+*     Field 220.1.3        : time (float)                                      *
+*     Field 220.1.4        : pathLength (float)                                *
+*     Field 220.1.5        : quality (std::int32_t)                            *
+*     Field 220.1.6        : position (edm4hep::Vector3d)                      *
+*       Field 220.1.6.1    : x (double)                                        *
+*       Field 220.1.6.2    : y (double)                                        *
+*       Field 220.1.6.3    : z (double)                                        *
+*     Field 220.1.7        : momentum (edm4hep::Vector3f)                      *
+*       Field 220.1.7.1    : x (float)                                         *
+*       Field 220.1.7.2    : y (float)                                         *
+*       Field 220.1.7.3    : z (float)                                         *
+* Field 221                : _VertexBarrelCollection_MCParticle (std::vector...*
+*   Field 221.1            : _0 (podio::ObjectID)                              *
+*     Field 221.1.1        : index (std::int32_t)                              *
+*     Field 221.1.2        : collectionID (std::uint32_t)                      *
+* Field 222                : VertexEndcapCollection (std::vector<edm4hep::Si...*
+*   Field 222.1            : _0 (edm4hep::SimTrackerHitData)                   *
+*     Field 222.1.1        : cellID (std::uint64_t)                            *
+*     Field 222.1.2        : EDep (float)                                      *
+*     Field 222.1.3        : time (float)                                      *
+*     Field 222.1.4        : pathLength (float)                                *
+*     Field 222.1.5        : quality (std::int32_t)                            *
+*     Field 222.1.6        : position (edm4hep::Vector3d)                      *
+*       Field 222.1.6.1    : x (double)                                        *
+*       Field 222.1.6.2    : y (double)                                        *
+*       Field 222.1.6.3    : z (double)                                        *
+*     Field 222.1.7        : momentum (edm4hep::Vector3f)                      *
+*       Field 222.1.7.1    : x (float)                                         *
+*       Field 222.1.7.2    : y (float)                                         *
+*       Field 222.1.7.3    : z (float)                                         *
+* Field 223                : _VertexEndcapCollection_MCParticle (std::vector...*
+*   Field 223.1            : _0 (podio::ObjectID)                              *
+*     Field 223.1.1        : index (std::int32_t)                              *
+*     Field 223.1.2        : collectionID (std::uint32_t)                      *
+* Field 224                : VertexJets (std::vector<edm4hep::ReconstructedP...*
+*   Field 224.1            : _0 (edm4hep::ReconstructedParticleData)           *
+*     Field 224.1.1        : type (std::int32_t)                               *
+*     Field 224.1.2        : energy (float)                                    *
+*     Field 224.1.3        : momentum (edm4hep::Vector3f)                      *
+*       Field 224.1.3.1    : x (float)                                         *
+*       Field 224.1.3.2    : y (float)                                         *
+*       Field 224.1.3.3    : z (float)                                         *
+*     Field 224.1.4        : referencePoint (edm4hep::Vector3f)                *
+*       Field 224.1.4.1    : x (float)                                         *
+*       Field 224.1.4.2    : y (float)                                         *
+*       Field 224.1.4.3    : z (float)                                         *
+*     Field 224.1.5        : charge (float)                                    *
+*     Field 224.1.6        : mass (float)                                      *
+*     Field 224.1.7        : goodnessOfPID (float)                             *
+*     Field 224.1.8        : covMatrix (std::array<float,10>)                  *
+*       Field 224.1.8.1    : _0 (float)                                        *
+*     Field 224.1.9        : clusters_begin (std::uint32_t)                    *
+*     Field 224.1.10       : clusters_end (std::uint32_t)                      *
+*     Field 224.1.11       : tracks_begin (std::uint32_t)                      *
+*     Field 224.1.12       : tracks_end (std::uint32_t)                        *
+*     Field 224.1.13       : particles_begin (std::uint32_t)                   *
+*     Field 224.1.14       : particles_end (std::uint32_t)                     *
+*     Field 224.1.15       : particleIDs_begin (std::uint32_t)                 *
+*     Field 224.1.16       : particleIDs_end (std::uint32_t)                   *
+* Field 225                : _VertexJets_clusters (std::vector<podio::Object...*
+*   Field 225.1            : _0 (podio::ObjectID)                              *
+*     Field 225.1.1        : index (std::int32_t)                              *
+*     Field 225.1.2        : collectionID (std::uint32_t)                      *
+* Field 226                : _VertexJets_tracks (std::vector<podio::ObjectID>) *
+*   Field 226.1            : _0 (podio::ObjectID)                              *
+*     Field 226.1.1        : index (std::int32_t)                              *
+*     Field 226.1.2        : collectionID (std::uint32_t)                      *
+* Field 227                : _VertexJets_particles (std::vector<podio::Objec...*
+*   Field 227.1            : _0 (podio::ObjectID)                              *
+*     Field 227.1.1        : index (std::int32_t)                              *
+*     Field 227.1.2        : collectionID (std::uint32_t)                      *
+* Field 228                : _VertexJets_particleIDs (std::vector<podio::Obj...*
+*   Field 228.1            : _0 (podio::ObjectID)                              *
+*     Field 228.1.1        : index (std::int32_t)                              *
+*     Field 228.1.2        : collectionID (std::uint32_t)                      *
+* Field 229                : _VertexJets_startVertex (std::vector<podio::Obj...*
+*   Field 229.1            : _0 (podio::ObjectID)                              *
+*     Field 229.1.1        : index (std::int32_t)                              *
+*     Field 229.1.2        : collectionID (std::uint32_t)                      *
+* Field 230                : _VertexJets_particleIDUsed (std::vector<podio::...*
+*   Field 230.1            : _0 (podio::ObjectID)                              *
+*     Field 230.1.1        : index (std::int32_t)                              *
+*     Field 230.1.2        : collectionID (std::uint32_t)                      *
+* Field 231                : VertexJets_particleIDs (std::vector<edm4hep::Pa...*
+*   Field 231.1            : _0 (edm4hep::ParticleIDData)                      *
+*     Field 231.1.1        : type (std::int32_t)                               *
+*     Field 231.1.2        : PDG (std::int32_t)                                *
+*     Field 231.1.3        : algorithmType (std::int32_t)                      *
+*     Field 231.1.4        : likelihood (float)                                *
+*     Field 231.1.5        : parameters_begin (std::uint32_t)                  *
+*     Field 231.1.6        : parameters_end (std::uint32_t)                    *
+* Field 232                : _VertexJets_particleIDs_parameters (std::vector...*
+*   Field 232.1            : _0 (float)                                        *
+* Field 233                : VXDEndcapTrackerHitRelations (std::vector<edm4h...*
+*   Field 233.1            : _0 (edm4hep::MCRecoTrackerHitPlaneAssociationData)*
+*     Field 233.1.1        : weight (float)                                    *
+* Field 234                : _VXDEndcapTrackerHitRelations_rec (std::vector<...*
+*   Field 234.1            : _0 (podio::ObjectID)                              *
+*     Field 234.1.1        : index (std::int32_t)                              *
+*     Field 234.1.2        : collectionID (std::uint32_t)                      *
+* Field 235                : _VXDEndcapTrackerHitRelations_sim (std::vector<...*
+*   Field 235.1            : _0 (podio::ObjectID)                              *
+*     Field 235.1.1        : index (std::int32_t)                              *
+*     Field 235.1.2        : collectionID (std::uint32_t)                      *
+* Field 236                : VXDEndcapTrackerHits (std::vector<edm4hep::Trac...*
+*   Field 236.1            : _0 (edm4hep::TrackerHitPlaneData)                 *
+*     Field 236.1.1        : cellID (std::uint64_t)                            *
+*     Field 236.1.2        : type (std::int32_t)                               *
+*     Field 236.1.3        : quality (std::int32_t)                            *
+*     Field 236.1.4        : time (float)                                      *
+*     Field 236.1.5        : eDep (float)                                      *
+*     Field 236.1.6        : eDepError (float)                                 *
+*     Field 236.1.7        : u (edm4hep::Vector2f)                             *
+*       Field 236.1.7.1    : a (float)                                         *
+*       Field 236.1.7.2    : b (float)                                         *
+*     Field 236.1.8        : v (edm4hep::Vector2f)                             *
+*       Field 236.1.8.1    : a (float)                                         *
+*       Field 236.1.8.2    : b (float)                                         *
+*     Field 236.1.9        : du (float)                                        *
+*     Field 236.1.10       : dv (float)                                        *
+*     Field 236.1.11       : position (edm4hep::Vector3d)                      *
+*       Field 236.1.11.1   : x (double)                                        *
+*       Field 236.1.11.2   : y (double)                                        *
+*       Field 236.1.11.3   : z (double)                                        *
+*     Field 236.1.12       : covMatrix (std::array<float,6>)                   *
+*       Field 236.1.12.1   : _0 (float)                                        *
+*     Field 236.1.13       : rawHits_begin (std::uint32_t)                     *
+*     Field 236.1.14       : rawHits_end (std::uint32_t)                       *
+* Field 237                : _VXDEndcapTrackerHits_rawHits (std::vector<edm4...*
+*   Field 237.1            : _0 (edm4hep::ObjectID)                            *
+*     Field 237.1.1        : index (std::int32_t)                              *
+*     Field 237.1.2        : collectionID (std::int32_t)                       *
+* Field 238                : VXDTrackerHitRelations (std::vector<edm4hep::MC...*
+*   Field 238.1            : _0 (edm4hep::MCRecoTrackerHitPlaneAssociationData)*
+*     Field 238.1.1        : weight (float)                                    *
+* Field 239                : _VXDTrackerHitRelations_rec (std::vector<podio:...*
+*   Field 239.1            : _0 (podio::ObjectID)                              *
+*     Field 239.1.1        : index (std::int32_t)                              *
+*     Field 239.1.2        : collectionID (std::uint32_t)                      *
+* Field 240                : _VXDTrackerHitRelations_sim (std::vector<podio:...*
+*   Field 240.1            : _0 (podio::ObjectID)                              *
+*     Field 240.1.1        : index (std::int32_t)                              *
+*     Field 240.1.2        : collectionID (std::uint32_t)                      *
+* Field 241                : VXDTrackerHits (std::vector<edm4hep::TrackerHit...*
+*   Field 241.1            : _0 (edm4hep::TrackerHitPlaneData)                 *
+*     Field 241.1.1        : cellID (std::uint64_t)                            *
+*     Field 241.1.2        : type (std::int32_t)                               *
+*     Field 241.1.3        : quality (std::int32_t)                            *
+*     Field 241.1.4        : time (float)                                      *
+*     Field 241.1.5        : eDep (float)                                      *
+*     Field 241.1.6        : eDepError (float)                                 *
+*     Field 241.1.7        : u (edm4hep::Vector2f)                             *
+*       Field 241.1.7.1    : a (float)                                         *
+*       Field 241.1.7.2    : b (float)                                         *
+*     Field 241.1.8        : v (edm4hep::Vector2f)                             *
+*       Field 241.1.8.1    : a (float)                                         *
+*       Field 241.1.8.2    : b (float)                                         *
+*     Field 241.1.9        : du (float)                                        *
+*     Field 241.1.10       : dv (float)                                        *
+*     Field 241.1.11       : position (edm4hep::Vector3d)                      *
+*       Field 241.1.11.1   : x (double)                                        *
+*       Field 241.1.11.2   : y (double)                                        *
+*       Field 241.1.11.3   : z (double)                                        *
+*     Field 241.1.12       : covMatrix (std::array<float,6>)                   *
+*       Field 241.1.12.1   : _0 (float)                                        *
+*     Field 241.1.13       : rawHits_begin (std::uint32_t)                     *
+*     Field 241.1.14       : rawHits_end (std::uint32_t)                       *
+* Field 242                : _VXDTrackerHits_rawHits (std::vector<edm4hep::O...*
+*   Field 242.1            : _0 (edm4hep::ObjectID)                            *
+*     Field 242.1.1        : index (std::int32_t)                              *
+*     Field 242.1.2        : collectionID (std::int32_t)                       *
+* Field 243                : YokeBarrelCollection (std::vector<edm4hep::SimC...*
+*   Field 243.1            : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 243.1.1        : cellID (std::uint64_t)                            *
+*     Field 243.1.2        : energy (float)                                    *
+*     Field 243.1.3        : position (edm4hep::Vector3f)                      *
+*       Field 243.1.3.1    : x (float)                                         *
+*       Field 243.1.3.2    : y (float)                                         *
+*       Field 243.1.3.3    : z (float)                                         *
+*     Field 243.1.4        : contributions_begin (std::uint32_t)               *
+*     Field 243.1.5        : contributions_end (std::uint32_t)                 *
+* Field 244                : _YokeBarrelCollection_contributions (std::vecto...*
+*   Field 244.1            : _0 (podio::ObjectID)                              *
+*     Field 244.1.1        : index (std::int32_t)                              *
+*     Field 244.1.2        : collectionID (std::uint32_t)                      *
+* Field 245                : YokeEndcapCollection (std::vector<edm4hep::SimC...*
+*   Field 245.1            : _0 (edm4hep::SimCalorimeterHitData)               *
+*     Field 245.1.1        : cellID (std::uint64_t)                            *
+*     Field 245.1.2        : energy (float)                                    *
+*     Field 245.1.3        : position (edm4hep::Vector3f)                      *
+*       Field 245.1.3.1    : x (float)                                         *
+*       Field 245.1.3.2    : y (float)                                         *
+*       Field 245.1.3.3    : z (float)                                         *
+*     Field 245.1.4        : contributions_begin (std::uint32_t)               *
+*     Field 245.1.5        : contributions_end (std::uint32_t)                 *
+* Field 246                : _YokeEndcapCollection_contributions (std::vecto...*
+*   Field 246.1            : _0 (podio::ObjectID)                              *
+*     Field 246.1.1        : index (std::int32_t)                              *
+*     Field 246.1.2        : collectionID (std::uint32_t)                      *
+* Field 247                : GPIntKeys (std::vector<std::string>)              *
+*   Field 247.1            : _0 (std::string)                                  *
+* Field 248                : GPFloatKeys (std::vector<std::string>)            *
+*   Field 248.1            : _0 (std::string)                                  *
+* Field 249                : GPDoubleKeys (std::vector<std::string>)           *
+*   Field 249.1            : _0 (std::string)                                  *
+* Field 250                : GPStringKeys (std::vector<std::string>)           *
+*   Field 250.1            : _0 (std::string)                                  *
+* Field 251                : GPIntValues (std::vector<std::vector<std::int32...*
+*   Field 251.1            : _0 (std::vector<std::int32_t>)                    *
+*     Field 251.1.1        : _0 (std::int32_t)                                 *
+* Field 252                : GPFloatValues (std::vector<std::vector<float>>)   *
+*   Field 252.1            : _0 (std::vector<float>)                           *
+*     Field 252.1.1        : _0 (float)                                        *
+* Field 253                : GPDoubleValues (std::vector<std::vector<double>>) *
+*   Field 253.1            : _0 (std::vector<double>)                          *
+*     Field 253.1.1        : _0 (double)                                       *
+* Field 254                : GPStringValues (std::vector<std::vector<std::st...*
+*   Field 254.1            : _0 (std::vector<std::string>)                     *
+*     Field 254.1.1        : _0 (std::string)                                  *
+********************************************************************************

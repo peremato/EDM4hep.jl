@@ -2,7 +2,9 @@ using Accessors     #  To create new inmutable object just changing one property
 using Corpuscles    #  PDG database
 using StaticArrays  #  Needed for fix lenght arrays in datatypes
 
-export register, relations, Relation, ObjectID
+export register, relations, vmembers, Relation, PVector, ObjectID
+
+abstract type POD end # Abstract type to denote a POD from PODIO
 
 include("../podio/genComponents.jl")
 
@@ -30,8 +32,6 @@ Base.:*(v::Vector2i, a::Int32) = Vector3d(a*v.a, a*v.b)
 #--------------------------------------------------------------------------------------------------
 #---ObjectID{ED}-----------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------
-abstract type POD end
-
 struct ObjectID{ED <: POD} <: POD
     index::Int32
     collectionID::UInt32
@@ -101,12 +101,13 @@ Base.getindex(r::Relation{ED,N}, i) where {ED,N} = 0 < i <= (r.last - r.first) ?
 Base.size(r::Relation{ED,N}) where {ED,N} = (r.last-r.first,)
 Base.length(r::Relation{ED,N}) where {ED,N} = r.last-r.first
 Base.eltype(::Type{Relation{ED,N}}) where {ED,N} = ED
-
 function relations(::Type{ED}) where ED
     (ft for ft in fieldtypes(ED) if ft <: Relation)
 end
+function vmembers(::Type{ED}) where ED
+    (ft for ft in fieldtypes(ED) if ft <: PVector)
+end
 
-const InitAlloc = 4
 function push(r::Relation{ED,N}, p::ED) where {ED,N}
     relations = EDStore_relations(ED,N,r.collid)
     (;first, last) = r
@@ -119,4 +120,49 @@ function push(r::Relation{ED,N}, p::ED) where {ED,N}
     last  = first + length + 1
     relations[last] = p
     Relation{ED,N}(first, last, r.collid)
+end
+
+#--------------------------------------------------------------------------------------------------
+#---PVector{ED,N} for implementation of VectorMembers----------------------------------------------
+#--------------------------------------------------------------------------------------------------
+struct PVector{ED<:POD,T, N} 
+    first::UInt32    # first index (starts with 0)
+    last::UInt32     # last index (starts with 0)
+    collid::UInt32   # Collection ID of the data object (when is read) or 0 if newly created
+    PVector{ED,T,N}(first=0, last=0, collid=0) where {ED,T,N} = new(first, last, collid)
+end
+values(v::PVector{ED,T,N}) where {ED,T,N} = EDStore_pvectors(ED,N,v.collid)[v.first+1:v.last]
+Base.show(io::IO, v::PVector{ED}) where ED = show(io, values(v))
+
+function Base.iterate(v::PVector{ED,T, N}, i=1) where {ED,T,N}
+    if i > (v.last-v.first)
+        return nothing
+    else
+        val = EDStore_pvectors(ED,N,v.collid)   # Normally, the pvectors have been read and should not fail
+        obj = val[v.first + i]
+        return (obj, i + 1)
+    end
+end
+Base.getindex(v::PVector{ED,T, N}, i) where {ED,T, N} = 0 < i <= (v.last - v.first) ? EDStore_pvectors(ED,N,v.collid)[v.first + i] : throw(BoundsError(v,i))
+Base.size(v::PVector{ED,T,N}) where {ED,T,N} = (v.last-v.first,)
+Base.length(v::PVector{ED,T,N}) where {ED,T,N} = v.last-v.first
+Base.eltype(::Type{PVector{ED,T,N}}) where {ED,T,N} = T
+function push(v::PVector{ED,T,N}, p::T) where {ED,T,N}
+    pvectors = EDStore_pvectors(ED,N,v.collid)
+    (;first, last) = v
+    length = last-first
+    tail = lastindex(pvectors)
+    append!(pvectors, zeros(ObjectID{ED}, length+1))           # add extended indices at the end
+    pvectors[tail + 1:tail + length] = pvectors[first+1:last]  # copy indices
+    pvectors[first + 1:last] .= zeros(ED,length)     # reset unused indices
+    first = tail
+    last  = first + length + 1
+    pvectors[last] = p
+    PVector{ED,T,N}(first, last, v.collid)
+end
+
+#--------------------------------------------------------------------------------------------------
+#--GenericParameters-------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
+struct GenericParameters
 end

@@ -52,7 +52,7 @@ io = Base.stdout
 function gen_component(io, key, body)
     jtype = to_julia(key)
     println(io, "\"\"\"\n    $jtype\n\"\"\"")
-    println(io, "struct $jtype")
+    println(io, "struct $jtype <: POD")
     members = []
     for m in body["Members"]
         t, v, c = split_member(m)
@@ -109,6 +109,18 @@ function gen_datatype(io, key, dtype)
             push!(defvalues, "Relation{$(t),$(i)}()")
         end
     end
+    if haskey(dtype, "VectorMembers")
+        println(io, "\n    #---VectorMembers")
+        for (i,r) in enumerate(dtype["VectorMembers"])
+            t, v, c = split_member(r)
+            t = to_julia(t)
+            vt = gen_member(v, "PVector{$(jtype),$(t),$(i)}")
+            println(io, "    $(vt) $(c)")
+            push!(members, v)
+            push!(defvalues, "PVector{$(jtype),$(t),$(i)}()")
+        end
+    end
+
     println(io, "end\n")
     # add an extra constructor with keyword parameters
     args = join(members, ", ")
