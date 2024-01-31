@@ -80,7 +80,7 @@ module RootIO
                 push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
                 push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
             elseif ft <: ObjectID{T}            # index of himself
-                push!(layout, -1)
+                push!(layout, (ft, (-1,-2)))
             elseif ft <: ObjectID               # index of another one....
                 na = replace("$(fn)", "_idx" => "")     # remove the added suffix
                 id = findfirst(x -> x == "_$(branch)_$(na)_index", splitnames)
@@ -169,7 +169,7 @@ module RootIO
             elseif ft <: SVector
                 push!(sa, getproperty(collection, fn))  # no reshaping to be done, it is already an SVector  
             elseif ft == ObjectID{type}
-                push!(sa, collect(0:len-1))
+                push!(sa, StructArray{ft}((collect(0:len-1),fill(collid,len))))
             elseif ft <: ObjectID                       # index of another one....
                 na = replace("$(fn)", "_idx" => "", "mcparticle" => "MCParticle")     # remove the added suffix
                 br = "_$(branch)_$(na)"

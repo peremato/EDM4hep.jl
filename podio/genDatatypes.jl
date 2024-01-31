@@ -85,16 +85,16 @@ struct Cluster <: POD
     directionError::Vector3f         # covariance matrix of the direction (3 Parameters) [mm^2]
 
     #---OneToManyRelations
-    clusters::Relation{Cluster,1}    # clusters that have been combined to this cluster.
-    hits::Relation{CalorimeterHit,2} # hits that have been combined to this cluster.
-    particleIDs::Relation{ParticleID,3}  # particle IDs (sorted by their likelihood)
+    clusters::Relation{Cluster,Cluster,1}  # clusters that have been combined to this cluster.
+    hits::Relation{Cluster,CalorimeterHit,2}  # hits that have been combined to this cluster.
+    particleIDs::Relation{Cluster,ParticleID,3}  # particle IDs (sorted by their likelihood)
 
     #---VectorMembers
     shapeParameters::PVector{Cluster,Float32,1}  # shape parameters - check/set collection parameter ClusterShapeParameters for size and names of parameters.
     subdetectorEnergies::PVector{Cluster,Float32,2}  # energy observed in a particular subdetector. Check/set collection parameter ClusterSubdetectorNames for decoding the indices of the array.
 end
 
-function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,1}(), hits=Relation{CalorimeterHit,2}(), particleIDs=Relation{ParticleID,3}(), shapeParameters=PVector{Cluster,Float32,1}(), subdetectorEnergies=PVector{Cluster,Float32,2}())
+function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,Cluster,1}(), hits=Relation{Cluster,CalorimeterHit,2}(), particleIDs=Relation{Cluster,ParticleID,3}(), shapeParameters=PVector{Cluster,Float32,1}(), subdetectorEnergies=PVector{Cluster,Float32,2}())
     Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, clusters, hits, particleIDs, shapeParameters, subdetectorEnergies)
 end
 
@@ -122,11 +122,11 @@ struct MCParticle <: POD
     colorFlow::Vector2i              # color flow as defined by the generator
 
     #---OneToManyRelations
-    parents::Relation{MCParticle,1}  # The parents of this particle.
-    daughters::Relation{MCParticle,2}  # The daughters this particle.
+    parents::Relation{MCParticle,MCParticle,1}  # The parents of this particle.
+    daughters::Relation{MCParticle,MCParticle,2}  # The daughters this particle.
 end
 
-function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time=0, mass=0, vertex=Vector3d(), endpoint=Vector3d(), momentum=Vector3f(), momentumAtEndpoint=Vector3f(), spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle,1}(), daughters=Relation{MCParticle,2}())
+function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time=0, mass=0, vertex=Vector3d(), endpoint=Vector3d(), momentum=Vector3f(), momentumAtEndpoint=Vector3f(), spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle,MCParticle,1}(), daughters=Relation{MCParticle,MCParticle,2}())
     MCParticle(-1, PDG, generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, parents, daughters)
 end
 
@@ -278,10 +278,10 @@ struct SimCalorimeterHit <: POD
     position::Vector3f               # position of the hit in world coordinates in [mm].
 
     #---OneToManyRelations
-    contributions::Relation{CaloHitContribution,1}  # Monte Carlo step contribution - parallel to particle
+    contributions::Relation{SimCalorimeterHit,CaloHitContribution,1}  # Monte Carlo step contribution - parallel to particle
 end
 
-function SimCalorimeterHit(;cellID=0, energy=0, position=Vector3f(), contributions=Relation{CaloHitContribution,1}())
+function SimCalorimeterHit(;cellID=0, energy=0, position=Vector3f(), contributions=Relation{SimCalorimeterHit,CaloHitContribution,1}())
     SimCalorimeterHit(-1, cellID, energy, position, contributions)
 end
 
@@ -454,10 +454,10 @@ struct RecIonizationCluster <: POD
     type::Int16                      # type.
 
     #---OneToManyRelations
-    trackerPulse::Relation{TrackerPulse,1}  # the TrackerPulse used to create the ionization cluster.
+    trackerPulse::Relation{RecIonizationCluster,TrackerPulse,1}  # the TrackerPulse used to create the ionization cluster.
 end
 
-function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Relation{TrackerPulse,1}())
+function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Relation{RecIonizationCluster,TrackerPulse,1}())
     RecIonizationCluster(-1, cellID, significance, type, trackerPulse)
 end
 
@@ -515,8 +515,8 @@ struct Track <: POD
     radiusOfInnermostHit::Float32    # radius of the innermost hit that has been used in the track fit
 
     #---OneToManyRelations
-    trackerHits::Relation{TrackerHit,1}  # hits that have been used to create this track
-    tracks::Relation{Track,2}        # tracks (segments) that have been combined to create this track
+    trackerHits::Relation{Track,TrackerHit,1}  # hits that have been used to create this track
+    tracks::Relation{Track,Track,2}  # tracks (segments) that have been combined to create this track
 
     #---VectorMembers
     subdetectorHitNumbers::PVector{Track,Int32,1}  # number of hits in particular subdetectors.Check/set collection variable TrackSubdetectorNames for decoding the indices
@@ -524,7 +524,7 @@ struct Track <: POD
     dxQuantities::PVector{Track,Quantity,3}  # different measurements of dx quantities
 end
 
-function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerHits=Relation{TrackerHit,1}(), tracks=Relation{Track,2}(), subdetectorHitNumbers=PVector{Track,Int32,1}(), trackStates=PVector{Track,TrackState,2}(), dxQuantities=PVector{Track,Quantity,3}())
+function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerHits=Relation{Track,TrackerHit,1}(), tracks=Relation{Track,Track,2}(), subdetectorHitNumbers=PVector{Track,Int32,1}(), trackStates=PVector{Track,TrackState,2}(), dxQuantities=PVector{Track,Quantity,3}())
     Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, trackerHits, tracks, subdetectorHitNumbers, trackStates, dxQuantities)
 end
 
@@ -584,13 +584,13 @@ struct ReconstructedParticle <: POD
     particleIDUsed_idx::ObjectID{ParticleID}  # particle Id used for the kinematics of this particle
 
     #---OneToManyRelations
-    clusters::Relation{Cluster,1}    # clusters that have been used for this particle.
-    tracks::Relation{Track,2}        # tracks that have been used for this particle.
-    particles::Relation{ReconstructedParticle,3}  # reconstructed particles that have been combined to this particle.
-    particleIDs::Relation{ParticleID,4}  # particle Ids (not sorted by their likelihood)
+    clusters::Relation{ReconstructedParticle,Cluster,1}  # clusters that have been used for this particle.
+    tracks::Relation{ReconstructedParticle,Track,2}  # tracks that have been used for this particle.
+    particles::Relation{ReconstructedParticle,ReconstructedParticle,3}  # reconstructed particles that have been combined to this particle.
+    particleIDs::Relation{ReconstructedParticle,ParticleID,4}  # particle Ids (not sorted by their likelihood)
 end
 
-function ReconstructedParticle(;type=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=zero(SVector{10,Float32}), startVertex=-1, particleIDUsed=-1, clusters=Relation{Cluster,1}(), tracks=Relation{Track,2}(), particles=Relation{ReconstructedParticle,3}(), particleIDs=Relation{ParticleID,4}())
+function ReconstructedParticle(;type=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=zero(SVector{10,Float32}), startVertex=-1, particleIDUsed=-1, clusters=Relation{ReconstructedParticle,Cluster,1}(), tracks=Relation{ReconstructedParticle,Track,2}(), particles=Relation{ReconstructedParticle,ReconstructedParticle,3}(), particleIDs=Relation{ReconstructedParticle,ParticleID,4}())
     ReconstructedParticle(-1, type, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, startVertex, particleIDUsed, clusters, tracks, particles, particleIDs)
 end
 

@@ -4,7 +4,7 @@ include("../podio/genDatatypes.jl")
 #--------------------------------------------------------------------------------------------------
 #----Utility functions for MCParticle--------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------
-export add_daughter, add_parent
+export add_daughter, add_parent, set_parameters
 
 function add_daughter(p::MCParticle, d::MCParticle)
     iszero(p.index) && (p = register(p))
@@ -40,4 +40,14 @@ function Base.getproperty(obj::MCParticle, sym::Symbol)
     else # fallback to getfield
         return getfield(obj, sym)
     end
+end
+
+#--------------------------------------------------------------------------------------------------
+#----Utility functions for ParticleID--------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
+
+function set_parameters(o::ParticleID, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.parameters = v
+    update(o)
 end

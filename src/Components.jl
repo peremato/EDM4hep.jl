@@ -10,21 +10,31 @@ include("../podio/genComponents.jl")
 
 #---Vector3d
 Base.convert(::Type{Vector3d}, t::Tuple) = Vector3d(t...)
-Base.show(io::IO, v::Vector3d) = print(io, "($(v.x),$(v.y),$(v.z))")
+Base.show(io::IO, v::Vector3d) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
 Base.:*(v::Vector3d, a::Number) = Vector3d(a*v.x, a*v.y, b*v.z)
+function Base.isapprox(v1::Vector3d, v2::Vector3d; atol::Real=0, rtol::Real=Base.rtoldefault(Float64,Float64,atol), nans::Bool=false)
+    isapprox(v1.x, v2.x; atol=atol, rtol=rtol, nans=nans) &&
+    isapprox(v1.y, v2.y; atol=atol, rtol=rtol, nans=nans) &&
+    isapprox(v1.z, v2.z; atol=atol, rtol=rtol, nans=nans)
+end
 
 #---Vector3f
 Base.convert(::Type{Vector3f}, t::Tuple) = Vector3f(t...)
-Base.show(io::IO, v::Vector3f) = print(io, "($(v.x),$(v.y),$(v.z))")
+Base.show(io::IO, v::Vector3f) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
 Base.:*(v::Vector3f, a::Number) = Vector3f(a*v.x, a*v.y, b*v.z)
+function Base.isapprox(v1::Vector3f, v2::Vector3f; atol::Real=0, rtol::Real=Base.rtoldefault(Float32,Float32,atol), nans::Bool=false)
+    isapprox(v1.x, v2.x; atol=atol, rtol=rtol, nans=nans) &&
+    isapprox(v1.y, v2.y; atol=atol, rtol=rtol, nans=nans) &&
+    isapprox(v1.z, v2.z; atol=atol, rtol=rtol, nans=nans)
+end
 
 #---Vector2i
 Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)
-Base.show(io::IO, v::Vector2i) = print(io, "($(v.a),$(v.b))")
+Base.show(io::IO, v::Vector2i) = print(io, "($(v.a), $(v.b))")
 Base.:+(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a + v2.a, v1.b + v2.b)
 Base.:-(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a - v2.a, v1.b - v2.b)
 Base.:*(v::Vector2i, a::Int32) = Vector3d(a*v.a, a*v.b)
@@ -67,22 +77,22 @@ hex(x::UInt64) = "0x$(string(x,base=16,pad=16))"
 #--------------------------------------------------------------------------------------------------
 #---Relation{ED} for implementation of OneToManyRelation-------------------------------------------
 #--------------------------------------------------------------------------------------------------
-struct Relation{ED<:POD,N}
+struct Relation{ED<:POD,TD<:POD,N}
     first::UInt32    # first index (starts with 0)
     last::UInt32     # last index (starts with 0)
     collid::UInt32   # Collection ID of the data object (when is read) or 0 if newly created
-    Relation{ED,N}(first=0, last=0, collid=0) where {ED,N} = new(first, last, collid)
+    Relation{ED,TD,N}(first=0, last=0, collid=0) where {ED,TD,N} = new(first, last, collid)
 end
-indices(r::Relation{ED,N}) where {ED,N} = [p.index+1 for p in EDStore_relations(ED,N,r.collid)[r.first+1:r.last]]
-function Base.show(io::IO, r::Relation{ED}) where ED
+indices(r::Relation{ED,TD,N}) where {ED,TD,N} = [p.index+1 for p in EDStore_relations(ED,N,r.collid)[r.first+1:r.last]]
+function Base.show(io::IO, r::Relation{ED,TD}) where {ED,TD}
     try
         idxs = indices(r)
-        print(io, isempty(idxs) ? "$ED#[]" : "$ED#$idxs")
+        print(io, isempty(idxs) ? "$TD#[]" : "$TD#$idxs")
     catch
-        print(io, "$ED(first=$(r.first), last=$(r.last))")
+        print(io, "$TD(first=$(r.first), last=$(r.last))")
     end
 end
-function Base.iterate(r::Relation{ED,N}, i=1) where {ED,N}
+function Base.iterate(r::Relation{ED,TD,N}, i=1) where {ED,TD,N}
     if i > (r.last-r.first)
         return nothing
     else
@@ -92,15 +102,15 @@ function Base.iterate(r::Relation{ED,N}, i=1) where {ED,N}
             @warn "Cannot iterate on this relation because the collection with ID $(hex(oid.collectionID)) has not been loaded!"
             return nothing
         else
-            obj = convert(ED, oid)
+            obj = convert(TD, oid)
             return (obj, i + 1)
         end
     end
 end
-Base.getindex(r::Relation{ED,N}, i) where {ED,N} = 0 < i <= (r.last - r.first) ? convert(ED, EDStore_relations(ED,N,r.collid)[r.first + i - 1]) : throw(BoundsError(r,i))
-Base.size(r::Relation{ED,N}) where {ED,N} = (r.last-r.first,)
-Base.length(r::Relation{ED,N}) where {ED,N} = r.last-r.first
-Base.eltype(::Type{Relation{ED,N}}) where {ED,N} = ED
+Base.getindex(r::Relation{ED,TD,N}, i) where {ED,TD,N} = 0 < i <= (r.last - r.first) ? convert(TD, EDStore_relations(ED,N,r.collid)[r.first + i]) : throw(BoundsError(r,i))
+Base.size(r::Relation) = (r.last-r.first,)
+Base.length(r::Relation) = r.last-r.first
+Base.eltype(::Type{Relation{ED,TD,N}}) where {ED,TD,N} = TD
 function relations(::Type{ED}) where ED
     (ft for ft in fieldtypes(ED) if ft <: Relation)
 end
@@ -108,24 +118,24 @@ function vmembers(::Type{ED}) where ED
     (ft for ft in fieldtypes(ED) if ft <: PVector)
 end
 
-function push(r::Relation{ED,N}, p::ED) where {ED,N}
+function push(r::Relation{ED,TD,N}, p::TD) where {ED,TD,N}
     relations = EDStore_relations(ED,N,r.collid)
     (;first, last) = r
     length = last-first
     tail = lastindex(relations)
-    append!(relations, zeros(ObjectID{ED}, length+1))      # add extended indices at the end
+    append!(relations, zeros(ObjectID{TD}, length+1))      # add extended indices at the end
     relations[tail + 1:tail + length] = relations[first+1:last]  # copy indices
-    relations[first + 1:last] .= zeros(ObjectID{ED},length)                  # reset unused indices
+    relations[first + 1:last] .= zeros(ObjectID{TD},length)                  # reset unused indices
     first = tail
     last  = first + length + 1
     relations[last] = p
-    Relation{ED,N}(first, last, r.collid)
+    Relation{ED,TD,N}(first, last, r.collid)
 end
 
 #--------------------------------------------------------------------------------------------------
 #---PVector{ED,N} for implementation of VectorMembers----------------------------------------------
 #--------------------------------------------------------------------------------------------------
-struct PVector{ED<:POD,T, N} 
+struct PVector{ED<:POD,T, N} <: AbstractVector{T}
     first::UInt32    # first index (starts with 0)
     last::UInt32     # last index (starts with 0)
     collid::UInt32   # Collection ID of the data object (when is read) or 0 if newly created
@@ -160,9 +170,10 @@ function push(v::PVector{ED,T,N}, p::T) where {ED,T,N}
     pvectors[last] = p
     PVector{ED,T,N}(first, last, v.collid)
 end
-
-#--------------------------------------------------------------------------------------------------
-#--GenericParameters-------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------
-struct GenericParameters
+function Base.convert(::Type{PVector{ED,T,N}}, v::AbstractVector{T}) where {ED,T,N}
+    pvectors = EDStore_pvectors(ED,N)
+    tail = lastindex(pvectors)
+    len  = length(v)
+    append!(pvectors, v)
+    PVector{ED,T,N}(tail, tail + len)
 end

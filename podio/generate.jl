@@ -103,10 +103,10 @@ function gen_datatype(io, key, dtype)
         for (i,r) in enumerate(dtype["OneToManyRelations"])
             t, v, c = split_member(r)
             t = to_julia(t)
-            vt = gen_member(v, "Relation{$(t),$(i)}")
+            vt = gen_member(v, "Relation{$(jtype),$(t),$(i)}")
             println(io, "    $(vt) $(c)")
             push!(members, v)
-            push!(defvalues, "Relation{$(t),$(i)}()")
+            push!(defvalues, "Relation{$(jtype),$(t),$(i)}()")
         end
     end
     if haskey(dtype, "VectorMembers")
