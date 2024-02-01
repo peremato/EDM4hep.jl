@@ -1,8 +1,16 @@
 """
-struct ParticleID
+    struct ParticleID
 
-    Description: ParticleID
-    Author: F.Gaede, DESY
+    - Description: ParticleID
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `type::Int32`: userdefined type
+    - `PDG::Int32`: PDG code of this id - ( 999999 ) if unknown.
+    - `algorithmType::Int32`: type of the algorithm/module that created this hypothesis
+    - `likelihood::Float32`: likelihood of this hypothesis - in a user defined normalization.
+    - `parameters::Float32`: parameters associated with this hypothesis. Check/set collection parameters ParameterNames_PIDAlgorithmTypeName for decoding the indices.
+    # Relations
 """
 struct ParticleID <: POD
     index::ObjectID{ParticleID}      # ObjectID of himself
@@ -22,10 +30,17 @@ function ParticleID(;type=0, PDG=0, algorithmType=0, likelihood=0, parameters=PV
 end
 
 """
-struct TimeSeries
+    struct TimeSeries
 
-    Description: Calibrated Detector Data
-    Author: Wenxing Fang, IHEP
+    - Description: Calibrated Detector Data
+    - Author: Wenxing Fang, IHEP
+
+    # Fields
+    - `cellID::UInt64`: cell id.
+    - `time::Float32`: begin time [ns].
+    - `interval::Float32`: interval of each sampling [ns].
+    - `amplitude::Float32`: calibrated detector data.
+    # Relations
 """
 struct TimeSeries <: POD
     index::ObjectID{TimeSeries}      # ObjectID of himself
@@ -44,10 +59,19 @@ function TimeSeries(;cellID=0, time=0, interval=0, amplitude=PVector{TimeSeries,
 end
 
 """
-struct CalorimeterHit
+    struct CalorimeterHit
 
-    Description: Calorimeter hit
-    Author: F.Gaede, DESY
+    - Description: Calorimeter hit
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `cellID::UInt64`: detector specific (geometrical) cell id.
+    - `energy::Float32`: energy of the hit in [GeV].
+    - `energyError::Float32`: error of the hit energy in [GeV].
+    - `time::Float32`: time of the hit in [ns].
+    - `position::Vector3f`: position of the hit in world coordinates in [mm].
+    - `type::Int32`: type of hit. Mapping of integer types to names via collection parameters "CalorimeterHitTypeNames" and "CalorimeterHitTypeValues".
+    # Relations
 """
 struct CalorimeterHit <: POD
     index::ObjectID{CalorimeterHit}  # ObjectID of himself
@@ -66,10 +90,26 @@ function CalorimeterHit(;cellID=0, energy=0, energyError=0, time=0, position=Vec
 end
 
 """
-struct Cluster
+    struct Cluster
 
-    Description: Calorimeter Hit Cluster
-    Author: F.Gaede, DESY
+    - Description: Calorimeter Hit Cluster
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `type::Int32`: flagword that defines the type of cluster. Bits 16-31 are used internally.
+    - `energy::Float32`: energy of the cluster [GeV]
+    - `energyError::Float32`: error on the energy
+    - `position::Vector3f`: position of the cluster [mm]
+    - `positionError::SVector{6,Float32}`: covariance matrix of the position (6 Parameters)
+    - `iTheta::Float32`: intrinsic direction of cluster at position  Theta. Not to be confused with direction cluster is seen from IP.
+    - `phi::Float32`: intrinsic direction of cluster at position - Phi. Not to be confused with direction cluster is seen from IP.
+    - `directionError::Vector3f`: covariance matrix of the direction (3 Parameters) [mm^2]
+    - `shapeParameters::Float32`: shape parameters - check/set collection parameter ClusterShapeParameters for size and names of parameters.
+    - `subdetectorEnergies::Float32`: energy observed in a particular subdetector. Check/set collection parameter ClusterSubdetectorNames for decoding the indices of the array.
+    # Relations
+    - `clusters::Cluster`: clusters that have been combined to this cluster.
+    - `hits::CalorimeterHit`: hits that have been combined to this cluster.
+    - `particleIDs::ParticleID`: particle IDs (sorted by their likelihood)
 """
 struct Cluster <: POD
     index::ObjectID{Cluster}         # ObjectID of himself
@@ -84,25 +124,42 @@ struct Cluster <: POD
     phi::Float32                     # intrinsic direction of cluster at position - Phi. Not to be confused with direction cluster is seen from IP.
     directionError::Vector3f         # covariance matrix of the direction (3 Parameters) [mm^2]
 
+    #---VectorMembers
+    shapeParameters::PVector{Cluster,Float32,1}  # shape parameters - check/set collection parameter ClusterShapeParameters for size and names of parameters.
+    subdetectorEnergies::PVector{Cluster,Float32,2}  # energy observed in a particular subdetector. Check/set collection parameter ClusterSubdetectorNames for decoding the indices of the array.
+
     #---OneToManyRelations
     clusters::Relation{Cluster,Cluster,1}  # clusters that have been combined to this cluster.
     hits::Relation{Cluster,CalorimeterHit,2}  # hits that have been combined to this cluster.
     particleIDs::Relation{Cluster,ParticleID,3}  # particle IDs (sorted by their likelihood)
-
-    #---VectorMembers
-    shapeParameters::PVector{Cluster,Float32,1}  # shape parameters - check/set collection parameter ClusterShapeParameters for size and names of parameters.
-    subdetectorEnergies::PVector{Cluster,Float32,2}  # energy observed in a particular subdetector. Check/set collection parameter ClusterSubdetectorNames for decoding the indices of the array.
 end
 
-function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), clusters=Relation{Cluster,Cluster,1}(), hits=Relation{Cluster,CalorimeterHit,2}(), particleIDs=Relation{Cluster,ParticleID,3}(), shapeParameters=PVector{Cluster,Float32,1}(), subdetectorEnergies=PVector{Cluster,Float32,2}())
-    Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, clusters, hits, particleIDs, shapeParameters, subdetectorEnergies)
+function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), positionError=zero(SVector{6,Float32}), iTheta=0, phi=0, directionError=Vector3f(), shapeParameters=PVector{Cluster,Float32,1}(), subdetectorEnergies=PVector{Cluster,Float32,2}(), clusters=Relation{Cluster,Cluster,1}(), hits=Relation{Cluster,CalorimeterHit,2}(), particleIDs=Relation{Cluster,ParticleID,3}())
+    Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, shapeParameters, subdetectorEnergies, clusters, hits, particleIDs)
 end
 
 """
-struct MCParticle
+    struct MCParticle
 
-    Description: The Monte Carlo particle - based on the lcio::MCParticle.
-    Author: F.Gaede, DESY
+    - Description: The Monte Carlo particle - based on the lcio::MCParticle.
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `PDG::Int32`: PDG code of the particle
+    - `generatorStatus::Int32`: status of the particle as defined by the generator
+    - `simulatorStatus::Int32`: status of the particle from the simulation program - use BIT constants below
+    - `charge::Float32`: particle charge
+    - `time::Float32`: creation time of the particle in [ns] wrt. the event, e.g. for preassigned decays or decays in flight from the simulator.
+    - `mass::Float64`: mass of the particle in [GeV]
+    - `vertex::Vector3d`: production vertex of the particle in [mm].
+    - `endpoint::Vector3d`: endpoint of the particle in [mm]
+    - `momentum::Vector3d`: particle 3-momentum at the production vertex in [GeV]
+    - `momentumAtEndpoint::Vector3d`: particle 3-momentum at the endpoint in [GeV]
+    - `spin::Vector3f`: spin (helicity) vector of the particle.
+    - `colorFlow::Vector2i`: color flow as defined by the generator
+    # Relations
+    - `parents::MCParticle`: The parents of this particle.
+    - `daughters::MCParticle`: The daughters this particle.
 """
 struct MCParticle <: POD
     index::ObjectID{MCParticle}      # ObjectID of himself
@@ -116,8 +173,8 @@ struct MCParticle <: POD
     mass::Float64                    # mass of the particle in [GeV]
     vertex::Vector3d                 # production vertex of the particle in [mm].
     endpoint::Vector3d               # endpoint of the particle in [mm]
-    momentum::Vector3f               # particle 3-momentum at the production vertex in [GeV]
-    momentumAtEndpoint::Vector3f     # particle 3-momentum at the endpoint in [GeV]
+    momentum::Vector3d               # particle 3-momentum at the production vertex in [GeV]
+    momentumAtEndpoint::Vector3d     # particle 3-momentum at the endpoint in [GeV]
     spin::Vector3f                   # spin (helicity) vector of the particle.
     colorFlow::Vector2i              # color flow as defined by the generator
 
@@ -126,15 +183,28 @@ struct MCParticle <: POD
     daughters::Relation{MCParticle,MCParticle,2}  # The daughters this particle.
 end
 
-function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time=0, mass=0, vertex=Vector3d(), endpoint=Vector3d(), momentum=Vector3f(), momentumAtEndpoint=Vector3f(), spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle,MCParticle,1}(), daughters=Relation{MCParticle,MCParticle,2}())
+function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time=0, mass=0, vertex=Vector3d(), endpoint=Vector3d(), momentum=Vector3d(), momentumAtEndpoint=Vector3d(), spin=Vector3f(), colorFlow=Vector2i(), parents=Relation{MCParticle,MCParticle,1}(), daughters=Relation{MCParticle,MCParticle,2}())
     MCParticle(-1, PDG, generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, parents, daughters)
 end
 
 """
-struct SimPrimaryIonizationCluster
+    struct SimPrimaryIonizationCluster
 
-    Description: Simulated Primary Ionization
-    Author: Wenxing Fang, IHEP
+    - Description: Simulated Primary Ionization
+    - Author: Wenxing Fang, IHEP
+
+    # Fields
+    - `cellID::UInt64`: cell id.
+    - `time::Float32`: the primary ionization's time in the lab frame [ns].
+    - `position::Vector3d`: the primary ionization's position [mm].
+    - `type::Int16`: type.
+    - `electronCellID::UInt64`: cell id.
+    - `electronTime::Float32`: the time in the lab frame [ns].
+    - `electronPosition::Vector3d`: the position in the lab frame [mm].
+    - `pulseTime::Float32`: the pulse's time in the lab frame [ns].
+    - `pulseAmplitude::Float32`: the pulse's amplitude [fC].
+    # Relations
+    - `mcparticle::MCParticle`: the particle that caused the ionizing collisions.
 """
 struct SimPrimaryIonizationCluster <: POD
     index::ObjectID{SimPrimaryIonizationCluster}  # ObjectID of himself
@@ -145,19 +215,19 @@ struct SimPrimaryIonizationCluster <: POD
     position::Vector3d               # the primary ionization's position [mm].
     type::Int16                      # type.
 
-    #---OneToOneRelations
-    mcparticle_idx::ObjectID{MCParticle}  # the particle that caused the ionizing collisions.
-
     #---VectorMembers
     electronCellID::PVector{SimPrimaryIonizationCluster,UInt64,1}  # cell id.
     electronTime::PVector{SimPrimaryIonizationCluster,Float32,2}  # the time in the lab frame [ns].
     electronPosition::PVector{SimPrimaryIonizationCluster,Vector3d,3}  # the position in the lab frame [mm].
     pulseTime::PVector{SimPrimaryIonizationCluster,Float32,4}  # the pulse's time in the lab frame [ns].
     pulseAmplitude::PVector{SimPrimaryIonizationCluster,Float32,5}  # the pulse's amplitude [fC].
+
+    #---OneToOneRelations
+    mcparticle_idx::ObjectID{MCParticle}  # the particle that caused the ionizing collisions.
 end
 
-function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, mcparticle=-1, electronCellID=PVector{SimPrimaryIonizationCluster,UInt64,1}(), electronTime=PVector{SimPrimaryIonizationCluster,Float32,2}(), electronPosition=PVector{SimPrimaryIonizationCluster,Vector3d,3}(), pulseTime=PVector{SimPrimaryIonizationCluster,Float32,4}(), pulseAmplitude=PVector{SimPrimaryIonizationCluster,Float32,5}())
-    SimPrimaryIonizationCluster(-1, cellID, time, position, type, mcparticle, electronCellID, electronTime, electronPosition, pulseTime, pulseAmplitude)
+function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, electronCellID=PVector{SimPrimaryIonizationCluster,UInt64,1}(), electronTime=PVector{SimPrimaryIonizationCluster,Float32,2}(), electronPosition=PVector{SimPrimaryIonizationCluster,Vector3d,3}(), pulseTime=PVector{SimPrimaryIonizationCluster,Float32,4}(), pulseAmplitude=PVector{SimPrimaryIonizationCluster,Float32,5}(), mcparticle=-1)
+    SimPrimaryIonizationCluster(-1, cellID, time, position, type, electronCellID, electronTime, electronPosition, pulseTime, pulseAmplitude, mcparticle)
 end
 
 function Base.getproperty(obj::SimPrimaryIonizationCluster, sym::Symbol)
@@ -169,10 +239,16 @@ function Base.getproperty(obj::SimPrimaryIonizationCluster, sym::Symbol)
     end
 end
 """
-struct MCRecoClusterParticleAssociation
+    struct MCRecoClusterParticleAssociation
 
-    Description: Association between a Cluster and a MCParticle
-    Author: Placido Fernandez Declara
+    - Description: Association between a Cluster and a MCParticle
+    - Author: Placido Fernandez Declara
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::Cluster`: reference to the cluster
+    - `sim::MCParticle`: reference to the Monte-Carlo particle
 """
 struct MCRecoClusterParticleAssociation <: POD
     index::ObjectID{MCRecoClusterParticleAssociation}  # ObjectID of himself
@@ -201,10 +277,16 @@ function Base.getproperty(obj::MCRecoClusterParticleAssociation, sym::Symbol)
     end
 end
 """
-struct MCRecoCaloParticleAssociation
+    struct MCRecoCaloParticleAssociation
 
-    Description: Association between a CalorimeterHit and a MCParticle
-    Author: Placido Fernandez Declara
+    - Description: Association between a CalorimeterHit and a MCParticle
+    - Author: Placido Fernandez Declara
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::CalorimeterHit`: reference to the reconstructed hit
+    - `sim::MCParticle`: reference to the Monte-Carlo particle
 """
 struct MCRecoCaloParticleAssociation <: POD
     index::ObjectID{MCRecoCaloParticleAssociation}  # ObjectID of himself
@@ -233,10 +315,18 @@ function Base.getproperty(obj::MCRecoCaloParticleAssociation, sym::Symbol)
     end
 end
 """
-struct CaloHitContribution
+    struct CaloHitContribution
 
-    Description: Monte Carlo contribution to SimCalorimeterHit
-    Author: F.Gaede, DESY
+    - Description: Monte Carlo contribution to SimCalorimeterHit
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `PDG::Int32`: PDG code of the shower particle that caused this contribution.
+    - `energy::Float32`: energy in [GeV] of the this contribution
+    - `time::Float32`: time in [ns] of this contribution
+    - `stepPosition::Vector3f`: position of this energy deposition (step) [mm]
+    # Relations
+    - `particle::MCParticle`: primary MCParticle that caused the shower responsible for this contribution to the hit.
 """
 struct CaloHitContribution <: POD
     index::ObjectID{CaloHitContribution}  # ObjectID of himself
@@ -264,10 +354,17 @@ function Base.getproperty(obj::CaloHitContribution, sym::Symbol)
     end
 end
 """
-struct SimCalorimeterHit
+    struct SimCalorimeterHit
 
-    Description: Simulated calorimeter hit
-    Author: F.Gaede, DESY
+    - Description: Simulated calorimeter hit
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `cellID::UInt64`: ID of the sensor that created this hit
+    - `energy::Float32`: energy of the hit in [GeV].
+    - `position::Vector3f`: position of the hit in world coordinates in [mm].
+    # Relations
+    - `contributions::CaloHitContribution`: Monte Carlo step contribution - parallel to particle
 """
 struct SimCalorimeterHit <: POD
     index::ObjectID{SimCalorimeterHit}  # ObjectID of himself
@@ -286,10 +383,19 @@ function SimCalorimeterHit(;cellID=0, energy=0, position=Vector3f(), contributio
 end
 
 """
-struct RawTimeSeries
+    struct RawTimeSeries
 
-    Description: Raw data of a detector readout
-    Author: F.Gaede, DESY
+    - Description: Raw data of a detector readout
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `cellID::UInt64`: detector specific cell id.
+    - `quality::Int32`: quality flag for the hit.
+    - `time::Float32`: time of the hit [ns].
+    - `charge::Float32`: integrated charge of the hit [fC].
+    - `interval::Float32`: interval of each sampling [ns].
+    - `adcCounts::Int32`: raw data (32-bit) word at i.
+    # Relations
 """
 struct RawTimeSeries <: POD
     index::ObjectID{RawTimeSeries}   # ObjectID of himself
@@ -310,10 +416,16 @@ function RawTimeSeries(;cellID=0, quality=0, time=0, charge=0, interval=0, adcCo
 end
 
 """
-struct MCRecoCaloAssociation
+    struct MCRecoCaloAssociation
 
-    Description: Association between a CaloHit and the corresponding simulated CaloHit
-    Author: C. Bernet, B. Hegner
+    - Description: Association between a CaloHit and the corresponding simulated CaloHit
+    - Author: C. Bernet, B. Hegner
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::CalorimeterHit`: reference to the reconstructed hit
+    - `sim::SimCalorimeterHit`: reference to the simulated hit
 """
 struct MCRecoCaloAssociation <: POD
     index::ObjectID{MCRecoCaloAssociation}  # ObjectID of himself
@@ -342,10 +454,19 @@ function Base.getproperty(obj::MCRecoCaloAssociation, sym::Symbol)
     end
 end
 """
-struct TrackerPulse
+    struct TrackerPulse
 
-    Description: Reconstructed Tracker Pulse
-    Author: Wenxing Fang, IHEP
+    - Description: Reconstructed Tracker Pulse
+    - Author: Wenxing Fang, IHEP
+
+    # Fields
+    - `cellID::UInt64`: cell id.
+    - `time::Float32`: time [ns].
+    - `charge::Float32`: charge [fC].
+    - `quality::Int16`: quality.
+    - `covMatrix::SVector{3,Float32}`: lower triangle covariance matrix of the charge(c) and time(t) measurements.
+    # Relations
+    - `timeSeries::TimeSeries`: Optionally, the timeSeries that has been used to create the pulse can be stored with the pulse.
 """
 struct TrackerPulse <: POD
     index::ObjectID{TrackerPulse}    # ObjectID of himself
@@ -374,10 +495,17 @@ function Base.getproperty(obj::TrackerPulse, sym::Symbol)
     end
 end
 """
-struct EventHeader
+    struct EventHeader
 
-    Description: Event Header. Additional parameters are assumed to go into the metadata tree.
-    Author: F.Gaede
+    - Description: Event Header. Additional parameters are assumed to go into the metadata tree.
+    - Author: F.Gaede
+
+    # Fields
+    - `eventNumber::Int32`: event number
+    - `runNumber::Int32`: run number
+    - `timeStamp::UInt64`: time stamp
+    - `weight::Float32`: event weight
+    # Relations
 """
 struct EventHeader <: POD
     index::ObjectID{EventHeader}     # ObjectID of himself
@@ -394,10 +522,22 @@ function EventHeader(;eventNumber=0, runNumber=0, timeStamp=0, weight=0)
 end
 
 """
-struct TrackerHit
+    struct TrackerHit
 
-    Description: Tracker hit
-    Author: F.Gaede, DESY
+    - Description: Tracker hit
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `cellID::UInt64`: ID of the sensor that created this hit
+    - `type::Int32`: type of raw data hit, either one of edm4hep::RawTimeSeries, edm4hep::SIMTRACKERHIT - see collection parameters "TrackerHitTypeNames" and "TrackerHitTypeValues".
+    - `quality::Int32`: quality bit flag of the hit.
+    - `time::Float32`: time of the hit [ns].
+    - `eDep::Float32`: energy deposited on the hit [GeV].
+    - `eDepError::Float32`: error measured on EDep [GeV].
+    - `position::Vector3d`: hit position in [mm].
+    - `covMatrix::SVector{6,Float32}`: covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
+    - `rawHits::ObjectID`: raw data hits. Check getType to get actual data type.
+    # Relations
 """
 struct TrackerHit <: POD
     index::ObjectID{TrackerHit}      # ObjectID of himself
@@ -421,10 +561,16 @@ function TrackerHit(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, p
 end
 
 """
-struct RawCalorimeterHit
+    struct RawCalorimeterHit
 
-    Description: Raw calorimeter hit
-    Author: F.Gaede, DESY
+    - Description: Raw calorimeter hit
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `cellID::UInt64`: detector specific (geometrical) cell id.
+    - `amplitude::Int32`: amplitude of the hit in ADC counts.
+    - `timeStamp::Int32`: time stamp for the hit.
+    # Relations
 """
 struct RawCalorimeterHit <: POD
     index::ObjectID{RawCalorimeterHit}  # ObjectID of himself
@@ -440,10 +586,17 @@ function RawCalorimeterHit(;cellID=0, amplitude=0, timeStamp=0)
 end
 
 """
-struct RecIonizationCluster
+    struct RecIonizationCluster
 
-    Description: Reconstructed Ionization Cluster
-    Author: Wenxing Fang, IHEP
+    - Description: Reconstructed Ionization Cluster
+    - Author: Wenxing Fang, IHEP
+
+    # Fields
+    - `cellID::UInt64`: cell id.
+    - `significance::Float32`: significance.
+    - `type::Int16`: type.
+    # Relations
+    - `trackerPulse::TrackerPulse`: the TrackerPulse used to create the ionization cluster.
 """
 struct RecIonizationCluster <: POD
     index::ObjectID{RecIonizationCluster}  # ObjectID of himself
@@ -462,10 +615,21 @@ function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Re
 end
 
 """
-struct Vertex
+    struct Vertex
 
-    Description: Vertex
-    Author: F.Gaede, DESY
+    - Description: Vertex
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `primary::Int32`: boolean flag, if vertex is the primary vertex of the event
+    - `chi2::Float32`: chi-squared of the vertex fit
+    - `probability::Float32`: probability of the vertex fit
+    - `position::Vector3f`: [mm] position of the vertex.
+    - `covMatrix::SVector{6,Float32}`: covariance matrix of the position (stored as lower triangle matrix, i.e. cov(xx),cov(y,x),cov(z,x),cov(y,y),... )
+    - `algorithmType::Int32`: type code for the algorithm that has been used to create the vertex - check/set the collection parameters AlgorithmName and AlgorithmType.
+    - `parameters::Float32`: additional parameters related to this vertex - check/set the collection parameter "VertexParameterNames" for the parameters meaning.
+    # Relations
+    - `associatedParticle::POD`: reconstructed particle associated to this vertex.
 """
 struct Vertex <: POD
     index::ObjectID{Vertex}          # ObjectID of himself
@@ -478,15 +642,15 @@ struct Vertex <: POD
     covMatrix::SVector{6,Float32}    # covariance matrix of the position (stored as lower triangle matrix, i.e. cov(xx),cov(y,x),cov(z,x),cov(y,y),... )
     algorithmType::Int32             # type code for the algorithm that has been used to create the vertex - check/set the collection parameters AlgorithmName and AlgorithmType.
 
-    #---OneToOneRelations
-    associatedParticle_idx::ObjectID{POD}  # reconstructed particle associated to this vertex.
-
     #---VectorMembers
     parameters::PVector{Vertex,Float32,1}  # additional parameters related to this vertex - check/set the collection parameter "VertexParameterNames" for the parameters meaning.
+
+    #---OneToOneRelations
+    associatedParticle_idx::ObjectID{POD}  # reconstructed particle associated to this vertex.
 end
 
-function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=zero(SVector{6,Float32}), algorithmType=0, associatedParticle=-1, parameters=PVector{Vertex,Float32,1}())
-    Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType, associatedParticle, parameters)
+function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=zero(SVector{6,Float32}), algorithmType=0, parameters=PVector{Vertex,Float32,1}(), associatedParticle=-1)
+    Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType, parameters, associatedParticle)
 end
 
 function Base.getproperty(obj::Vertex, sym::Symbol)
@@ -498,10 +662,24 @@ function Base.getproperty(obj::Vertex, sym::Symbol)
     end
 end
 """
-struct Track
+    struct Track
 
-    Description: Reconstructed track
-    Author: F.Gaede, DESY
+    - Description: Reconstructed track
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `type::Int32`: flagword that defines the type of track.Bits 16-31 are used internally
+    - `chi2::Float32`: Chi^2 of the track fit
+    - `ndf::Int32`: number of degrees of freedom of the track fit
+    - `dEdx::Float32`: dEdx of the track.
+    - `dEdxError::Float32`: error of dEdx.
+    - `radiusOfInnermostHit::Float32`: radius of the innermost hit that has been used in the track fit
+    - `subdetectorHitNumbers::Int32`: number of hits in particular subdetectors.Check/set collection variable TrackSubdetectorNames for decoding the indices
+    - `trackStates::TrackState`: track states
+    - `dxQuantities::Quantity`: different measurements of dx quantities
+    # Relations
+    - `trackerHits::TrackerHit`: hits that have been used to create this track
+    - `tracks::Track`: tracks (segments) that have been combined to create this track
 """
 struct Track <: POD
     index::ObjectID{Track}           # ObjectID of himself
@@ -514,25 +692,31 @@ struct Track <: POD
     dEdxError::Float32               # error of dEdx.
     radiusOfInnermostHit::Float32    # radius of the innermost hit that has been used in the track fit
 
-    #---OneToManyRelations
-    trackerHits::Relation{Track,TrackerHit,1}  # hits that have been used to create this track
-    tracks::Relation{Track,Track,2}  # tracks (segments) that have been combined to create this track
-
     #---VectorMembers
     subdetectorHitNumbers::PVector{Track,Int32,1}  # number of hits in particular subdetectors.Check/set collection variable TrackSubdetectorNames for decoding the indices
     trackStates::PVector{Track,TrackState,2}  # track states
     dxQuantities::PVector{Track,Quantity,3}  # different measurements of dx quantities
+
+    #---OneToManyRelations
+    trackerHits::Relation{Track,TrackerHit,1}  # hits that have been used to create this track
+    tracks::Relation{Track,Track,2}  # tracks (segments) that have been combined to create this track
 end
 
-function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, trackerHits=Relation{Track,TrackerHit,1}(), tracks=Relation{Track,Track,2}(), subdetectorHitNumbers=PVector{Track,Int32,1}(), trackStates=PVector{Track,TrackState,2}(), dxQuantities=PVector{Track,Quantity,3}())
-    Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, trackerHits, tracks, subdetectorHitNumbers, trackStates, dxQuantities)
+function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, subdetectorHitNumbers=PVector{Track,Int32,1}(), trackStates=PVector{Track,TrackState,2}(), dxQuantities=PVector{Track,Quantity,3}(), trackerHits=Relation{Track,TrackerHit,1}(), tracks=Relation{Track,Track,2}())
+    Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, subdetectorHitNumbers, trackStates, dxQuantities, trackerHits, tracks)
 end
 
 """
-struct MCRecoTrackParticleAssociation
+    struct MCRecoTrackParticleAssociation
 
-    Description: Association between a Track and a MCParticle
-    Author: Placido Fernandez Declara
+    - Description: Association between a Track and a MCParticle
+    - Author: Placido Fernandez Declara
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::Track`: reference to the track
+    - `sim::MCParticle`: reference to the Monte-Carlo particle
 """
 struct MCRecoTrackParticleAssociation <: POD
     index::ObjectID{MCRecoTrackParticleAssociation}  # ObjectID of himself
@@ -561,10 +745,27 @@ function Base.getproperty(obj::MCRecoTrackParticleAssociation, sym::Symbol)
     end
 end
 """
-struct ReconstructedParticle
+    struct ReconstructedParticle
 
-    Description: Reconstructed Particle
-    Author: F.Gaede, DESY
+    - Description: Reconstructed Particle
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `type::Int32`: type of reconstructed particle. Check/set collection parameters ReconstructedParticleTypeNames and ReconstructedParticleTypeValues.
+    - `energy::Float32`: [GeV] energy of the reconstructed particle. Four momentum state is not kept consistent internally.
+    - `momentum::Vector3f`: [GeV] particle momentum. Four momentum state is not kept consistent internally.
+    - `referencePoint::Vector3f`: [mm] reference, i.e. where the particle has been measured
+    - `charge::Float32`: charge of the reconstructed particle.
+    - `mass::Float32`: [GeV] mass of the reconstructed particle, set independently from four vector. Four momentum state is not kept consistent internally.
+    - `goodnessOfPID::Float32`: overall goodness of the PID on a scale of [0;1]
+    - `covMatrix::SVector{10,Float32}`: cvariance matrix of the reconstructed particle 4vector (10 parameters). Stored as lower triangle matrix of the four momentum (px,py,pz,E), i.e. cov(px,px), cov(py,##
+    # Relations
+    - `startVertex::Vertex`: start vertex associated to this particle
+    - `particleIDUsed::ParticleID`: particle Id used for the kinematics of this particle
+    - `clusters::Cluster`: clusters that have been used for this particle.
+    - `tracks::Track`: tracks that have been used for this particle.
+    - `particles::ReconstructedParticle`: reconstructed particles that have been combined to this particle.
+    - `particleIDs::ParticleID`: particle Ids (not sorted by their likelihood)
 """
 struct ReconstructedParticle <: POD
     index::ObjectID{ReconstructedParticle}  # ObjectID of himself
@@ -606,10 +807,16 @@ function Base.getproperty(obj::ReconstructedParticle, sym::Symbol)
     end
 end
 """
-struct MCRecoParticleAssociation
+    struct MCRecoParticleAssociation
 
-    Description: Used to keep track of the correspondence between MC and reconstructed particles
-    Author: C. Bernet, B. Hegner
+    - Description: Used to keep track of the correspondence between MC and reconstructed particles
+    - Author: C. Bernet, B. Hegner
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::ReconstructedParticle`: reference to the reconstructed particle
+    - `sim::MCParticle`: reference to the Monte-Carlo particle
 """
 struct MCRecoParticleAssociation <: POD
     index::ObjectID{MCRecoParticleAssociation}  # ObjectID of himself
@@ -638,10 +845,16 @@ function Base.getproperty(obj::MCRecoParticleAssociation, sym::Symbol)
     end
 end
 """
-struct RecoParticleVertexAssociation
+    struct RecoParticleVertexAssociation
 
-    Description: Association between a Reconstructed Particle and a Vertex
-    Author: Placido Fernandez Declara
+    - Description: Association between a Reconstructed Particle and a Vertex
+    - Author: Placido Fernandez Declara
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::ReconstructedParticle`: reference to the reconstructed particle
+    - `vertex::Vertex`: reference to the vertex
 """
 struct RecoParticleVertexAssociation <: POD
     index::ObjectID{RecoParticleVertexAssociation}  # ObjectID of himself
@@ -670,10 +883,19 @@ function Base.getproperty(obj::RecoParticleVertexAssociation, sym::Symbol)
     end
 end
 """
-struct RecDqdx
+    struct RecDqdx
 
-    Description: dN/dx or dE/dx info of Track.
-    Author: Wenxing Fang, IHEP
+    - Description: dN/dx or dE/dx info of Track.
+    - Author: Wenxing Fang, IHEP
+
+    # Fields
+    - `dQdx::Quantity`: the reconstructed dEdx or dNdx and its error
+    - `particleType::Int16`: particle type, e(0),mu(1),pi(2),K(3),p(4).
+    - `type::Int16`: type.
+    - `hypotheses::SVector{5,Hypothesis}`: 5 particle hypothesis
+    - `hitData::HitLevelData`: hit level data
+    # Relations
+    - `track::Track`: the corresponding track.
 """
 struct RecDqdx <: POD
     index::ObjectID{RecDqdx}         # ObjectID of himself
@@ -684,15 +906,15 @@ struct RecDqdx <: POD
     type::Int16                      # type.
     hypotheses::SVector{5,Hypothesis}  # 5 particle hypothesis
 
-    #---OneToOneRelations
-    track_idx::ObjectID{Track}       # the corresponding track.
-
     #---VectorMembers
     hitData::PVector{RecDqdx,HitLevelData,1}  # hit level data
+
+    #---OneToOneRelations
+    track_idx::ObjectID{Track}       # the corresponding track.
 end
 
-function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), track=-1, hitData=PVector{RecDqdx,HitLevelData,1}())
-    RecDqdx(-1, dQdx, particleType, type, hypotheses, track, hitData)
+function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), hitData=PVector{RecDqdx,HitLevelData,1}(), track=-1)
+    RecDqdx(-1, dQdx, particleType, type, hypotheses, hitData, track)
 end
 
 function Base.getproperty(obj::RecDqdx, sym::Symbol)
@@ -704,10 +926,26 @@ function Base.getproperty(obj::RecDqdx, sym::Symbol)
     end
 end
 """
-struct TrackerHitPlane
+    struct TrackerHitPlane
 
-    Description: Tracker hit plane
-    Author: Placido Fernandez Declara, CERN
+    - Description: Tracker hit plane
+    - Author: Placido Fernandez Declara, CERN
+
+    # Fields
+    - `cellID::UInt64`: ID of the sensor that created this hit
+    - `type::Int32`: type of raw data hit, either one of edm4hep::RawTimeSeries, edm4hep::SIMTRACKERHIT - see collection parameters "TrackerHitTypeNames" and "TrackerHitTypeValues".
+    - `quality::Int32`: quality bit flag of the hit.
+    - `time::Float32`: time of the hit [ns].
+    - `eDep::Float32`: energy deposited on the hit [GeV].
+    - `eDepError::Float32`: error measured on EDep [GeV].
+    - `u::Vector2f`: measurement direction vector, u lies in the x-y plane
+    - `v::Vector2f`: measurement direction vector, v is along z
+    - `du::Float32`: measurement error along the direction
+    - `dv::Float32`: measurement error along the direction
+    - `position::Vector3d`: hit position in [mm].
+    - `covMatrix::SVector{6,Float32}`: covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
+    - `rawHits::ObjectID`: raw data hits. Check getType to get actual data type.
+    # Relations
 """
 struct TrackerHitPlane <: POD
     index::ObjectID{TrackerHitPlane} # ObjectID of himself
@@ -735,10 +973,21 @@ function TrackerHitPlane(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError
 end
 
 """
-struct SimTrackerHit
+    struct SimTrackerHit
 
-    Description: Simulated tracker hit
-    Author: F.Gaede, DESY
+    - Description: Simulated tracker hit
+    - Author: F.Gaede, DESY
+
+    # Fields
+    - `cellID::UInt64`: ID of the sensor that created this hit
+    - `EDep::Float32`: energy deposited in the hit [GeV].
+    - `time::Float32`: proper time of the hit in the lab frame in [ns].
+    - `pathLength::Float32`: path length of the particle in the sensitive material that resulted in this hit.
+    - `quality::Int32`: quality bit flag.
+    - `position::Vector3d`: the hit position in [mm].
+    - `momentum::Vector3f`: the 3-momentum of the particle at the hits position in [GeV]
+    # Relations
+    - `mcparticle::MCParticle`: MCParticle that caused the hit.
 """
 struct SimTrackerHit <: POD
     index::ObjectID{SimTrackerHit}   # ObjectID of himself
@@ -769,10 +1018,16 @@ function Base.getproperty(obj::SimTrackerHit, sym::Symbol)
     end
 end
 """
-struct MCRecoTrackerHitPlaneAssociation
+    struct MCRecoTrackerHitPlaneAssociation
 
-    Description: Association between a TrackerHitPlane and the corresponding simulated TrackerHit
-    Author: Placido Fernandez Declara
+    - Description: Association between a TrackerHitPlane and the corresponding simulated TrackerHit
+    - Author: Placido Fernandez Declara
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::TrackerHitPlane`: reference to the reconstructed hit
+    - `sim::SimTrackerHit`: reference to the simulated hit
 """
 struct MCRecoTrackerHitPlaneAssociation <: POD
     index::ObjectID{MCRecoTrackerHitPlaneAssociation}  # ObjectID of himself
@@ -801,10 +1056,16 @@ function Base.getproperty(obj::MCRecoTrackerHitPlaneAssociation, sym::Symbol)
     end
 end
 """
-struct MCRecoTrackerAssociation
+    struct MCRecoTrackerAssociation
 
-    Description: Association between a TrackerHit and the corresponding simulated TrackerHit
-    Author: C. Bernet, B. Hegner
+    - Description: Association between a TrackerHit and the corresponding simulated TrackerHit
+    - Author: C. Bernet, B. Hegner
+
+    # Fields
+    - `weight::Float32`: weight of this association
+    # Relations
+    - `rec::TrackerHit`: reference to the reconstructed hit
+    - `sim::SimTrackerHit`: reference to the simulated hit
 """
 struct MCRecoTrackerAssociation <: POD
     index::ObjectID{MCRecoTrackerAssociation}  # ObjectID of himself

@@ -1,4 +1,15 @@
 """
+    HitLevelData
+"""
+struct HitLevelData <: POD
+    cellID::UInt64                   # cell id
+    N::UInt32                        # number of reconstructed ionization cluster.
+    eDep::Float32                    # reconstructed energy deposit [GeV].
+    pathLength::Float32              # track path length [mm].
+    HitLevelData(cellID=0, N=0, eDep=0, pathLength=0) = new(cellID, N, eDep, pathLength)
+end
+
+"""
     Vector3d
 """
 struct Vector3d <: POD
@@ -64,14 +75,14 @@ struct Vector2i <: POD
 end
 
 """
-    HitLevelData
+    Vector4f
 """
-struct HitLevelData <: POD
-    cellID::UInt64                   # cell id
-    N::UInt32                        # number of reconstructed ionization cluster.
-    eDep::Float32                    # reconstructed energy deposit [GeV].
-    pathLength::Float32              # track path length [mm].
-    HitLevelData(cellID=0, N=0, eDep=0, pathLength=0) = new(cellID, N, eDep, pathLength)
+struct Vector4f <: POD
+    x::Float32                       
+    y::Float32                       
+    z::Float32                       
+    t::Float32                       
+    Vector4f(x=0, y=0, z=0, t=0) = new(x, y, z, t)
 end
 
 """
@@ -83,4 +94,4 @@ struct Vector2f <: POD
     Vector2f(a=0, b=0) = new(a, b)
 end
 
-export Vector3d, Quantity, Vector3f, TrackState, Hypothesis, Vector2i, HitLevelData, Vector2f
+export HitLevelData, Vector3d, Quantity, Vector3f, TrackState, Hypothesis, Vector2i, Vector4f, Vector2f

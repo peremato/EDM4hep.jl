@@ -6,6 +6,21 @@ options:
   includeSubfolder: True
 
 components:
+    edm4hep::Vector4f:
+      Description: "Generic vector for storing classical 4D coordinates in memory. Four momentum helper functions are in edm4hep::utils"
+      Members:
+        - float x
+        - float y
+        - float z
+        - float t
+      ExtraCode:
+        declaration: "
+        constexpr Vector4f() : x(0),y(0),z(0),t(0) {}\n
+        constexpr Vector4f(float xx, float yy, float zz, float tt) : x(xx),y(yy),z(zz),t(tt) {}\n
+        constexpr Vector4f(const float* v) : x(v[0]),y(v[1]),z(v[2]),t(v[3]) {}\n
+        constexpr bool operator==(const Vector4f& v) const { return (x==v.x&&y==v.y&&z==v.z&&t==v.t) ; }\n
+        constexpr float operator[](unsigned i) const { return *( &x + i ) ; }\n
+      "
 
     # Vector3D with floats
     edm4hep::Vector3f:
@@ -29,11 +44,14 @@ components:
         - double y
         - double z
       ExtraCode:
+        includes: "#include <edm4hep/Vector3f.h>"
         declaration: "
         constexpr Vector3d() : x(0),y(0),z(0) {}\n
         constexpr Vector3d(double xx, double yy, double zz) : x(xx),y(yy),z(zz) {}\n
         constexpr Vector3d(const double* v) : x(v[0]),y(v[1]),z(v[2]) {}\n
         constexpr Vector3d(const float* v) : x(v[0]),y(v[1]),z(v[2]) {}\n
+        [[ deprecated(\"This constructor will be removed again it is mainly here for an easier transition\") ]]\n
+        constexpr Vector3d(const Vector3f& v) : x(v.x), y(v.y), z(v.z) {}\n
         constexpr bool operator==(const Vector3d& v) const { return (x==v.x&&y==v.y&&z==v.z) ; }\n
         constexpr double operator[](unsigned i) const { return *( &x + i ) ; }\n
         "
@@ -149,8 +167,8 @@ datatypes:
       - double mass                     //mass of the particle in [GeV]
       - edm4hep::Vector3d vertex              //production vertex of the particle in [mm].
       - edm4hep::Vector3d endpoint            //endpoint of the particle in [mm]
-      - edm4hep::Vector3f momentum             //particle 3-momentum at the production vertex in [GeV]
-      - edm4hep::Vector3f momentumAtEndpoint   //particle 3-momentum at the endpoint in [GeV]
+      - edm4hep::Vector3d momentum             //particle 3-momentum at the production vertex in [GeV]
+      - edm4hep::Vector3d momentumAtEndpoint   //particle 3-momentum at the endpoint in [GeV]
       - edm4hep::Vector3f spin                 //spin (helicity) vector of the particle.
       - edm4hep::Vector2i colorFlow                //color flow as defined by the generator
     OneToManyRelations:

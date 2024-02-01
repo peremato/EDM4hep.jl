@@ -2,7 +2,7 @@ using Accessors     #  To create new inmutable object just changing one property
 using Corpuscles    #  PDG database
 using StaticArrays  #  Needed for fix lenght arrays in datatypes
 
-export register, relations, vmembers, Relation, PVector, ObjectID
+export register, relations, vmembers, Relation, PVector, ObjectID, collectionID
 
 abstract type POD end # Abstract type to denote a POD from PODIO
 
@@ -13,7 +13,8 @@ Base.convert(::Type{Vector3d}, t::Tuple) = Vector3d(t...)
 Base.show(io::IO, v::Vector3d) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
-Base.:*(v::Vector3d, a::Number) = Vector3d(a*v.x, a*v.y, b*v.z)
+Base.:*(v::Vector3d, a::Number) = Vector3d(a*v.x, a*v.y, a*v.z)
+Base.:*(a::Number, v::Vector3d) = v * a
 function Base.isapprox(v1::Vector3d, v2::Vector3d; atol::Real=0, rtol::Real=Base.rtoldefault(Float64,Float64,atol), nans::Bool=false)
     isapprox(v1.x, v2.x; atol=atol, rtol=rtol, nans=nans) &&
     isapprox(v1.y, v2.y; atol=atol, rtol=rtol, nans=nans) &&
@@ -25,7 +26,8 @@ Base.convert(::Type{Vector3f}, t::Tuple) = Vector3f(t...)
 Base.show(io::IO, v::Vector3f) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
-Base.:*(v::Vector3f, a::Number) = Vector3f(a*v.x, a*v.y, b*v.z)
+Base.:*(v::Vector3f, a::Number) = Vector3f(a*v.x, a*v.y, a*v.z)
+Base.:*(a::Number, v::Vector3f) = v * a
 function Base.isapprox(v1::Vector3f, v2::Vector3f; atol::Real=0, rtol::Real=Base.rtoldefault(Float32,Float32,atol), nans::Bool=false)
     isapprox(v1.x, v2.x; atol=atol, rtol=rtol, nans=nans) &&
     isapprox(v1.y, v2.y; atol=atol, rtol=rtol, nans=nans) &&
@@ -38,6 +40,21 @@ Base.show(io::IO, v::Vector2i) = print(io, "($(v.a), $(v.b))")
 Base.:+(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a + v2.a, v1.b + v2.b)
 Base.:-(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a - v2.a, v1.b - v2.b)
 Base.:*(v::Vector2i, a::Int32) = Vector3d(a*v.a, a*v.b)
+Base.:*(a::Number, v::Vector2i) = v * a
+
+#---Vector4f
+Base.convert(::Type{Vector4f}, t::Tuple) = Vector4f(t...)
+Base.show(io::IO, v::Vector4f) = print(io, "($(v.x), $(v.y), $(v.z), $(v.t))")
+Base.:+(v1::Vector4f, v2::Vector4f) = Vector4f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.t + v2.t)
+Base.:-(v1::Vector4f, v2::Vector4f) = Vector4f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.t - v2.t)
+Base.:*(v::Vector4f, a::Number) = Vector4f(a*v.x, a*v.y, a*v.z, a*v.t)
+Base.:*(a::Number, v::Vector4f) = v * a
+function Base.isapprox(v1::Vector4f, v2::Vector4f; atol::Real=0, rtol::Real=Base.rtoldefault(Float32,Float32,atol), nans::Bool=false)
+    isapprox(v1.x, v2.x; atol=atol, rtol=rtol, nans=nans) &&
+    isapprox(v1.y, v2.y; atol=atol, rtol=rtol, nans=nans) &&
+    isapprox(v1.z, v2.z; atol=atol, rtol=rtol, nans=nans) &&
+    isapprox(v1.t, v2.t; atol=atol, rtol=rtol, nans=nans)
+end
 
 #--------------------------------------------------------------------------------------------------
 #---ObjectID{ED}-----------------------------------------------------------------------------------
@@ -57,10 +74,11 @@ Base.convert(::Type{ObjectID{ED}}, i::Integer) where ED = ObjectID{ED}(i,0)
 Base.eltype(::Type{ObjectID{ED}}) where ED = ED
 Base.:-(i::ObjectID{ED}) where ED = ObjectID{ED}(-i.index)
 function register(p::ED) where ED
-    store::Vector{ED} = EDStore_objects(ED)
+    collid = collectionID(ED)
+    store::Vector{ED} = EDStore_objects(ED, collid)
     !iszero(p.index) && error("Registering an already registered MCParticle $p")
     last = lastindex(store)
-    p = @set p.index = ObjectID{ED}(last, 0)
+    p = @set p.index = ObjectID{ED}(last, collid)
     push!(store, p)
     return p
 end

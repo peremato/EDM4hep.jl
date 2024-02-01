@@ -69,9 +69,7 @@ end
 
 function gen_datatype(io, key, dtype)
     jtype = to_julia(key)
-    desc = dtype["Description"]
-    author = dtype["Author"]
-    println(io, "\"\"\"\nstruct $jtype\n\n    Description: $desc\n    Author: $author\n\"\"\"")
+    gen_docstring(io, key, dtype)
     println(io, "struct $jtype <: POD")
     vt = gen_member("index", "ObjectID{$jtype}")
     println(io, "    $(vt) # ObjectID of himself")
@@ -84,6 +82,17 @@ function gen_datatype(io, key, dtype)
         println(io, "    $(gen_member(v,t)) $(c)")
         push!(members,v)
         push!(defvalues, t in fundamental_types ? "0" : contains(t,"SVector") ? "zero($t)" : t*"()")
+    end
+    if haskey(dtype, "VectorMembers")
+        println(io, "\n    #---VectorMembers")
+        for (i,r) in enumerate(dtype["VectorMembers"])
+            t, v, c = split_member(r)
+            t = to_julia(t)
+            vt = gen_member(v, "PVector{$(jtype),$(t),$(i)}")
+            println(io, "    $(vt) $(c)")
+            push!(members, v)
+            push!(defvalues, "PVector{$(jtype),$(t),$(i)}()")
+        end
     end
     relations1to1 = @NamedTuple{varname::String, totype::String}[]
     if haskey(dtype, "OneToOneRelations")
@@ -107,17 +116,6 @@ function gen_datatype(io, key, dtype)
             println(io, "    $(vt) $(c)")
             push!(members, v)
             push!(defvalues, "Relation{$(jtype),$(t),$(i)}()")
-        end
-    end
-    if haskey(dtype, "VectorMembers")
-        println(io, "\n    #---VectorMembers")
-        for (i,r) in enumerate(dtype["VectorMembers"])
-            t, v, c = split_member(r)
-            t = to_julia(t)
-            vt = gen_member(v, "PVector{$(jtype),$(t),$(i)}")
-            println(io, "    $(vt) $(c)")
-            push!(members, v)
-            push!(defvalues, "PVector{$(jtype),$(t),$(i)}()")
         end
     end
 
@@ -148,6 +146,29 @@ function gen_datatype(io, key, dtype)
                         end
                     end""")
     end
+end
+
+function gen_docstring(io, key, dtype)
+    jtype = to_julia(key)
+    desc = dtype["Description"]
+    author = dtype["Author"]
+    println(io, "\"\"\"")
+    println(io, "    struct $jtype\n")
+    println(io, "    - Description: $desc")
+    println(io, "    - Author: $author\n")
+    println(io, "    # Fields")
+    for m in vcat(dtype["Members"], Base.get(dtype,"VectorMembers", [])) 
+        t, v, c = split_member(m)
+        t = to_julia(t)
+        println(io, "    - `$v::$t`: $(c[3:end])")
+    end
+    println(io, "    # Relations")
+    for m in vcat(Base.get(dtype,"OneToOneRelations",[]),Base.get(dtype,"OneToManyRelations",[])) 
+        t, v, c = split_member(m)
+        t = to_julia(t)
+        println(io, "    - `$v::$t`: $(c[3:end])")
+    end
+    println(io,"\"\"\"")
 end
 
 function build_graph(datatypes)

@@ -4,8 +4,8 @@ using EDM4hep.RootIO
 
 cd(@__DIR__)
 
-f = "Output_REC_rntuple.root"
-#f = "Output_REC.root"
+#f = "Output_REC_rntuple.root"
+f = "Output_REC.root"
 
 reader = RootIO.Reader(f)
 events = RootIO.get(reader, "events");

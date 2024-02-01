@@ -17,6 +17,7 @@
     @test isbits(p1)
     p1 = register(p1)
     @test p1.index.index == 0
+    @test p1.index.collectionID == collectionID(MCParticle)
 
     p2 = MCParticle(PDG=2212, mass=0.938, momentum=(0.0, 0.0, -7000.0), generatorStatus=3)
     @test p2.index.index == -1 # unregistered
