@@ -19,6 +19,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="https://github.com/peremato/EDM4hep.jl",
+    repo="github.com/peremato/EDM4hep.jl",
     push_preview = true
 )
