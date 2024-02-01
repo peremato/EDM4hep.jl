@@ -1,3 +1,4 @@
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https:///peremato.github.io/EDM4hep.jl/dev/)
 [![Build Status](https://github.com/peremato/EDM4hep.jl/workflows/CI/badge.svg)](https://github.com/peremato/EDM4hep.jl/actions)
 [![Codecov](https://codecov.io/gh/peremato/EDM4hep.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/peremato/EDM4hep.jl)
 
