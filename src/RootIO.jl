@@ -1,3 +1,9 @@
+"""
+ROOT I/O module for `EDM4hep.jl`
+
+It supports both formats: TTree and RNTuple
+
+"""
 module RootIO
 
     using UnROOT

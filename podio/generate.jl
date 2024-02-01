@@ -153,20 +153,19 @@ function gen_docstring(io, key, dtype)
     desc = dtype["Description"]
     author = dtype["Author"]
     println(io, "\"\"\"")
-    println(io, "    struct $jtype\n")
-    println(io, "    - Description: $desc")
-    println(io, "    - Author: $author\n")
-    println(io, "    # Fields")
+    println(io, "$desc")
+    println(io, "- Author: $author\n")
+    println(io, "# Fields")
     for m in vcat(dtype["Members"], Base.get(dtype,"VectorMembers", [])) 
         t, v, c = split_member(m)
         t = to_julia(t)
-        println(io, "    - `$v::$t`: $(c[3:end])")
+        println(io, "- `$v::$t`: $(c[3:end])")
     end
-    println(io, "    # Relations")
+    println(io, "# Relations")
     for m in vcat(Base.get(dtype,"OneToOneRelations",[]),Base.get(dtype,"OneToManyRelations",[])) 
         t, v, c = split_member(m)
         t = to_julia(t)
-        println(io, "    - `$v::$t`: $(c[3:end])")
+        println(io, "- `$v::$t`: $(c[3:end])")
     end
     println(io,"\"\"\"")
 end
