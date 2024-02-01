@@ -51,7 +51,7 @@ io = Base.stdout
 
 function gen_component(io, key, body)
     jtype = to_julia(key)
-    println(io, "\"\"\"\n    $jtype\n\"\"\"")
+    gen_docstring(io, key, body)
     println(io, "struct $jtype <: POD")
     members = []
     for m in body["Members"]
@@ -73,7 +73,7 @@ function gen_datatype(io, key, dtype)
     println(io, "struct $jtype <: POD")
     vt = gen_member("index", "ObjectID{$jtype}")
     println(io, "    $(vt) # ObjectID of himself")
-    println(io, "\n    #---Data Members")
+    println(io, "    #---Data Members")
     members = []
     defvalues = []
     for m in dtype["Members"]
@@ -84,7 +84,7 @@ function gen_datatype(io, key, dtype)
         push!(defvalues, t in fundamental_types ? "0" : contains(t,"SVector") ? "zero($t)" : t*"()")
     end
     if haskey(dtype, "VectorMembers")
-        println(io, "\n    #---VectorMembers")
+        println(io, "    #---VectorMembers")
         for (i,r) in enumerate(dtype["VectorMembers"])
             t, v, c = split_member(r)
             t = to_julia(t)
@@ -96,7 +96,7 @@ function gen_datatype(io, key, dtype)
     end
     relations1to1 = @NamedTuple{varname::String, totype::String}[]
     if haskey(dtype, "OneToOneRelations")
-        println(io, "\n    #---OneToOneRelations")
+        println(io, "    #---OneToOneRelations")
         for r in dtype["OneToOneRelations"]
             t, v, c = split_member(r)
             t = to_julia(t)
@@ -108,7 +108,7 @@ function gen_datatype(io, key, dtype)
         end
     end
     if haskey(dtype, "OneToManyRelations")
-        println(io, "\n    #---OneToManyRelations")
+        println(io, "    #---OneToManyRelations")
         for (i,r) in enumerate(dtype["OneToManyRelations"])
             t, v, c = split_member(r)
             t = to_julia(t)
@@ -150,22 +150,24 @@ end
 
 function gen_docstring(io, key, dtype)
     jtype = to_julia(key)
-    desc = dtype["Description"]
-    author = dtype["Author"]
+    desc = Base.get(dtype, "Description", "")
+    author = Base.get(dtype, "Author", "")
     println(io, "\"\"\"")
     println(io, "$desc")
-    println(io, "- Author: $author\n")
+    !isempty(author) && println(io, "- Author: $author")
     println(io, "# Fields")
     for m in vcat(dtype["Members"], Base.get(dtype,"VectorMembers", [])) 
         t, v, c = split_member(m)
         t = to_julia(t)
         println(io, "- `$v::$t`: $(c[3:end])")
     end
-    println(io, "# Relations")
-    for m in vcat(Base.get(dtype,"OneToOneRelations",[]),Base.get(dtype,"OneToManyRelations",[])) 
-        t, v, c = split_member(m)
-        t = to_julia(t)
-        println(io, "- `$v::$t`: $(c[3:end])")
+    if "OneToOneRelations" in keys(dtype) || "OneToManyRelations" in keys(dtype)
+        println(io, "# Relations")
+        for m in vcat(Base.get(dtype,"OneToOneRelations",[]),Base.get(dtype,"OneToManyRelations",[])) 
+            t, v, c = split_member(m)
+            t = to_julia(t)
+            println(io, "- `$v::$t`: $(c[3:end])")
+        end
     end
     println(io,"\"\"\"")
 end
