@@ -150,7 +150,7 @@ end
 
 function gen_docstring(io, key, dtype)
     jtype = to_julia(key)
-    desc = Base.get(dtype, "Description", "")
+    desc = Base.get(dtype, "Description", "$jtype")
     author = Base.get(dtype, "Author", "")
     println(io, "\"\"\"")
     println(io, "$desc")

@@ -2,6 +2,18 @@
 
 Documentation for `EDM4hep.jl` public interface.
 
+## Index - Types
+```@index
+Pages   = ["api.md"]
+Modules = [EDM4hep, EDM4hep.RootIO]
+Order   = [:type]
+```
+## Index - Functions
+```@index
+Pages   = ["api.md"]
+Modules = [EDM4hep, EDM4hep.RootIO]
+Order   = [:function]
+```
 
 ## Modules
 ```@autodocs

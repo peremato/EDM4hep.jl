@@ -1,5 +1,5 @@
 """
-
+struct HitLevelData
 # Fields
 - `cellID::UInt64`: cell id
 - `N::UInt32`: number of reconstructed ionization cluster.
@@ -15,7 +15,7 @@ struct HitLevelData <: POD
 end
 
 """
-
+struct Vector3d
 # Fields
 - `x::Float64`: 
 - `y::Float64`: 
@@ -29,7 +29,7 @@ struct Vector3d <: POD
 end
 
 """
-
+struct Quantity
 # Fields
 - `type::Int16`: flag identifying how to interpret the quantity
 - `value::Float32`: value of the quantity
@@ -43,7 +43,7 @@ struct Quantity <: POD
 end
 
 """
-
+struct Vector3f
 # Fields
 - `x::Float32`: 
 - `y::Float32`: 
@@ -57,7 +57,7 @@ struct Vector3f <: POD
 end
 
 """
-
+struct TrackState
 # Fields
 - `location::Int32`: for use with At{Other|IP|FirstHit|LastHit|Calorimeter|Vertex}|LastLocation
 - `D0::Float32`: transverse impact parameter
@@ -83,7 +83,7 @@ struct TrackState <: POD
 end
 
 """
-
+struct Hypothesis
 # Fields
 - `chi2::Float32`: chi2
 - `expected::Float32`: expected value
@@ -97,7 +97,7 @@ struct Hypothesis <: POD
 end
 
 """
-
+struct Vector2i
 # Fields
 - `a::Int32`: 
 - `b::Int32`: 
@@ -125,7 +125,7 @@ struct Vector4f <: POD
 end
 
 """
-
+struct Vector2f
 # Fields
 - `a::Float32`: 
 - `b::Float32`: 

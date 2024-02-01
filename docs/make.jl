@@ -11,6 +11,7 @@ makedocs(;
     pages=[
         "Introduction" => "index.md",
         "Public APIs" => "api.md",
+        "Release Notes" => "release_notes.md",
     ],
     checkdocs=:exports,
     repo="https://github.com/peremato/EDM4hep.jl/blob/{commit}{path}#L{line}",
