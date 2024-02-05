@@ -18,6 +18,8 @@
     p1 = register(p1)
     @test p1.index.index == 0
     @test p1.index.collectionID == collectionID(MCParticle)
+    @test p1.name == "p+"
+    @test p1.energy ≈ sqrt(sum(p1.momentum .^2) + p1.mass^2)
 
     p2 = MCParticle(PDG=2212, mass=0.938, momentum=(0.0, 0.0, -7000.0), generatorStatus=3)
     @test p2.index.index == -1 # unregistered
@@ -62,7 +64,8 @@
     @test p7.parents[1] == p5
 
     p8 = MCParticle(PDG=-2, mass=0.0, momentum=(3.962, -49.498, -26.687), generatorStatus=1)
-    p8, p5 = add_parent(p8, p5)
+    #p8, p5 = add_parent(p8, p5)
+    p5, p8 = add_daughter(p5,p8) # should be equivalent to add_parent(p8, p5)
     @test length(p8.parents) == 1
     @test p8.parents[1] == p5
     @test length(p5.daughters) == 2

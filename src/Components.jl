@@ -20,6 +20,8 @@ function Base.isapprox(v1::Vector3d, v2::Vector3d; atol::Real=0, rtol::Real=Base
     isapprox(v1.y, v2.y; atol=atol, rtol=rtol, nans=nans) &&
     isapprox(v1.z, v2.z; atol=atol, rtol=rtol, nans=nans)
 end
+Base.iterate(v::Vector3d, i=1) = i > 3 ? nothing : (getproperty(v, propertynames(v)[i]), i+1)
+Base.length(v::Vector3d) = 3
 
 #---Vector3f
 Base.convert(::Type{Vector3f}, t::Tuple) = Vector3f(t...)
@@ -33,6 +35,8 @@ function Base.isapprox(v1::Vector3f, v2::Vector3f; atol::Real=0, rtol::Real=Base
     isapprox(v1.y, v2.y; atol=atol, rtol=rtol, nans=nans) &&
     isapprox(v1.z, v2.z; atol=atol, rtol=rtol, nans=nans)
 end
+Base.iterate(v::Vector3f, i=1) = i > 3 ? nothing : (getproperty(v, propertynames(v)[i]), i+1)
+Base.length(v::Vector3f) = 3
 
 #---Vector2i
 Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)

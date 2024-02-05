@@ -125,8 +125,8 @@ module RootIO
     end
    
     # Only for TTree-------
-    function getStructArrayTTree(evt::UnROOT.LazyEvent, layout, collid, len = 0)
-        if len == 0  # Need the length to fill missing colums
+    function getStructArrayTTree(evt::UnROOT.LazyEvent, layout, collid, len = -1)
+        if len == -1  # Need the length to fill missing colums
             n = layout[2][2]    # get the second data member (first may be missing)
             len = length(evt[n])
         end
@@ -156,12 +156,12 @@ module RootIO
     #---Only for RNTuple
 
 
-    function getStructArrayRNTuple(evt::UnROOT.LazyEvent, branch, collection, layout, collid, len = 0)
+    function getStructArrayRNTuple(evt::UnROOT.LazyEvent, branch, collection, layout, collid, len = -1)
         type = layout[1]
         pnames = propertynames(collection)
         ftypes = fieldtypes(type)
         fnames = fieldnames(type)
-        if len == 0  # Need the length to fill missing colums
+        if len == -1  # Need the length to fill missing colums
             len = length(getproperty(collection, pnames[1]))
         end
         sa = AbstractArray[]
@@ -248,6 +248,23 @@ module RootIO
         reader.lazytree = LazyTree(reader.file, treename,  keys(reader.btypes))
     end
 
+    #---This shouldn't be needed when issue https://github.com/JuliaHEP/UnROOT.jl/issues/305
+    function safe_getproperty(evt::UnROOT.LazyEvent, s::Symbol, t::Type)
+        try
+            return getproperty(evt, s)
+        catch e
+            if e isa MethodError
+                if isempty(fieldnames(t))
+                    return t[]
+                else
+                    return StructArray(t[])
+                end
+            else
+                rethrow()
+            end
+        end
+    end
+
     """
     get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
 
@@ -270,10 +287,10 @@ module RootIO
         collid = Base.get(reader.collectionIDs, bname, 0)             # The CollectionID has beeen assigned when opening the file
         sbranch = Symbol(bname)
         if isprimitivetype(layout[1])
-            sa = hasproperty(evt, sbranch) ? getproperty(evt,sbranch) : layout[1][]
+            sa = hasproperty(evt, sbranch) ? safe_getproperty(evt,sbranch,layout[1]) : layout[1][]
         else
             if reader.isRNTuple
-                sa = getStructArrayRNTuple(evt, sbranch, getproperty(evt, sbranch), layout, collid)
+                sa = getStructArrayRNTuple(evt, sbranch, safe_getproperty(evt, sbranch, layout[1]), layout, collid)
             else
                 sa = getStructArrayTTree(evt, layout, collid)
             end
@@ -281,21 +298,7 @@ module RootIO
         if register
             assignEDStore(sa, collid)
             if !isempty(layout[3])  # check if there are relations in this branch
-                rels = []
-                for (rb, rt) in layout[3]
-                    try
-                        sr = get(reader, evt, rb, btype=ObjectID{rt}; register=false)
-                        push!(rels, sr)
-                    catch e
-                        if e isa MethodError
-                            sr = ObjectID{rt}[]
-                            push!(rels, sr)
-                        else
-                            rethrow()
-                        end
-                    end
-                end
-                relations = Tuple(rels)
+                relations = Tuple(get(reader, evt, rb, btype=ObjectID{rt}; register=false) for (rb, rt) in layout[3])
                 assignEDStore_relations(relations, btype, collid)
             end
             if !isempty(layout[4])  # check if there are vector members in this branch

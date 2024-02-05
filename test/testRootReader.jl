@@ -53,5 +53,13 @@ using EDM4hep.RootIO
         end
     end
 
+    #---PandoraClusters
+    pancls = RootIO.get(reader, evt, "PandoraClusters")
+    @test eltype(pancls) == Cluster
+    @test length(pancls) == 35
+    cl = pancls[1]
+    @test cl.positionError isa EDM4hep.SVector{6,Float32}
+    @test max(cl.subdetectorEnergies...) == cl.subdetectorEnergies[1]
+
 end
  
