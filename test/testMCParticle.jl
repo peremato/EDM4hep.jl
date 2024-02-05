@@ -84,4 +84,17 @@
         end
     end
 
+    # init and empty store
+    emptyEDStore()
+    p1 = MCParticle() |> register
+    p2 = MCParticle() |> register
+    @test p1.index.index == 0
+    @test p2.index.index == 1
+
+    initEDStore(MCParticle)
+    p1 = MCParticle() |> register
+    p2 = MCParticle() |> register
+    @test p1.index.index == 0
+    @test p2.index.index == 1
+
 end

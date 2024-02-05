@@ -47,7 +47,7 @@ end
 
 function emptyEDStore()
     global _eventDataStore
-    for container in values(_eventDataStore)
+    for container in Base.values(_eventDataStore)
         container |> empty!
     end
 end

@@ -43,7 +43,7 @@ Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)
 Base.show(io::IO, v::Vector2i) = print(io, "($(v.a), $(v.b))")
 Base.:+(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a + v2.a, v1.b + v2.b)
 Base.:-(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a - v2.a, v1.b - v2.b)
-Base.:*(v::Vector2i, a::Int32) = Vector3d(a*v.a, a*v.b)
+Base.:*(v::Vector2i, a::Number) = Vector3d(a*v.a, a*v.b)
 Base.:*(a::Number, v::Vector2i) = v * a
 
 #---Vector4f
