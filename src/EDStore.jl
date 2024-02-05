@@ -77,6 +77,7 @@ function EDStore_relations(::Type{ED}, N::Int, collid::UInt32=0x00000000) where 
     end
     store.relations[N]
 end
+
 function EDStore_pvectors(::Type{ED}, N::Int, collid::UInt32=0x00000000) where ED
     store = getEDStore(ED, collid)
     if !isdefined(store, :vmembers)

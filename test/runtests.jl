@@ -6,6 +6,7 @@ using EDM4hep
     include("testMCParticle.jl")      # one-to-many relation
     include("testSimTrackerHit.jl")   # one-to-one relation
     include("testParticleID.jl")      # vector members
+    include("testCluster.jl")         # several one-to-many and Vector members
     #---ROOT I/O----------------------
     include("testRootReader.jl")      # TTree and RNTuple reader
 end

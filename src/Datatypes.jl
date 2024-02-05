@@ -41,13 +41,3 @@ function Base.getproperty(obj::MCParticle, sym::Symbol)
         return getfield(obj, sym)
     end
 end
-
-#--------------------------------------------------------------------------------------------------
-#----Utility functions for ParticleID--------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------
-
-function set_parameters(o::ParticleID, v::AbstractVector{Float32})
-    iszero(o.index) && (o = register(o))
-    o = @set o.parameters = v
-    update(o)
-end
