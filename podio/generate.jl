@@ -83,6 +83,7 @@ function gen_datatype(io, key, dtype)
         push!(members,v)
         push!(defvalues, t in fundamental_types ? "0" : contains(t,"SVector") ? "zero($t)" : t*"()")
     end
+    vectormembers = @NamedTuple{varname::String, totype::String}[]
     if haskey(dtype, "VectorMembers")
         println(io, "    #---VectorMembers")
         for (i,r) in enumerate(dtype["VectorMembers"])
@@ -92,6 +93,7 @@ function gen_datatype(io, key, dtype)
             println(io, "    $(vt) $(c)")
             push!(members, v)
             push!(defvalues, "PVector{$(jtype),$(t),$(i)}()")
+            push!(vectormembers, (varname=v,totype=t))
         end
     end
     relations1to1 = @NamedTuple{varname::String, totype::String}[]
@@ -107,6 +109,7 @@ function gen_datatype(io, key, dtype)
             push!(relations1to1, (varname=v, totype=t))
         end
     end
+    relations1toN = @NamedTuple{varname::String, totype::String}[]
     if haskey(dtype, "OneToManyRelations")
         println(io, "    #---OneToManyRelations")
         for (i,r) in enumerate(dtype["OneToManyRelations"])
@@ -116,10 +119,11 @@ function gen_datatype(io, key, dtype)
             println(io, "    $(vt) $(c)")
             push!(members, v)
             push!(defvalues, "Relation{$(jtype),$(t),$(i)}()")
+            push!(relations1toN, (varname=v, totype=t))
         end
     end
-
     println(io, "end\n")
+
     # add an extra constructor with keyword parameters
     args = join(members, ", ")
     defs = join(["$m=$dv" for (m,dv) in zip(members,defvalues)], ", ")
@@ -128,7 +132,7 @@ function gen_datatype(io, key, dtype)
                     $jtype(-1, $args)
                 end
                 """)
-    # add an Base.getproperty() for the one-to-one relations (for the time being)
+    # add an Base.getproperty() for the one-to-one relations
     if !isempty(relations1to1)
         println(io, "function Base.getproperty(obj::$jtype, sym::Symbol)")
         for (i, r) in enumerate(relations1to1)
@@ -145,6 +149,38 @@ function gen_datatype(io, key, dtype)
                             return getfield(obj, sym)
                         end
                     end""")
+    end
+    # add pushToXxxx() and popFromXxxx for al one-to-many relations
+    if !isempty(relations1toN)
+        global exports
+        for r in relations1toN
+            (;varname, totype) = r
+            upvarname = uppercasefirst(varname)
+            println(io, "function pushTo$(upvarname)(c::$jtype, o::$totype)")
+            println(io, "    iszero(c.index) && (c = register(c))")
+            println(io, "    c = @set c.$(varname) = push(c.$varname, o)")
+            println(io, "    update(c)")
+            println(io,"end")
+            println(io, "function popFrom$(upvarname)(c::$jtype)")
+            println(io, "    iszero(c.index) && (c = register(c))")
+            println(io, "    c = @set c.$(varname) = pop(c.$varname)")
+            println(io, "    update(c)")
+            println(io,"end")
+            push!(exports, "pushTo$(upvarname)", "popFrom$(upvarname)")
+        end
+    end
+    if !isempty(vectormembers)
+        global exports
+        for v in vectormembers
+            (;varname, totype) = v
+            upvarname = uppercasefirst(varname)
+            println(io, "function set$(upvarname)(o::$jtype, v::AbstractVector{$totype})")
+            println(io, "    iszero(o.index) && (o = register(o))")
+            println(io, "    o = @set o.$(varname) = v")
+            println(io, "    update(o)")
+            println(io,"end")
+            push!(exports, "set$(upvarname)")
+        end
     end
 end
 
@@ -209,6 +245,6 @@ for i in topological_sort(graph)
     gen_datatype(io, dtypes[i], datatypes[dtypes[i]])
     push!(exports, to_julia(dtypes[i])) 
 end
-println(io, "export $(join(exports,", "))")
+println(io, "export $(join(unique(exports),", "))")
 close(io)
 

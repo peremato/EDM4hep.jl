@@ -87,6 +87,7 @@ function register(p::ED) where ED
     return p
 end
 function update(p::ED) where ED
+    iszero(p.index) && (p = register(p))  # need to register if not done
     EDStore_objects(ED)[p.index.index+1] = p
 end
 function collectionID(::Type{ED}) where ED
@@ -141,17 +142,25 @@ function vmembers(::Type{ED}) where ED
 end
 
 function push(r::Relation{ED,TD,N}, p::TD) where {ED,TD,N}
-    relations = EDStore_relations(ED,N,r.collid)
-    (;first, last) = r
+    (;first, last, collid) = r
+    relations = EDStore_relations(ED, N, collid)
     length = last-first
     tail = lastindex(relations)
-    append!(relations, zeros(ObjectID{TD}, length+1))      # add extended indices at the end
+    append!(relations, zeros(ObjectID{TD}, length+1))            # add extended indices at the end
     relations[tail + 1:tail + length] = relations[first+1:last]  # copy indices
-    relations[first + 1:last] .= zeros(ObjectID{TD},length)                  # reset unused indices
+    relations[first + 1:last] .= zeros(ObjectID{TD},length)      # reset unused indices
     first = tail
     last  = first + length + 1
     relations[last] = p
-    Relation{ED,TD,N}(first, last, r.collid)
+    Relation{ED,TD,N}(first, last, collid)
+end
+
+function pop(r::Relation{ED,TD,N}) where {ED,TD,N}
+    (;first, last, collid) = r
+    (last - first <= 0) && throw(ArgumentError("relation must be non-empty"))
+    relations = EDStore_relations(ED, N, collid)
+    relations[last] = zero(ObjectID{TD})
+    return Relation{ED,TD,N}(first, last-1, collid)
 end
 
 #--------------------------------------------------------------------------------------------------
@@ -179,19 +188,6 @@ Base.getindex(v::PVector{ED,T, N}, i) where {ED,T, N} = 0 < i <= (v.last - v.fir
 Base.size(v::PVector{ED,T,N}) where {ED,T,N} = (v.last-v.first,)
 Base.length(v::PVector{ED,T,N}) where {ED,T,N} = v.last-v.first
 Base.eltype(::Type{PVector{ED,T,N}}) where {ED,T,N} = T
-function push(v::PVector{ED,T,N}, p::T) where {ED,T,N}
-    pvectors = EDStore_pvectors(ED,N,v.collid)
-    (;first, last) = v
-    length = last-first
-    tail = lastindex(pvectors)
-    append!(pvectors, zeros(ObjectID{ED}, length+1))           # add extended indices at the end
-    pvectors[tail + 1:tail + length] = pvectors[first+1:last]  # copy indices
-    pvectors[first + 1:last] .= zeros(ED,length)     # reset unused indices
-    first = tail
-    last  = first + length + 1
-    pvectors[last] = p
-    PVector{ED,T,N}(first, last, v.collid)
-end
 function Base.convert(::Type{PVector{ED,T,N}}, v::AbstractVector{T}) where {ED,T,N}
     pvectors = EDStore_pvectors(ED,N)
     tail = lastindex(pvectors)

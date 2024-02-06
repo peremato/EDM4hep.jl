@@ -23,6 +23,11 @@ function ParticleID(;type=0, PDG=0, algorithmType=0, likelihood=0, parameters=PV
     ParticleID(-1, type, PDG, algorithmType, likelihood, parameters)
 end
 
+function setParameters(o::ParticleID, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.parameters = v
+    update(o)
+end
 """
 Calibrated Detector Data
 - Author: Wenxing Fang, IHEP
@@ -46,6 +51,11 @@ function TimeSeries(;cellID=0, time=0, interval=0, amplitude=PVector{TimeSeries,
     TimeSeries(-1, cellID, time, interval, amplitude)
 end
 
+function setAmplitude(o::TimeSeries, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.amplitude = v
+    update(o)
+end
 """
 Calorimeter hit
 - Author: F.Gaede, DESY
@@ -115,6 +125,46 @@ function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), position
     Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, shapeParameters, subdetectorEnergies, clusters, hits, particleIDs)
 end
 
+function pushToClusters(c::Cluster, o::Cluster)
+    iszero(c.index) && (c = register(c))
+    c = @set c.clusters = push(c.clusters, o)
+    update(c)
+end
+function popFromClusters(c::Cluster)
+    iszero(c.index) && (c = register(c))
+    c = @set c.clusters = pop(c.clusters)
+    update(c)
+end
+function pushToHits(c::Cluster, o::CalorimeterHit)
+    iszero(c.index) && (c = register(c))
+    c = @set c.hits = push(c.hits, o)
+    update(c)
+end
+function popFromHits(c::Cluster)
+    iszero(c.index) && (c = register(c))
+    c = @set c.hits = pop(c.hits)
+    update(c)
+end
+function pushToParticleIDs(c::Cluster, o::ParticleID)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particleIDs = push(c.particleIDs, o)
+    update(c)
+end
+function popFromParticleIDs(c::Cluster)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particleIDs = pop(c.particleIDs)
+    update(c)
+end
+function setShapeParameters(o::Cluster, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.shapeParameters = v
+    update(o)
+end
+function setSubdetectorEnergies(o::Cluster, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.subdetectorEnergies = v
+    update(o)
+end
 """
 The Monte Carlo particle - based on the lcio::MCParticle.
 - Author: F.Gaede, DESY
@@ -159,6 +209,26 @@ function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time
     MCParticle(-1, PDG, generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, parents, daughters)
 end
 
+function pushToParents(c::MCParticle, o::MCParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.parents = push(c.parents, o)
+    update(c)
+end
+function popFromParents(c::MCParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.parents = pop(c.parents)
+    update(c)
+end
+function pushToDaughters(c::MCParticle, o::MCParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.daughters = push(c.daughters, o)
+    update(c)
+end
+function popFromDaughters(c::MCParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.daughters = pop(c.daughters)
+    update(c)
+end
 """
 Simulated Primary Ionization
 - Author: Wenxing Fang, IHEP
@@ -203,6 +273,31 @@ function Base.getproperty(obj::SimPrimaryIonizationCluster, sym::Symbol)
     else # fallback to getfield
         return getfield(obj, sym)
     end
+end
+function setElectronCellID(o::SimPrimaryIonizationCluster, v::AbstractVector{UInt64})
+    iszero(o.index) && (o = register(o))
+    o = @set o.electronCellID = v
+    update(o)
+end
+function setElectronTime(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.electronTime = v
+    update(o)
+end
+function setElectronPosition(o::SimPrimaryIonizationCluster, v::AbstractVector{Vector3d})
+    iszero(o.index) && (o = register(o))
+    o = @set o.electronPosition = v
+    update(o)
+end
+function setPulseTime(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.pulseTime = v
+    update(o)
+end
+function setPulseAmplitude(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.pulseAmplitude = v
+    update(o)
 end
 """
 Association between a Cluster and a MCParticle
@@ -328,6 +423,16 @@ function SimCalorimeterHit(;cellID=0, energy=0, position=Vector3f(), contributio
     SimCalorimeterHit(-1, cellID, energy, position, contributions)
 end
 
+function pushToContributions(c::SimCalorimeterHit, o::CaloHitContribution)
+    iszero(c.index) && (c = register(c))
+    c = @set c.contributions = push(c.contributions, o)
+    update(c)
+end
+function popFromContributions(c::SimCalorimeterHit)
+    iszero(c.index) && (c = register(c))
+    c = @set c.contributions = pop(c.contributions)
+    update(c)
+end
 """
 Raw data of a detector readout
 - Author: F.Gaede, DESY
@@ -355,6 +460,11 @@ function RawTimeSeries(;cellID=0, quality=0, time=0, charge=0, interval=0, adcCo
     RawTimeSeries(-1, cellID, quality, time, charge, interval, adcCounts)
 end
 
+function setAdcCounts(o::RawTimeSeries, v::AbstractVector{Int32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.adcCounts = v
+    update(o)
+end
 """
 Association between a CaloHit and the corresponding simulated CaloHit
 - Author: C. Bernet, B. Hegner
@@ -479,6 +589,11 @@ function TrackerHit(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, p
     TrackerHit(-1, cellID, type, quality, time, eDep, eDepError, position, covMatrix, rawHits)
 end
 
+function setRawHits(o::TrackerHit, v::AbstractVector{ObjectID})
+    iszero(o.index) && (o = register(o))
+    o = @set o.rawHits = v
+    update(o)
+end
 """
 Raw calorimeter hit
 - Author: F.Gaede, DESY
@@ -523,6 +638,16 @@ function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Re
     RecIonizationCluster(-1, cellID, significance, type, trackerPulse)
 end
 
+function pushToTrackerPulse(c::RecIonizationCluster, o::TrackerPulse)
+    iszero(c.index) && (c = register(c))
+    c = @set c.trackerPulse = push(c.trackerPulse, o)
+    update(c)
+end
+function popFromTrackerPulse(c::RecIonizationCluster)
+    iszero(c.index) && (c = register(c))
+    c = @set c.trackerPulse = pop(c.trackerPulse)
+    update(c)
+end
 """
 Vertex
 - Author: F.Gaede, DESY
@@ -564,6 +689,11 @@ function Base.getproperty(obj::Vertex, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+function setParameters(o::Vertex, v::AbstractVector{Float32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.parameters = v
+    update(o)
+end
 """
 Reconstructed track
 - Author: F.Gaede, DESY
@@ -603,6 +733,41 @@ function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit
     Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, subdetectorHitNumbers, trackStates, dxQuantities, trackerHits, tracks)
 end
 
+function pushToTrackerHits(c::Track, o::TrackerHit)
+    iszero(c.index) && (c = register(c))
+    c = @set c.trackerHits = push(c.trackerHits, o)
+    update(c)
+end
+function popFromTrackerHits(c::Track)
+    iszero(c.index) && (c = register(c))
+    c = @set c.trackerHits = pop(c.trackerHits)
+    update(c)
+end
+function pushToTracks(c::Track, o::Track)
+    iszero(c.index) && (c = register(c))
+    c = @set c.tracks = push(c.tracks, o)
+    update(c)
+end
+function popFromTracks(c::Track)
+    iszero(c.index) && (c = register(c))
+    c = @set c.tracks = pop(c.tracks)
+    update(c)
+end
+function setSubdetectorHitNumbers(o::Track, v::AbstractVector{Int32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.subdetectorHitNumbers = v
+    update(o)
+end
+function setTrackStates(o::Track, v::AbstractVector{TrackState})
+    iszero(o.index) && (o = register(o))
+    o = @set o.trackStates = v
+    update(o)
+end
+function setDxQuantities(o::Track, v::AbstractVector{Quantity})
+    iszero(o.index) && (o = register(o))
+    o = @set o.dxQuantities = v
+    update(o)
+end
 """
 Association between a Track and a MCParticle
 - Author: Placido Fernandez Declara
@@ -691,6 +856,46 @@ function Base.getproperty(obj::ReconstructedParticle, sym::Symbol)
     else # fallback to getfield
         return getfield(obj, sym)
     end
+end
+function pushToClusters(c::ReconstructedParticle, o::Cluster)
+    iszero(c.index) && (c = register(c))
+    c = @set c.clusters = push(c.clusters, o)
+    update(c)
+end
+function popFromClusters(c::ReconstructedParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.clusters = pop(c.clusters)
+    update(c)
+end
+function pushToTracks(c::ReconstructedParticle, o::Track)
+    iszero(c.index) && (c = register(c))
+    c = @set c.tracks = push(c.tracks, o)
+    update(c)
+end
+function popFromTracks(c::ReconstructedParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.tracks = pop(c.tracks)
+    update(c)
+end
+function pushToParticles(c::ReconstructedParticle, o::ReconstructedParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particles = push(c.particles, o)
+    update(c)
+end
+function popFromParticles(c::ReconstructedParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particles = pop(c.particles)
+    update(c)
+end
+function pushToParticleIDs(c::ReconstructedParticle, o::ParticleID)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particleIDs = push(c.particleIDs, o)
+    update(c)
+end
+function popFromParticleIDs(c::ReconstructedParticle)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particleIDs = pop(c.particleIDs)
+    update(c)
 end
 """
 Used to keep track of the correspondence between MC and reconstructed particles
@@ -795,6 +1000,11 @@ function Base.getproperty(obj::RecDqdx, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+function setHitData(o::RecDqdx, v::AbstractVector{HitLevelData})
+    iszero(o.index) && (o = register(o))
+    o = @set o.hitData = v
+    update(o)
+end
 """
 Tracker hit plane
 - Author: Placido Fernandez Declara, CERN
@@ -836,6 +1046,11 @@ function TrackerHitPlane(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError
     TrackerHitPlane(-1, cellID, type, quality, time, eDep, eDepError, u, v, du, dv, position, covMatrix, rawHits)
 end
 
+function setRawHits(o::TrackerHitPlane, v::AbstractVector{ObjectID})
+    iszero(o.index) && (o = register(o))
+    o = @set o.rawHits = v
+    update(o)
+end
 """
 Simulated tracker hit
 - Author: F.Gaede, DESY
@@ -942,4 +1157,4 @@ function Base.getproperty(obj::MCRecoTrackerAssociation, sym::Symbol)
         return getfield(obj, sym)
     end
 end
-export ParticleID, TimeSeries, CalorimeterHit, Cluster, MCParticle, SimPrimaryIonizationCluster, MCRecoClusterParticleAssociation, MCRecoCaloParticleAssociation, CaloHitContribution, SimCalorimeterHit, RawTimeSeries, MCRecoCaloAssociation, TrackerPulse, EventHeader, TrackerHit, RawCalorimeterHit, RecIonizationCluster, Vertex, Track, MCRecoTrackParticleAssociation, ReconstructedParticle, MCRecoParticleAssociation, RecoParticleVertexAssociation, RecDqdx, TrackerHitPlane, SimTrackerHit, MCRecoTrackerHitPlaneAssociation, MCRecoTrackerAssociation
+export setParameters, ParticleID, setAmplitude, TimeSeries, CalorimeterHit, pushToClusters, popFromClusters, pushToHits, popFromHits, pushToParticleIDs, popFromParticleIDs, setShapeParameters, setSubdetectorEnergies, Cluster, pushToParents, popFromParents, pushToDaughters, popFromDaughters, MCParticle, setElectronCellID, setElectronTime, setElectronPosition, setPulseTime, setPulseAmplitude, SimPrimaryIonizationCluster, MCRecoClusterParticleAssociation, MCRecoCaloParticleAssociation, CaloHitContribution, pushToContributions, popFromContributions, SimCalorimeterHit, setAdcCounts, RawTimeSeries, MCRecoCaloAssociation, TrackerPulse, EventHeader, setRawHits, TrackerHit, RawCalorimeterHit, pushToTrackerPulse, popFromTrackerPulse, RecIonizationCluster, Vertex, pushToTrackerHits, popFromTrackerHits, pushToTracks, popFromTracks, setSubdetectorHitNumbers, setTrackStates, setDxQuantities, Track, MCRecoTrackParticleAssociation, pushToParticles, popFromParticles, ReconstructedParticle, MCRecoParticleAssociation, RecoParticleVertexAssociation, setHitData, RecDqdx, TrackerHitPlane, SimTrackerHit, MCRecoTrackerHitPlaneAssociation, MCRecoTrackerAssociation

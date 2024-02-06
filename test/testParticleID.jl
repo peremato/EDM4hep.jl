@@ -9,7 +9,7 @@
     @test length(pid1.parameters) == 0
     @test length(pid2.parameters) == 3
 
-    pid1 = set_parameters(pid1, pid2.parameters) # can we make this more generically?
+    pid1 = setParameters(pid1, pid2.parameters) # can we make this more generically?
     @test length(pid1.parameters) == 3
 
     @test pid2.parameters[1] == 1.0f0
