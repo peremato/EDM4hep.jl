@@ -27,6 +27,11 @@ end
 #--- Global Event Data Store-----------------------------------------------------------------------
 const _eventDataStore = Dict{UInt32, EDStore}()
 
+"""
+    getEDStore(::Type{ED}, collid::UInt32=0x00000000)
+
+Get the store corresponding to the `collid`. If it is not specified then obtain a `collid` frm the data type `ED`
+"""
 function getEDStore(::Type{ED}, collid::UInt32=0x00000000) where ED
     global _eventDataStore
     if collid == 0
@@ -36,15 +41,27 @@ function getEDStore(::Type{ED}, collid::UInt32=0x00000000) where ED
     _eventDataStore[collid] = EDStore{ED}()
 end
 
+"""
+    hasEDStore(collid::UInt32)
+
+Find out if the store with `collid` is there.
+"""
 function hasEDStore(collid::UInt32)
     global _eventDataStore
     collid == 0 || haskey(_eventDataStore, collid)
 end
-
+"""
+    initEDStore(::Type{ED}) where ED
+Unintialize the store corresponding to type `ED`
+"""
 function initEDStore(::Type{ED}) where ED
     getEDStore(ED) |> initialize!
 end
 
+"""
+    emptyEDStore()
+Empty tyhe whole sortres
+"""
 function emptyEDStore()
     global _eventDataStore
     for container in Base.values(_eventDataStore)

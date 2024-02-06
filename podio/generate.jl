@@ -156,16 +156,18 @@ function gen_datatype(io, key, dtype)
         for r in relations1toN
             (;varname, totype) = r
             upvarname = uppercasefirst(varname)
+            println(io, "\"    pushTo$(upvarname)(object::$jtype, refobj::$totype)\"")
             println(io, "function pushTo$(upvarname)(c::$jtype, o::$totype)")
             println(io, "    iszero(c.index) && (c = register(c))")
             println(io, "    c = @set c.$(varname) = push(c.$varname, o)")
             println(io, "    update(c)")
-            println(io,"end")
+            println(io, "end")
+            println(io, "\"    popFrom$(upvarname)(object::$jtype)\"")
             println(io, "function popFrom$(upvarname)(c::$jtype)")
             println(io, "    iszero(c.index) && (c = register(c))")
             println(io, "    c = @set c.$(varname) = pop(c.$varname)")
             println(io, "    update(c)")
-            println(io,"end")
+            println(io, "end")
             push!(exports, "pushTo$(upvarname)", "popFrom$(upvarname)")
         end
     end
@@ -174,6 +176,7 @@ function gen_datatype(io, key, dtype)
         for v in vectormembers
             (;varname, totype) = v
             upvarname = uppercasefirst(varname)
+            println(io, "\"    set$(upvarname)(object::$jtype, v::AbstractVector{$totype})\"")
             println(io, "function set$(upvarname)(o::$jtype, v::AbstractVector{$totype})")
             println(io, "    iszero(o.index) && (o = register(o))")
             println(io, "    o = @set o.$(varname) = v")
@@ -192,9 +195,14 @@ function gen_docstring(io, key, dtype)
     println(io, "$desc")
     !isempty(author) && println(io, "- Author: $author")
     println(io, "# Fields")
-    for m in vcat(dtype["Members"], Base.get(dtype,"VectorMembers", [])) 
+    for m in dtype["Members"] 
         t, v, c = split_member(m)
         t = to_julia(t)
+        println(io, "- `$v::$t`: $(c[3:end])")
+    end
+    for m in Base.get(dtype,"VectorMembers", []) 
+        t, v, c = split_member(m)
+        t = "PVector{$(to_julia(t))}"
         println(io, "- `$v::$t`: $(c[3:end])")
     end
     if "OneToOneRelations" in keys(dtype) || "OneToManyRelations" in keys(dtype)
