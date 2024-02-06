@@ -188,19 +188,6 @@ Base.getindex(v::PVector{ED,T, N}, i) where {ED,T, N} = 0 < i <= (v.last - v.fir
 Base.size(v::PVector{ED,T,N}) where {ED,T,N} = (v.last-v.first,)
 Base.length(v::PVector{ED,T,N}) where {ED,T,N} = v.last-v.first
 Base.eltype(::Type{PVector{ED,T,N}}) where {ED,T,N} = T
-function push(v::PVector{ED,T,N}, p::T) where {ED,T,N}
-    pvectors = EDStore_pvectors(ED,N,v.collid)
-    (;first, last) = v
-    length = last-first
-    tail = lastindex(pvectors)
-    append!(pvectors, zeros(ObjectID{ED}, length+1))           # add extended indices at the end
-    pvectors[tail + 1:tail + length] = pvectors[first+1:last]  # copy indices
-    pvectors[first + 1:last] .= zeros(ED,length)     # reset unused indices
-    first = tail
-    last  = first + length + 1
-    pvectors[last] = p
-    PVector{ED,T,N}(first, last, v.collid)
-end
 function Base.convert(::Type{PVector{ED,T,N}}, v::AbstractVector{T}) where {ED,T,N}
     pvectors = EDStore_pvectors(ED,N)
     tail = lastindex(pvectors)
