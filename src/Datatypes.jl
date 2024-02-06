@@ -7,23 +7,17 @@ include("../podio/genDatatypes.jl")
 export add_daughter, add_parent, set_parameters
 
 function add_daughter(p::MCParticle, d::MCParticle)
-    iszero(p.index) && (p = register(p))
     iszero(d.index) && (d = register(d))
-    p = @set p.daughters = push(p.daughters, d) # this creates a new MCParticle
-    d = @set d.parents = push(d.parents, p)     # this creates a new MCParticle
-    update(d)
-    update(p)
-    (p,d)
+    p = pushToDaughters(p, d)
+    d = pushToParents(d, p)
+    p,d
 end
 
 function add_parent(d::MCParticle, p::MCParticle)
-    iszero(d.index) && (d = register(d))
     iszero(p.index) && (p = register(p))
-    d = @set d.parents = push(d.parents, p)     # this creates a new MCParticle
-    p = @set p.daughters = push(p.daughters, d) # this creates a new MCParticle
-    update(p)
-    update(d)
-    (d, p)
+    d = pushToParents(d, p)
+    p = pushToDaughters(p, d)
+    d,p
 end
 
 function Base.getproperty(obj::MCParticle, sym::Symbol)

@@ -6,7 +6,7 @@ ParticleID
 - `PDG::Int32`: PDG code of this id - ( 999999 ) if unknown.
 - `algorithmType::Int32`: type of the algorithm/module that created this hypothesis
 - `likelihood::Float32`: likelihood of this hypothesis - in a user defined normalization.
-- `parameters::Float32`: parameters associated with this hypothesis. Check/set collection parameters ParameterNames_PIDAlgorithmTypeName for decoding the indices.
+- `parameters::PVector{Float32}`: parameters associated with this hypothesis. Check/set collection parameters ParameterNames_PIDAlgorithmTypeName for decoding the indices.
 """
 struct ParticleID <: POD
     index::ObjectID{ParticleID}      # ObjectID of himself
@@ -23,6 +23,7 @@ function ParticleID(;type=0, PDG=0, algorithmType=0, likelihood=0, parameters=PV
     ParticleID(-1, type, PDG, algorithmType, likelihood, parameters)
 end
 
+"    setParameters(object::ParticleID, v::AbstractVector{Float32})"
 function setParameters(o::ParticleID, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.parameters = v
@@ -35,7 +36,7 @@ Calibrated Detector Data
 - `cellID::UInt64`: cell id.
 - `time::Float32`: begin time [ns].
 - `interval::Float32`: interval of each sampling [ns].
-- `amplitude::Float32`: calibrated detector data.
+- `amplitude::PVector{Float32}`: calibrated detector data.
 """
 struct TimeSeries <: POD
     index::ObjectID{TimeSeries}      # ObjectID of himself
@@ -51,6 +52,7 @@ function TimeSeries(;cellID=0, time=0, interval=0, amplitude=PVector{TimeSeries,
     TimeSeries(-1, cellID, time, interval, amplitude)
 end
 
+"    setAmplitude(object::TimeSeries, v::AbstractVector{Float32})"
 function setAmplitude(o::TimeSeries, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.amplitude = v
@@ -94,8 +96,8 @@ Calorimeter Hit Cluster
 - `iTheta::Float32`: intrinsic direction of cluster at position  Theta. Not to be confused with direction cluster is seen from IP.
 - `phi::Float32`: intrinsic direction of cluster at position - Phi. Not to be confused with direction cluster is seen from IP.
 - `directionError::Vector3f`: covariance matrix of the direction (3 Parameters) [mm^2]
-- `shapeParameters::Float32`: shape parameters - check/set collection parameter ClusterShapeParameters for size and names of parameters.
-- `subdetectorEnergies::Float32`: energy observed in a particular subdetector. Check/set collection parameter ClusterSubdetectorNames for decoding the indices of the array.
+- `shapeParameters::PVector{Float32}`: shape parameters - check/set collection parameter ClusterShapeParameters for size and names of parameters.
+- `subdetectorEnergies::PVector{Float32}`: energy observed in a particular subdetector. Check/set collection parameter ClusterSubdetectorNames for decoding the indices of the array.
 # Relations
 - `clusters::Cluster`: clusters that have been combined to this cluster.
 - `hits::CalorimeterHit`: hits that have been combined to this cluster.
@@ -125,41 +127,49 @@ function Cluster(;type=0, energy=0, energyError=0, position=Vector3f(), position
     Cluster(-1, type, energy, energyError, position, positionError, iTheta, phi, directionError, shapeParameters, subdetectorEnergies, clusters, hits, particleIDs)
 end
 
+"    pushToClusters(object::Cluster, refobj::Cluster)"
 function pushToClusters(c::Cluster, o::Cluster)
     iszero(c.index) && (c = register(c))
     c = @set c.clusters = push(c.clusters, o)
     update(c)
 end
+"    popFromClusters(object::Cluster)"
 function popFromClusters(c::Cluster)
     iszero(c.index) && (c = register(c))
     c = @set c.clusters = pop(c.clusters)
     update(c)
 end
+"    pushToHits(object::Cluster, refobj::CalorimeterHit)"
 function pushToHits(c::Cluster, o::CalorimeterHit)
     iszero(c.index) && (c = register(c))
     c = @set c.hits = push(c.hits, o)
     update(c)
 end
+"    popFromHits(object::Cluster)"
 function popFromHits(c::Cluster)
     iszero(c.index) && (c = register(c))
     c = @set c.hits = pop(c.hits)
     update(c)
 end
+"    pushToParticleIDs(object::Cluster, refobj::ParticleID)"
 function pushToParticleIDs(c::Cluster, o::ParticleID)
     iszero(c.index) && (c = register(c))
     c = @set c.particleIDs = push(c.particleIDs, o)
     update(c)
 end
+"    popFromParticleIDs(object::Cluster)"
 function popFromParticleIDs(c::Cluster)
     iszero(c.index) && (c = register(c))
     c = @set c.particleIDs = pop(c.particleIDs)
     update(c)
 end
+"    setShapeParameters(object::Cluster, v::AbstractVector{Float32})"
 function setShapeParameters(o::Cluster, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.shapeParameters = v
     update(o)
 end
+"    setSubdetectorEnergies(object::Cluster, v::AbstractVector{Float32})"
 function setSubdetectorEnergies(o::Cluster, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.subdetectorEnergies = v
@@ -209,21 +219,25 @@ function MCParticle(;PDG=0, generatorStatus=0, simulatorStatus=0, charge=0, time
     MCParticle(-1, PDG, generatorStatus, simulatorStatus, charge, time, mass, vertex, endpoint, momentum, momentumAtEndpoint, spin, colorFlow, parents, daughters)
 end
 
+"    pushToParents(object::MCParticle, refobj::MCParticle)"
 function pushToParents(c::MCParticle, o::MCParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.parents = push(c.parents, o)
     update(c)
 end
+"    popFromParents(object::MCParticle)"
 function popFromParents(c::MCParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.parents = pop(c.parents)
     update(c)
 end
+"    pushToDaughters(object::MCParticle, refobj::MCParticle)"
 function pushToDaughters(c::MCParticle, o::MCParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.daughters = push(c.daughters, o)
     update(c)
 end
+"    popFromDaughters(object::MCParticle)"
 function popFromDaughters(c::MCParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.daughters = pop(c.daughters)
@@ -237,11 +251,11 @@ Simulated Primary Ionization
 - `time::Float32`: the primary ionization's time in the lab frame [ns].
 - `position::Vector3d`: the primary ionization's position [mm].
 - `type::Int16`: type.
-- `electronCellID::UInt64`: cell id.
-- `electronTime::Float32`: the time in the lab frame [ns].
-- `electronPosition::Vector3d`: the position in the lab frame [mm].
-- `pulseTime::Float32`: the pulse's time in the lab frame [ns].
-- `pulseAmplitude::Float32`: the pulse's amplitude [fC].
+- `electronCellID::PVector{UInt64}`: cell id.
+- `electronTime::PVector{Float32}`: the time in the lab frame [ns].
+- `electronPosition::PVector{Vector3d}`: the position in the lab frame [mm].
+- `pulseTime::PVector{Float32}`: the pulse's time in the lab frame [ns].
+- `pulseAmplitude::PVector{Float32}`: the pulse's amplitude [fC].
 # Relations
 - `mcparticle::MCParticle`: the particle that caused the ionizing collisions.
 """
@@ -274,26 +288,31 @@ function Base.getproperty(obj::SimPrimaryIonizationCluster, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+"    setElectronCellID(object::SimPrimaryIonizationCluster, v::AbstractVector{UInt64})"
 function setElectronCellID(o::SimPrimaryIonizationCluster, v::AbstractVector{UInt64})
     iszero(o.index) && (o = register(o))
     o = @set o.electronCellID = v
     update(o)
 end
+"    setElectronTime(object::SimPrimaryIonizationCluster, v::AbstractVector{Float32})"
 function setElectronTime(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.electronTime = v
     update(o)
 end
+"    setElectronPosition(object::SimPrimaryIonizationCluster, v::AbstractVector{Vector3d})"
 function setElectronPosition(o::SimPrimaryIonizationCluster, v::AbstractVector{Vector3d})
     iszero(o.index) && (o = register(o))
     o = @set o.electronPosition = v
     update(o)
 end
+"    setPulseTime(object::SimPrimaryIonizationCluster, v::AbstractVector{Float32})"
 function setPulseTime(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.pulseTime = v
     update(o)
 end
+"    setPulseAmplitude(object::SimPrimaryIonizationCluster, v::AbstractVector{Float32})"
 function setPulseAmplitude(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.pulseAmplitude = v
@@ -423,11 +442,13 @@ function SimCalorimeterHit(;cellID=0, energy=0, position=Vector3f(), contributio
     SimCalorimeterHit(-1, cellID, energy, position, contributions)
 end
 
+"    pushToContributions(object::SimCalorimeterHit, refobj::CaloHitContribution)"
 function pushToContributions(c::SimCalorimeterHit, o::CaloHitContribution)
     iszero(c.index) && (c = register(c))
     c = @set c.contributions = push(c.contributions, o)
     update(c)
 end
+"    popFromContributions(object::SimCalorimeterHit)"
 function popFromContributions(c::SimCalorimeterHit)
     iszero(c.index) && (c = register(c))
     c = @set c.contributions = pop(c.contributions)
@@ -442,7 +463,7 @@ Raw data of a detector readout
 - `time::Float32`: time of the hit [ns].
 - `charge::Float32`: integrated charge of the hit [fC].
 - `interval::Float32`: interval of each sampling [ns].
-- `adcCounts::Int32`: raw data (32-bit) word at i.
+- `adcCounts::PVector{Int32}`: raw data (32-bit) word at i.
 """
 struct RawTimeSeries <: POD
     index::ObjectID{RawTimeSeries}   # ObjectID of himself
@@ -460,6 +481,7 @@ function RawTimeSeries(;cellID=0, quality=0, time=0, charge=0, interval=0, adcCo
     RawTimeSeries(-1, cellID, quality, time, charge, interval, adcCounts)
 end
 
+"    setAdcCounts(object::RawTimeSeries, v::AbstractVector{Int32})"
 function setAdcCounts(o::RawTimeSeries, v::AbstractVector{Int32})
     iszero(o.index) && (o = register(o))
     o = @set o.adcCounts = v
@@ -568,7 +590,7 @@ Tracker hit
 - `eDepError::Float32`: error measured on EDep [GeV].
 - `position::Vector3d`: hit position in [mm].
 - `covMatrix::SVector{6,Float32}`: covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
-- `rawHits::ObjectID`: raw data hits. Check getType to get actual data type.
+- `rawHits::PVector{ObjectID}`: raw data hits. Check getType to get actual data type.
 """
 struct TrackerHit <: POD
     index::ObjectID{TrackerHit}      # ObjectID of himself
@@ -589,6 +611,7 @@ function TrackerHit(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError=0, p
     TrackerHit(-1, cellID, type, quality, time, eDep, eDepError, position, covMatrix, rawHits)
 end
 
+"    setRawHits(object::TrackerHit, v::AbstractVector{ObjectID})"
 function setRawHits(o::TrackerHit, v::AbstractVector{ObjectID})
     iszero(o.index) && (o = register(o))
     o = @set o.rawHits = v
@@ -638,11 +661,13 @@ function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Re
     RecIonizationCluster(-1, cellID, significance, type, trackerPulse)
 end
 
+"    pushToTrackerPulse(object::RecIonizationCluster, refobj::TrackerPulse)"
 function pushToTrackerPulse(c::RecIonizationCluster, o::TrackerPulse)
     iszero(c.index) && (c = register(c))
     c = @set c.trackerPulse = push(c.trackerPulse, o)
     update(c)
 end
+"    popFromTrackerPulse(object::RecIonizationCluster)"
 function popFromTrackerPulse(c::RecIonizationCluster)
     iszero(c.index) && (c = register(c))
     c = @set c.trackerPulse = pop(c.trackerPulse)
@@ -658,7 +683,7 @@ Vertex
 - `position::Vector3f`: [mm] position of the vertex.
 - `covMatrix::SVector{6,Float32}`: covariance matrix of the position (stored as lower triangle matrix, i.e. cov(xx),cov(y,x),cov(z,x),cov(y,y),... )
 - `algorithmType::Int32`: type code for the algorithm that has been used to create the vertex - check/set the collection parameters AlgorithmName and AlgorithmType.
-- `parameters::Float32`: additional parameters related to this vertex - check/set the collection parameter "VertexParameterNames" for the parameters meaning.
+- `parameters::PVector{Float32}`: additional parameters related to this vertex - check/set the collection parameter "VertexParameterNames" for the parameters meaning.
 # Relations
 - `associatedParticle::POD`: reconstructed particle associated to this vertex.
 """
@@ -689,6 +714,7 @@ function Base.getproperty(obj::Vertex, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+"    setParameters(object::Vertex, v::AbstractVector{Float32})"
 function setParameters(o::Vertex, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
     o = @set o.parameters = v
@@ -704,9 +730,9 @@ Reconstructed track
 - `dEdx::Float32`: dEdx of the track.
 - `dEdxError::Float32`: error of dEdx.
 - `radiusOfInnermostHit::Float32`: radius of the innermost hit that has been used in the track fit
-- `subdetectorHitNumbers::Int32`: number of hits in particular subdetectors.Check/set collection variable TrackSubdetectorNames for decoding the indices
-- `trackStates::TrackState`: track states
-- `dxQuantities::Quantity`: different measurements of dx quantities
+- `subdetectorHitNumbers::PVector{Int32}`: number of hits in particular subdetectors.Check/set collection variable TrackSubdetectorNames for decoding the indices
+- `trackStates::PVector{TrackState}`: track states
+- `dxQuantities::PVector{Quantity}`: different measurements of dx quantities
 # Relations
 - `trackerHits::TrackerHit`: hits that have been used to create this track
 - `tracks::Track`: tracks (segments) that have been combined to create this track
@@ -733,36 +759,43 @@ function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit
     Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, subdetectorHitNumbers, trackStates, dxQuantities, trackerHits, tracks)
 end
 
+"    pushToTrackerHits(object::Track, refobj::TrackerHit)"
 function pushToTrackerHits(c::Track, o::TrackerHit)
     iszero(c.index) && (c = register(c))
     c = @set c.trackerHits = push(c.trackerHits, o)
     update(c)
 end
+"    popFromTrackerHits(object::Track)"
 function popFromTrackerHits(c::Track)
     iszero(c.index) && (c = register(c))
     c = @set c.trackerHits = pop(c.trackerHits)
     update(c)
 end
+"    pushToTracks(object::Track, refobj::Track)"
 function pushToTracks(c::Track, o::Track)
     iszero(c.index) && (c = register(c))
     c = @set c.tracks = push(c.tracks, o)
     update(c)
 end
+"    popFromTracks(object::Track)"
 function popFromTracks(c::Track)
     iszero(c.index) && (c = register(c))
     c = @set c.tracks = pop(c.tracks)
     update(c)
 end
+"    setSubdetectorHitNumbers(object::Track, v::AbstractVector{Int32})"
 function setSubdetectorHitNumbers(o::Track, v::AbstractVector{Int32})
     iszero(o.index) && (o = register(o))
     o = @set o.subdetectorHitNumbers = v
     update(o)
 end
+"    setTrackStates(object::Track, v::AbstractVector{TrackState})"
 function setTrackStates(o::Track, v::AbstractVector{TrackState})
     iszero(o.index) && (o = register(o))
     o = @set o.trackStates = v
     update(o)
 end
+"    setDxQuantities(object::Track, v::AbstractVector{Quantity})"
 function setDxQuantities(o::Track, v::AbstractVector{Quantity})
     iszero(o.index) && (o = register(o))
     o = @set o.dxQuantities = v
@@ -857,41 +890,49 @@ function Base.getproperty(obj::ReconstructedParticle, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+"    pushToClusters(object::ReconstructedParticle, refobj::Cluster)"
 function pushToClusters(c::ReconstructedParticle, o::Cluster)
     iszero(c.index) && (c = register(c))
     c = @set c.clusters = push(c.clusters, o)
     update(c)
 end
+"    popFromClusters(object::ReconstructedParticle)"
 function popFromClusters(c::ReconstructedParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.clusters = pop(c.clusters)
     update(c)
 end
+"    pushToTracks(object::ReconstructedParticle, refobj::Track)"
 function pushToTracks(c::ReconstructedParticle, o::Track)
     iszero(c.index) && (c = register(c))
     c = @set c.tracks = push(c.tracks, o)
     update(c)
 end
+"    popFromTracks(object::ReconstructedParticle)"
 function popFromTracks(c::ReconstructedParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.tracks = pop(c.tracks)
     update(c)
 end
+"    pushToParticles(object::ReconstructedParticle, refobj::ReconstructedParticle)"
 function pushToParticles(c::ReconstructedParticle, o::ReconstructedParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.particles = push(c.particles, o)
     update(c)
 end
+"    popFromParticles(object::ReconstructedParticle)"
 function popFromParticles(c::ReconstructedParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.particles = pop(c.particles)
     update(c)
 end
+"    pushToParticleIDs(object::ReconstructedParticle, refobj::ParticleID)"
 function pushToParticleIDs(c::ReconstructedParticle, o::ParticleID)
     iszero(c.index) && (c = register(c))
     c = @set c.particleIDs = push(c.particleIDs, o)
     update(c)
 end
+"    popFromParticleIDs(object::ReconstructedParticle)"
 function popFromParticleIDs(c::ReconstructedParticle)
     iszero(c.index) && (c = register(c))
     c = @set c.particleIDs = pop(c.particleIDs)
@@ -971,7 +1012,7 @@ dN/dx or dE/dx info of Track.
 - `particleType::Int16`: particle type, e(0),mu(1),pi(2),K(3),p(4).
 - `type::Int16`: type.
 - `hypotheses::SVector{5,Hypothesis}`: 5 particle hypothesis
-- `hitData::HitLevelData`: hit level data
+- `hitData::PVector{HitLevelData}`: hit level data
 # Relations
 - `track::Track`: the corresponding track.
 """
@@ -1000,6 +1041,7 @@ function Base.getproperty(obj::RecDqdx, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+"    setHitData(object::RecDqdx, v::AbstractVector{HitLevelData})"
 function setHitData(o::RecDqdx, v::AbstractVector{HitLevelData})
     iszero(o.index) && (o = register(o))
     o = @set o.hitData = v
@@ -1021,7 +1063,7 @@ Tracker hit plane
 - `dv::Float32`: measurement error along the direction
 - `position::Vector3d`: hit position in [mm].
 - `covMatrix::SVector{6,Float32}`: covariance of the position (x,y,z), stored as lower triangle matrix. i.e. cov(x,x) , cov(y,x) , cov(y,y) , cov(z,x) , cov(z,y) , cov(z,z)
-- `rawHits::ObjectID`: raw data hits. Check getType to get actual data type.
+- `rawHits::PVector{ObjectID}`: raw data hits. Check getType to get actual data type.
 """
 struct TrackerHitPlane <: POD
     index::ObjectID{TrackerHitPlane} # ObjectID of himself
@@ -1046,6 +1088,7 @@ function TrackerHitPlane(;cellID=0, type=0, quality=0, time=0, eDep=0, eDepError
     TrackerHitPlane(-1, cellID, type, quality, time, eDep, eDepError, u, v, du, dv, position, covMatrix, rawHits)
 end
 
+"    setRawHits(object::TrackerHitPlane, v::AbstractVector{ObjectID})"
 function setRawHits(o::TrackerHitPlane, v::AbstractVector{ObjectID})
     iszero(o.index) && (o = register(o))
     o = @set o.rawHits = v
