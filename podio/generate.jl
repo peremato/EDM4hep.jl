@@ -43,7 +43,7 @@ function split_member(member)
         member = m.captures[1] |> strip
     end
     sep = findlast(' ', member)
-    member[1:sep-1], member[sep+1:end], comment
+    member[1:sep-1] |> to_julia, member[sep+1:end], comment
 end
 
 data = YAML.load_file(joinpath(@__DIR__, "edm4hep.yaml"))
@@ -56,7 +56,7 @@ function gen_component(io, key, body)
     members = []
     for m in body["Members"]
         t, v, c = split_member(m)
-        vt = "$(v)::$(to_julia(t))"
+        vt = "$(v)::$(t)"
         vt = vt * " "^(32 - length(vt))
         println(io, "    $(vt) $(c)")
         push!(members,v)
@@ -78,7 +78,6 @@ function gen_datatype(io, key, dtype)
     defvalues = []
     for m in dtype["Members"]
         t, v, c = split_member(m)
-        t = to_julia(t)
         println(io, "    $(gen_member(v,t)) $(c)")
         push!(members,v)
         push!(defvalues, t in fundamental_types ? "0" : contains(t,"SVector") ? "zero($t)" : t*"()")
@@ -88,7 +87,6 @@ function gen_datatype(io, key, dtype)
         println(io, "    #---VectorMembers")
         for (i,r) in enumerate(dtype["VectorMembers"])
             t, v, c = split_member(r)
-            t = to_julia(t)
             vt = gen_member(v, "PVector{$(jtype),$(t),$(i)}")
             println(io, "    $(vt) $(c)")
             push!(members, v)
@@ -101,7 +99,6 @@ function gen_datatype(io, key, dtype)
         println(io, "    #---OneToOneRelations")
         for r in dtype["OneToOneRelations"]
             t, v, c = split_member(r)
-            t = to_julia(t)
             vt = gen_member(v*"_idx", "ObjectID{$(t)}")
             println(io, "    $(vt) $(c)")
             push!(members, v)
@@ -114,7 +111,6 @@ function gen_datatype(io, key, dtype)
         println(io, "    #---OneToManyRelations")
         for (i,r) in enumerate(dtype["OneToManyRelations"])
             t, v, c = split_member(r)
-            t = to_julia(t)
             vt = gen_member(v, "Relation{$(jtype),$(t),$(i)}")
             println(io, "    $(vt) $(c)")
             push!(members, v)
@@ -156,13 +152,11 @@ function gen_datatype(io, key, dtype)
         for r in relations1toN
             (;varname, totype) = r
             upvarname = uppercasefirst(varname)
-            println(io, "\"    pushTo$(upvarname)(object::$jtype, refobj::$totype)\"")
             println(io, "function pushTo$(upvarname)(c::$jtype, o::$totype)")
             println(io, "    iszero(c.index) && (c = register(c))")
             println(io, "    c = @set c.$(varname) = push(c.$varname, o)")
             println(io, "    update(c)")
             println(io, "end")
-            println(io, "\"    popFrom$(upvarname)(object::$jtype)\"")
             println(io, "function popFrom$(upvarname)(c::$jtype)")
             println(io, "    iszero(c.index) && (c = register(c))")
             println(io, "    c = @set c.$(varname) = pop(c.$varname)")
@@ -176,7 +170,6 @@ function gen_datatype(io, key, dtype)
         for v in vectormembers
             (;varname, totype) = v
             upvarname = uppercasefirst(varname)
-            println(io, "\"    set$(upvarname)(object::$jtype, v::AbstractVector{$totype})\"")
             println(io, "function set$(upvarname)(o::$jtype, v::AbstractVector{$totype})")
             println(io, "    iszero(o.index) && (o = register(o))")
             println(io, "    o = @set o.$(varname) = v")
@@ -197,20 +190,30 @@ function gen_docstring(io, key, dtype)
     println(io, "# Fields")
     for m in dtype["Members"] 
         t, v, c = split_member(m)
-        t = to_julia(t)
         println(io, "- `$v::$t`: $(c[3:end])")
     end
     for m in Base.get(dtype,"VectorMembers", []) 
         t, v, c = split_member(m)
-        t = "PVector{$(to_julia(t))}"
+        t = "PVector{$(t)}"
         println(io, "- `$v::$t`: $(c[3:end])")
     end
     if "OneToOneRelations" in keys(dtype) || "OneToManyRelations" in keys(dtype)
         println(io, "# Relations")
         for m in vcat(Base.get(dtype,"OneToOneRelations",[]),Base.get(dtype,"OneToManyRelations",[])) 
             t, v, c = split_member(m)
-            t = to_julia(t)
             println(io, "- `$v::$t`: $(c[3:end])")
+        end
+    end
+    if !isempty(intersect(("VectorMembers", "OneToManyRelations"),keys(dtype)))
+        println(io, "# Methods")
+        for m in Base.get(dtype,"VectorMembers", [])
+            t, v, c = split_member(m)
+            println(io, "- `set$(uppercasefirst(v))(object::$jtype, v::AbstractVector{$t})`: assign a set of values to the `$v` vector member")
+        end
+        for m in Base.get(dtype,"OneToManyRelations", [])
+            t, v, c = split_member(m)
+            println(io, "- `pushTo$(uppercasefirst(v))(obj::$jtype, robj::$t)`: push related object to the `$v` relation")
+            println(io, "- `popFrom$(uppercasefirst(v))(obj::$jtype)`: pop last related object from `$v` relation")
         end
     end
     println(io,"\"\"\"")
@@ -221,7 +224,7 @@ function build_graph(datatypes)
     graph = SimpleDiGraph(length(types))
     for (i,dtype) in enumerate(values(datatypes))
         for r in [get(dtype,"OneToOneRelations",[]);get(dtype,"OneToManyRelations",[])]
-            t = split_member(r)[1] |> to_julia
+            t = split_member(r)[1]
             t == "POD" && continue
             d = findfirst(x->x == t, types)
             i != d && add_edge!(graph, d, i)
