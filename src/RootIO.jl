@@ -28,6 +28,7 @@ module RootIO
         file::ROOTFile
         isRNTuple::Bool
         collectionIDs::Dict{String, UInt32}
+        collectionNames::Dict{UInt32, String}
         btypes::Dict{String, Type} 
         layouts::Dict{String, Tuple}    # for TTree only
         lazytree::LazyTree
@@ -47,14 +48,17 @@ module RootIO
                 reader.isRNTuple = true
                 meta = LazyTree(rtuple, ["events___idTable", "events_collectionNames"])[1]
                 reader.collectionIDs = Dict(meta.events_collectionNames .=> meta.events___idTable)
+                reader.collectionNames = Dict(meta.events___idTable .=> meta.events_collectionNames)
             else
                 reader.isRNTuple = false
                 meta = LazyTree(reader.file, "podio_metadata", [Regex("events___idTable/(.*)") => s"\1"])[1]
                 reader.collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
+                reader.collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
             end
         else
             @warn "ROOT file $filename does not have a 'podio_metadate' tree. Is it a PODIO file?"
             reader.collectionIDs = Dict{UInt32, String}()
+            reader.collectionNames = Dict{String, UInt32}()
         end
         # layouts and branch types
         reader.btypes = Dict{String, Type}()
@@ -98,7 +102,7 @@ module RootIO
                     cid = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_collectionID"), splitnames)
                 end
                 push!(layout, (ft, (id, cid)))
-            elseif ft <: SVector                # fixed arrarys are translated to SVector
+            elseif ft <: SVector                # fixed arrays are translated to SVector
                 s = size(ft)[1]
                 id = findfirst(x-> x == n * "[$(s)]", splitnames)
                 push!(layout, (ft,(id,s))) 
@@ -135,7 +139,7 @@ module RootIO
         for l in inds
             if l isa Tuple 
                 if l[1] <: SVector    # (type,(id, size))
-                    ft, (id, s) = l 
+                    ft, (id, s) = l
                     push!(sa, StructArray{ft}(reshape(evt[id], s, len);dims=1))
                 else
                     push!(sa, getStructArrayTTree(evt, l, collid, len))

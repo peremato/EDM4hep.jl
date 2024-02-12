@@ -10,6 +10,7 @@ include("../podio/genComponents.jl")
 
 #---Vector3d
 Base.convert(::Type{Vector3d}, t::Tuple) = Vector3d(t...)
+Base.convert(::SVector{3,Float64}, v::Vector3d) = SVector{3,Float64}(v...)
 Base.show(io::IO, v::Vector3d) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
@@ -22,6 +23,8 @@ function Base.isapprox(v1::Vector3d, v2::Vector3d; atol::Real=0, rtol::Real=Base
 end
 Base.iterate(v::Vector3d, i=1) = i > 3 ? nothing : (getproperty(v, propertynames(v)[i]), i+1)
 Base.length(v::Vector3d) = 3
+θ(v::Vector3d) = atan(√(v.x^2+v.y^2), v.z)
+ϕ(v::Vector3d) = atan(v.y, v.x)
 
 #---Vector3f
 Base.convert(::Type{Vector3f}, t::Tuple) = Vector3f(t...)
@@ -37,6 +40,8 @@ function Base.isapprox(v1::Vector3f, v2::Vector3f; atol::Real=0, rtol::Real=Base
 end
 Base.iterate(v::Vector3f, i=1) = i > 3 ? nothing : (getproperty(v, propertynames(v)[i]), i+1)
 Base.length(v::Vector3f) = 3
+θ(v::Vector3f) = atan(√(v.x^2+v.y^2), v.z)
+ϕ(v::Vector3f) = atan(v.y, v.x)
 
 #---Vector2i
 Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)
