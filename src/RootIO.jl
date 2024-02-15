@@ -18,6 +18,8 @@ module RootIO
     "long long" => Int64, "unsigned long long" => UInt64,
     "string" => String)
 
+    const newpodio = v"0.17"
+    
     """
     The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
     The layouts maps a set of columns in the LazyTree into an object.
@@ -27,6 +29,7 @@ module RootIO
         treename::String
         file::ROOTFile
         isRNTuple::Bool
+        podioversion::VersionNumber
         collectionIDs::Dict{String, UInt32}
         collectionNames::Dict{UInt32, String}
         btypes::Dict{String, Type} 
@@ -46,19 +49,23 @@ module RootIO
             rtuple = reader.file["podio_metadata"]
             if rtuple isa UnROOT.RNTuple
                 reader.isRNTuple = true
-                meta = LazyTree(rtuple, ["events___idTable", "events_collectionNames"])[1]
+                meta = LazyTree(rtuple, ["events___idTable", "events_collectionNames",  "PodioBuildVersion"])[1]
                 reader.collectionIDs = Dict(meta.events_collectionNames .=> meta.events___idTable)
                 reader.collectionNames = Dict(meta.events___idTable .=> meta.events_collectionNames)
+                reader.podioversion = VersionNumber(meta.PodioBuildVersion...)
             else
                 reader.isRNTuple = false
-                meta = LazyTree(reader.file, "podio_metadata", [Regex("events___idTable/(.*)") => s"\1"])[1]
+                meta = LazyTree(reader.file, "podio_metadata", [Regex("events___idTable/|PodioBuildVersion/(.*)") => s"\1"])[1]
                 reader.collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
                 reader.collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
+                reader.podioversion = VersionNumber(meta.major, meta.minor, meta.patch)
             end
         else
-            @warn "ROOT file $filename does not have a 'podio_metadate' tree. Is it a PODIO file?"
-            reader.collectionIDs = Dict{UInt32, String}()
-            reader.collectionNames = Dict{String, UInt32}()
+            error("""ROOT file $(reader.filename) does not have a 'podio_metadata' tree. 
+                     Is it a PODIO file? or perhaps is from a very old version of podio?
+                     Stopping here.""")
+            #reader.collectionIDs = Dict{UInt32, String}()
+            #reader.collectionNames = Dict{String, UInt32}()
         end
         # layouts and branch types
         reader.btypes = Dict{String, Type}()
