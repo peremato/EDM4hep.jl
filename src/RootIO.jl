@@ -18,7 +18,7 @@ module RootIO
     "long long" => Int64, "unsigned long long" => UInt64,
     "string" => String)
 
-    const newpodio = v"0.17"
+    const newpodio = v"0.16.99"
     
     """
     The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
@@ -74,13 +74,15 @@ module RootIO
     end
 
 
-    function buildlayoutTTree(tree::UnROOT.LazyTree, branch::String, T::Type)
+    function buildlayoutTTree(reader::Reader, branch::String, T::Type)
         layout = []
         relations = []
         vmembers = []
         fnames = fieldnames(T)
         ftypes = fieldtypes(T)
-        splitnames = names(tree)
+        splitnames = names(reader.lazytree)
+        n_rels  = 0      # number of one-to-one or one-to-many Relations 
+        n_pvecs = 0      # number of vector member
         for (fn,ft) in zip(fnames, ftypes)
             n = "$(branch)_$(fn)"
             if isempty(fieldnames(ft))          # foundamental type (Int, Float,...)
@@ -90,37 +92,59 @@ module RootIO
                 b = findfirst(x -> x == n * "_begin", splitnames)
                 e = findfirst(x -> x == n * "_end", splitnames)
                 push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
-                push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+                if reader.podioversion >= newpodio
+                    push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+                else
+                    push!(relations, ("$(branch)#$(n_rels)", eltype(ft)))
+                    n_rels += 1
+                end
             elseif ft <: PVector
                 b = findfirst(x -> x == n * "_begin", splitnames)
                 e = findfirst(x -> x == n * "_end", splitnames)
                 push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
-                push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+                if reader.podioversion >= newpodio
+                    push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (vector_branchname, target_type)
+                else
+                    push!(vmembers, ("$(branch)_$(n_pvecs)", eltype(ft)))  # add a tuple with (vector_branchname, target_type)
+                    n_pvecs += 1
+                end
             elseif ft <: ObjectID{T}            # index of himself
                 push!(layout, (ft, (-1,-2)))
             elseif ft <: ObjectID               # index of another one....
                 na = replace("$(fn)", "_idx" => "")     # remove the added suffix
-                id = findfirst(x -> x == "_$(branch)_$(na)_index", splitnames)
-                if isnothing(id)  # try with case insensitive compare
-                    id = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_index"), splitnames)
+                id = cid = nothing
+                if reader.podioversion >= newpodio
+                    id = findfirst(x -> x == "_$(branch)_$(na)_index", splitnames)
+                    if isnothing(id)  # try with case insensitive compare
+                        id = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_index"), splitnames)
+                    end
+                    cid = findfirst(x -> x == "_$(branch)_$(na)_collectionID", splitnames)
+                    if isnothing(cid)  # try with case insensitive compare
+                        cid = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_collectionID"), splitnames)
+                    end
+                else
+                    id = findfirst(x -> x == "$(branch)#$(n_rels)_index", splitnames)
+                    cid = findfirst(x -> x == "$(branch)#$(n_rels)_collectionID", splitnames)
+                    n_rels += 1
                 end
-                cid = findfirst(x -> x == "_$(branch)_$(na)_collectionID", splitnames)
-                if isnothing(cid)  # try with case insensitive compare
-                    cid = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_collectionID"), splitnames)
+                if isnothing(id) || isnothing(cid)  # link not found in the data file
+                    @warn "Cannot find branch for one-to-one relation $(branch)::$(na)"
+                    push!(layout, (ft,(0,0)))
+                else
+                    push!(layout, (ft, (id, cid)))
                 end
-                push!(layout, (ft, (id, cid)))
             elseif ft <: SVector                # fixed arrays are translated to SVector
                 s = size(ft)[1]
                 id = findfirst(x-> x == n * "[$(s)]", splitnames)
                 push!(layout, (ft,(id,s))) 
             else
-                push!(layout, buildlayoutTTree(tree, n, ft))
+                push!(layout, buildlayoutTTree(reader, n, ft))
             end
         end
         (T, Tuple(layout), Tuple(relations), Tuple(vmembers))
     end
 
-    function buildlayoutRNTuple(tree::UnROOT.LazyTree, branch::String, T::Type)
+    function buildlayoutRNTuple(reader::Reader, branch::String, T::Type)
         relations = []
         vmembers = []
         fnames = fieldnames(T)
@@ -289,9 +313,9 @@ module RootIO
             layout = reader.layouts[bname]
         else
             if reader.isRNTuple
-                layout = buildlayoutRNTuple(reader.lazytree, bname, btype)
+                layout = buildlayoutRNTuple(reader, bname, btype)
             else
-                layout = buildlayoutTTree(reader.lazytree, bname, btype)
+                layout = buildlayoutTTree(reader, bname, btype)
             end
             reader.layouts[bname] = layout
         end

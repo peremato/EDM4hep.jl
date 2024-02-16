@@ -9,4 +9,5 @@ using EDM4hep
     include("testCluster.jl")         # several one-to-many and Vector members
     #---ROOT I/O----------------------
     include("testRootReader.jl")      # TTree and RNTuple reader
+    include("testRootReaderLegacy.jl")# Testing podio verion < 0.17 
 end

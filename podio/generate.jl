@@ -94,18 +94,6 @@ function gen_datatype(io, key, dtype)
             push!(vectormembers, (varname=v,totype=t))
         end
     end
-    relations1to1 = @NamedTuple{varname::String, totype::String}[]
-    if haskey(dtype, "OneToOneRelations")
-        println(io, "    #---OneToOneRelations")
-        for r in dtype["OneToOneRelations"]
-            t, v, c = split_member(r)
-            vt = gen_member(v*"_idx", "ObjectID{$(t)}")
-            println(io, "    $(vt) $(c)")
-            push!(members, v)
-            push!(defvalues, "-1")
-            push!(relations1to1, (varname=v, totype=t))
-        end
-    end
     relations1toN = @NamedTuple{varname::String, totype::String}[]
     if haskey(dtype, "OneToManyRelations")
         println(io, "    #---OneToManyRelations")
@@ -116,6 +104,18 @@ function gen_datatype(io, key, dtype)
             push!(members, v)
             push!(defvalues, "Relation{$(jtype),$(t),$(i)}()")
             push!(relations1toN, (varname=v, totype=t))
+        end
+    end
+    relations1to1 = @NamedTuple{varname::String, totype::String}[]
+    if haskey(dtype, "OneToOneRelations")
+        println(io, "    #---OneToOneRelations")
+        for r in dtype["OneToOneRelations"]
+            t, v, c = split_member(r)
+            vt = gen_member(v*"_idx", "ObjectID{$(t)}")
+            println(io, "    $(vt) $(c)")
+            push!(members, v)
+            push!(defvalues, "-1")
+            push!(relations1to1, (varname=v, totype=t))
         end
     end
     println(io, "end\n")
