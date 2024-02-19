@@ -100,7 +100,13 @@ module RootIO
                 end
             elseif ft <: PVector
                 b = findfirst(x -> x == n * "_begin", splitnames)
+                if isnothing(b)
+                    b = findfirst(x -> lowercase(x) == lowercase( n * "_begin"), splitnames)
+                end
                 e = findfirst(x -> x == n * "_end", splitnames)
+                if isnothing(e)
+                    e = findfirst(x -> lowercase(x) == lowercase( n * "_end"), splitnames)
+                end
                 push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
                 if reader.podioversion >= newpodio
                     push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (vector_branchname, target_type)
@@ -172,6 +178,15 @@ module RootIO
                 if l[1] <: SVector    # (type,(id, size))
                     ft, (id, s) = l
                     push!(sa, StructArray{ft}(reshape(evt[id], s, len);dims=1))
+                elseif l[1] <: ObjectID
+                    ft, (id, cid) = l
+                    if id == -1                             # self ObjectID
+                        push!(sa, StructArray{ft}((collect(0:len-1),fill(collid, len))))
+                    elseif len > 0 && evt[cid][1] == -2     # Handle the case collid is -2 :-( )
+                        push!(sa, StructArray{ft}((evt[id],zeros(UInt32,len))))
+                    else                                    # general case
+                        push!(sa, StructArray{ft}((evt[id],evt[cid])))
+                    end    
                 else
                     push!(sa, getStructArrayTTree(evt, l, collid, len))
                 end
@@ -299,16 +314,8 @@ module RootIO
             end
         end
     end
-
-    """
-    get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
-
-    Gets an object collection by its name, with the possibility to overwrite the mapping Julia type or use the 
-    type known in the ROOT file (C++ class name). The optonal key parameter `register` indicates is the collection
-    needs to be registered to the `EDStore`.
-    """
-    function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
-        btype =  btype === Any ? reader.btypes[bname] : btype    # Allow the user to force the actual type
+    
+    function _get(reader::Reader, evt::UnROOT.LazyEvent, bname::String, btype::Type, register::Bool)
         if haskey(reader.layouts, bname)                         # Check whether the the layout has been pre-compiled 
             layout = reader.layouts[bname]
         else
@@ -333,14 +340,33 @@ module RootIO
         if register
             assignEDStore(sa, collid)
             if !isempty(layout[3])  # check if there are relations in this branch
-                relations = Tuple(get(reader, evt, rb, btype=ObjectID{rt}; register=false) for (rb, rt) in layout[3])
+                relations = Tuple(_get(reader, evt, rb, ObjectID{rt}, false) for (rb, rt) in layout[3])
                 assignEDStore_relations(relations, btype, collid)
             end
             if !isempty(layout[4])  # check if there are vector members in this branch
-                vmembers = Tuple(get(reader, evt, rb, btype=rt; register=false) for (rb, rt) in layout[4])
+                vmembers = Tuple(_get(reader, evt, rb, rt, false) for (rb, rt) in layout[4])
                 assignEDStore_vmembers(vmembers, btype, collid)
             end
         end
         sa
+    end
+
+    """
+    get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
+
+    Gets an object collection by its name, with the possibility to overwrite the mapping Julia type or use the 
+    type known in the ROOT file (C++ class name). The optonal key parameter `register` indicates is the collection
+    needs to be registered to the `EDStore`.
+    """
+    function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
+        btype = btype === Any ? reader.btypes[bname] : btype     # Allow the user to force the actual type
+        if btype == ObjectID
+            register=false                    # Do not register a collection of ObjectIDs
+            sa = _get(reader, evt, bname, ObjectID{EDM4hep.POD}, register)
+            return convert.(eltype(eltype(sa)), sa)
+        else
+            sa = _get(reader, evt, bname, btype, register)
+            return sa
+        end
     end
 end

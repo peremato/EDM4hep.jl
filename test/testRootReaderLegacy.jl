@@ -1,9 +1,8 @@
-using EDM4hep
-using Test
 using EDM4hep.RootIO
 
-#@testset "TTreeReaderLegacy"
+@testset "TTreeReaderLegacy" begin
     f =  "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240/events_000189367.root"
+    #f = "/Users/mato/cernbox/Data/events_000189367.root"
 
     reader = RootIO.Reader(f)
     events = RootIO.get(reader, "events")
@@ -17,8 +16,14 @@ using EDM4hep.RootIO
     @test length(events) == 100000
 
     # Loop over MC particles
-    evt = events[1]
-    recps = RootIO.get(reader, evt, "ReconstructedParticles");
-    
-    recps[1]
-#end
+    for evt in events[1:100]
+        recps = RootIO.get(reader, evt, "ReconstructedParticles");
+        tracks = RootIO.get(reader, evt, "EFlowTrack")
+        pids  =  RootIO.get(reader, evt, "ParticleIDs")
+        muons = RootIO.get(reader, evt, "Muon#0")
+        if length(muons) == 2
+            @test abs(sum(muons.charge)) <= 2.0f0
+        end
+    end
+
+end
