@@ -35,3 +35,10 @@ function Base.getproperty(obj::MCParticle, sym::Symbol)
         return getfield(obj, sym)
     end
 end
+
+#--------------------------------------------------------------------------------------------------
+#----Utility functions for ReconstructedParticle---------------------------------------------------
+#--------------------------------------------------------------------------------------------------
+export pₜ
+pₜ( o::ReconstructedParticle) = √(o.momentum.x^2 + o.momentum.y^2)
+

@@ -12,5 +12,6 @@ module EDM4hep
     include("Datatypes.jl")
     include("EDStore.jl")
     include("RootIO.jl")
-
+    include("SystemOfUnits.jl")
+    
 end # module EDM4hep
