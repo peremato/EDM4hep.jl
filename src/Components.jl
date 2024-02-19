@@ -70,18 +70,25 @@ end
 #--------------------------------------------------------------------------------------------------
 struct ObjectID{ED <: POD} <: POD
     index::Int32
-    collectionID::UInt32
+    collectionID::UInt32    # in some cases (reading from files) the collection ID is -2
 end
-
 Base.zero(::Type{ObjectID{ED}}) where ED = ObjectID{ED}(-1,0)
-Base.iszero(x::ObjectID{ED}) where ED = x.index == -1
-Base.show(io::IO, x::ObjectID{ED}) where ED = print(io, "#$(x.index+1)")
+Base.iszero(x::ObjectID{ED}) where ED = x.index < 0
+Base.show(io::IO, x::ObjectID{ED}) where ED = print(io, "#$(iszero(x) ? 0 : x.index+1)")
 Base.convert(::Type{Integer}, i::ObjectID{ED}) where ED = i.index+1
-Base.convert(::Type{ED}, i::ObjectID{ED}) where ED = iszero(i.index+1) ? nothing : @inbounds EDStore_objects(ED, i.collectionID)[i.index+1]
+Base.convert(::Type{ED}, i::ObjectID{ED}) where ED = iszero(i) ? nothing : @inbounds EDStore_objects(ED, i.collectionID)[i.index+1]
 Base.convert(::Type{ObjectID{ED}}, p::ED) where ED = iszero(p.index) ? register(p).index : return p.index
 Base.convert(::Type{ObjectID{ED}}, i::Integer) where ED = ObjectID{ED}(i,0)
 Base.eltype(::Type{ObjectID{ED}}) where ED = ED
 Base.:-(i::ObjectID{ED}) where ED = ObjectID{ED}(-i.index)
+function Base.getproperty(oid::ObjectID{ED}, sym::Symbol) where ED
+    if sym == :object
+        convert(ED, oid)
+    else # fallback to getfield
+        return getfield(oid, sym)
+    end
+end
+Base.propertynames(oid::ObjectID) = tuple(fieldnames(ObjectID)...,:object)
 function register(p::ED) where ED
     collid = collectionID(ED)
     store::Vector{ED} = EDStore_objects(ED, collid)

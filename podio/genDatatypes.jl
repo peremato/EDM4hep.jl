@@ -885,18 +885,18 @@ struct ReconstructedParticle <: POD
     mass::Float32                    # [GeV] mass of the reconstructed particle, set independently from four vector. Four momentum state is not kept consistent internally.
     goodnessOfPID::Float32           # overall goodness of the PID on a scale of [0;1]
     covMatrix::SVector{10,Float32}   # cvariance matrix of the reconstructed particle 4vector (10 parameters). Stored as lower triangle matrix of the four momentum (px,py,pz,E), i.e. cov(px,px), cov(py,##
-    #---OneToOneRelations
-    startVertex_idx::ObjectID{Vertex}  # start vertex associated to this particle
-    particleIDUsed_idx::ObjectID{ParticleID}  # particle Id used for the kinematics of this particle
     #---OneToManyRelations
     clusters::Relation{ReconstructedParticle,Cluster,1}  # clusters that have been used for this particle.
     tracks::Relation{ReconstructedParticle,Track,2}  # tracks that have been used for this particle.
     particles::Relation{ReconstructedParticle,ReconstructedParticle,3}  # reconstructed particles that have been combined to this particle.
     particleIDs::Relation{ReconstructedParticle,ParticleID,4}  # particle Ids (not sorted by their likelihood)
+    #---OneToOneRelations
+    startVertex_idx::ObjectID{Vertex}  # start vertex associated to this particle
+    particleIDUsed_idx::ObjectID{ParticleID}  # particle Id used for the kinematics of this particle
 end
 
-function ReconstructedParticle(;type=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=zero(SVector{10,Float32}), startVertex=-1, particleIDUsed=-1, clusters=Relation{ReconstructedParticle,Cluster,1}(), tracks=Relation{ReconstructedParticle,Track,2}(), particles=Relation{ReconstructedParticle,ReconstructedParticle,3}(), particleIDs=Relation{ReconstructedParticle,ParticleID,4}())
-    ReconstructedParticle(-1, type, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, startVertex, particleIDUsed, clusters, tracks, particles, particleIDs)
+function ReconstructedParticle(;type=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=zero(SVector{10,Float32}), clusters=Relation{ReconstructedParticle,Cluster,1}(), tracks=Relation{ReconstructedParticle,Track,2}(), particles=Relation{ReconstructedParticle,ReconstructedParticle,3}(), particleIDs=Relation{ReconstructedParticle,ParticleID,4}(), startVertex=-1, particleIDUsed=-1)
+    ReconstructedParticle(-1, type, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, clusters, tracks, particles, particleIDs, startVertex, particleIDUsed)
 end
 
 function Base.getproperty(obj::ReconstructedParticle, sym::Symbol)
