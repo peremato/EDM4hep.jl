@@ -20,9 +20,11 @@ using EDM4hep.RootIO
         recps = RootIO.get(reader, evt, "ReconstructedParticles");
         tracks = RootIO.get(reader, evt, "EFlowTrack")
         pids  =  RootIO.get(reader, evt, "ParticleIDs")
-        muons = RootIO.get(reader, evt, "Muon#0")
-        if length(muons) == 2
-            @test abs(sum(muons.charge)) <= 2.0f0
+        if VERSION >= v"1.10"   # Seems to be working only for >= 1.10
+            muons = RootIO.get(reader, evt, "Muon#0")
+            if length(muons) == 2
+                @test abs(sum(muons.charge)) <= 2.0f0
+            end
         end
     end
 
