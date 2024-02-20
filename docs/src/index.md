@@ -80,7 +80,7 @@ end
 ```
 ### examples/FCC/analysis_mH-recoil.jl
 This is basically the example `higgs/mH-recoil/mumu` from [FCCAnalyses](https://github.com/HEP-FCC/FCCAnalyses). It shows in a realistic manner hoe to develop analysis functions using the Data Types from EDM4hep to created high-level analysis functions. 
-The Jupyter notebook [analysis_mH-recoil.ipynb](../../examples/FCC/analysis_mH-recoil.pdf) shows the same example in form of a notebook. 
+The Jupyter notebook [analysis_mH-recoil.ipynb](./assets/analysis_mH-recoil.pdf) shows the same example in form of a notebook. 
 
 ## EDM4hep Data Model
 This is the diagram for the EDM4hep datamodel including relationships. 
