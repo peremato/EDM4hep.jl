@@ -37,6 +37,7 @@ There are a number of issues and problems still to be resolved. We keep track of
 - Generate doc string with member information - *DONE*
 - Generate accessors for one-to-many relations, vector members - *DONE* 
 - Support latest version (RC2) of RNTuple format (waiting for a file being generated)
+- Support for multi-threading (i.e. be able to add `@threads` in the event loop)
 
 
 ## Tests
@@ -77,6 +78,9 @@ for p in mcps
     end
 end
 ```
+### examples/FCC/analysis_mH-recoil.jl
+This is basically the example `higgs/mH-recoil/mumu` from [FCCAnalyses](https://github.com/HEP-FCC/FCCAnalyses). It shows in a realistic manner hoe to develop analysis functions using the Data Types from EDM4hep to created high-level analysis functions. 
+The Jupyter notebook [analysis_mH-recoil.ipynb](./assets/analysis_mH-recoil.pdf) shows the same example in form of a notebook. 
 
 ## EDM4hep Data Model
 This is the diagram for the EDM4hep datamodel including relationships. 
