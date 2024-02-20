@@ -17,7 +17,7 @@ function resonanceBuilder(rmass::AbstractFloat, legs::AbstractVector{Reconstruct
     for (a,b) in combinations(legs, 2)
         lv = LorentzVector(a.energy, a.momentum...) + LorentzVector(b.energy, b.momentum...)
         rcharge = a.charge + b.charge
-        push!(result, ReconstructedParticle(mass=mass(lv), momentum=(px(lv),py(lv),pz(lv)),charge=rcharge))
+        push!(result, ReconstructedParticle(mass=mass(lv), momentum=(lv.x, lv.y, lv.z), charge=rcharge))
     end
     sort!(result, lt =  (a,b) -> abs(rmass-a.mass) < abs(rmass-b.mass))
     return result[1:1]  # take the best one
@@ -35,7 +35,7 @@ function recoilBuilder(comenergy::AbstractFloat, in::AbstractVector{Reconstructe
     for p in in
         recoil_lv -= LorentzVector(p.mass, p.momentum...)
     end
-    push!(result, ReconstructedParticle(mass=mass(recoil_lv), momentum=(px(recoil_lv), py(recoil_lv), pz(recoil_lv))))
+    push!(result, ReconstructedParticle(mass=mass(recoil_lv), momentum=(recoil_lv.x, recoil_lv.y, recoil_lv.z)))
     return result
 end
 

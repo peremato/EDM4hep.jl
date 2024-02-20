@@ -360,10 +360,10 @@ module RootIO
     """
     function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
         btype = btype === Any ? reader.btypes[bname] : btype     # Allow the user to force the actual type
-        if btype == ObjectID
-            register=false                    # Do not register a collection of ObjectIDs
-            sa = _get(reader, evt, bname, ObjectID{EDM4hep.POD}, register)
-            return convert.(eltype(eltype(sa)), sa)
+        if btype <: ObjectID
+            ED = eltype(btype)
+            sa = _get(reader, evt, bname, btype, false)
+            return ED[convert(ED, oid) for oid in sa]     # explicitly convert to the pointed objects
         else
             sa = _get(reader, evt, bname, btype, register)
             return sa
