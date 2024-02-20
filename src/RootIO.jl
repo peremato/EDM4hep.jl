@@ -363,7 +363,7 @@ module RootIO
         if btype <: ObjectID
             ED = eltype(btype)
             sa = _get(reader, evt, bname, btype, false)
-            return ED[convert(ED, oid) for oid in sa]     # explicitly convert to the pointed objects
+            return StructArray(ED[convert(ED, oid) for oid in sa])     # explicitly convert to the pointed objects
         else
             sa = _get(reader, evt, bname, btype, register)
             return sa
