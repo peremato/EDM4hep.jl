@@ -37,7 +37,9 @@ end
 
 myhists = Histograms()
 
-for evt in events
+nevts = 0
+elaptime = @elapsed for evt in events
+    nevts += 1
     recps = RootIO.get(reader, evt, "ReconstructedParticles");
     muons = RootIO.get(reader, evt, "Muon#0"; btype=ObjectID{ReconstructedParticle})
     sel_muons = filter(x -> pₜ(x) > 10GeV, muons)
@@ -61,5 +63,6 @@ for evt in events
         end
     end
 end
+println("Events processed: $nevts, elapsed time: $elaptime s, events/s: $(nevts/elaptime)")
 
 do_plot(myhists)
