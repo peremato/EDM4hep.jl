@@ -10,6 +10,7 @@ module RootIO
     using EDM4hep
     using StructArrays
     using StaticArrays
+    using PrettyTables
 
     const builtin_types = Dict("int" => Int32, "float" => Float32, "double" => Float64,
     "bool" => Bool, "long" => Int64, "unsigned int" => UInt32, 
@@ -72,6 +73,20 @@ module RootIO
         reader.layouts = Dict{String, Tuple}()
         return reader
     end
+    function Base.show(io::IO, r::Reader)
+        data1 = ["File name" r.filename;
+                 "# of events" r.isRNTuple ? UnROOT._length(r.file["events"]) : r.file["events"].fEntries;
+                 "IO Format" r.isRNTuple ? "RNTuple" : "TTree";
+                 "PODIO version" r.podioversion;
+                 "ROOT version" VersionNumber(r.file.format_version÷10000, r.file.format_version%10000÷100, r.file.format_version%100)]
+        pretty_table(io, data1, header=["Atribute", "Value"], alignment=:l)
+        if !isempty(r.btypes)
+            bs = sort([b for b in keys(r.btypes) if !occursin("_", b)])
+            bt = getindex.(Ref(r.btypes), bs)
+            bc = EDM4hep.hex.(Base.get.(Ref(r.collectionIDs), bs, 0x00000000))
+            pretty_table(io, [bs bt bc], header=["BranchName", "Type", "CollectionID"], alignment=:l, sortkeys = true, max_num_of_rows=100)
+        end
+    end 
 
 
     function buildlayoutTTree(reader::Reader, branch::String, T::Type)
