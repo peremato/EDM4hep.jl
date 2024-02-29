@@ -2,7 +2,7 @@ using Accessors     #  To create new inmutable object just changing one property
 using Corpuscles    #  PDG database
 using StaticArrays  #  Needed for fix lenght arrays in datatypes
 
-export register, relations, vmembers, Relation, PVector, ObjectID, collectionID
+export register, relations, vmembers, Relation, PVector, ObjectID, collectionID, θ, ϕ
 
 abstract type POD end # Abstract type to denote a POD from PODIO
 
