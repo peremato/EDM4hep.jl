@@ -10,6 +10,9 @@ module RootIO
     using EDM4hep
     using StructArrays
     using StaticArrays
+    using PrettyTables
+
+    export isnewpodio
 
     const builtin_types = Dict("int" => Int32, "float" => Float32, "double" => Float64,
     "bool" => Bool, "long" => Int64, "unsigned int" => UInt32, 
@@ -19,6 +22,8 @@ module RootIO
     "string" => String)
 
     const newpodio = v"0.16.99"
+    const podioversion = Ref{VersionNumber}()
+    isnewpodio() = podioversion[] >= newpodio
     
     """
     The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
@@ -60,6 +65,7 @@ module RootIO
                 reader.collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
                 reader.podioversion = VersionNumber(meta.major, meta.minor, meta.patch)
             end
+            podioversion[] = reader.podioversion
         else
             error("""ROOT file $(reader.filename) does not have a 'podio_metadata' tree. 
                      Is it a PODIO file? or perhaps is from a very old version of podio?
@@ -72,6 +78,21 @@ module RootIO
         reader.layouts = Dict{String, Tuple}()
         return reader
     end
+    
+    function Base.show(io::IO, r::Reader)
+        data1 = ["File name" r.filename;
+                 "# of events" r.isRNTuple ? UnROOT._length(r.file["events"]) : r.file["events"].fEntries;
+                 "IO Format" r.isRNTuple ? "RNTuple" : "TTree";
+                 "PODIO version" r.podioversion;
+                 "ROOT version" VersionNumber(r.file.format_version÷10000, r.file.format_version%10000÷100, r.file.format_version%100)]
+        pretty_table(io, data1, header=["Atribute", "Value"], alignment=:l)
+        if !isempty(r.btypes)
+            bs = sort([b for b in keys(r.btypes) if !occursin("_", b)])
+            bt = getindex.(Ref(r.btypes), bs)
+            bc = EDM4hep.hex.(Base.get.(Ref(r.collectionIDs), bs, 0x00000000))
+            pretty_table(io, [bs bt bc], header=["BranchName", "Type", "CollectionID"], alignment=:l, sortkeys = true, max_num_of_rows=100)
+        end
+    end 
 
 
     function buildlayoutTTree(reader::Reader, branch::String, T::Type)
@@ -246,6 +267,82 @@ module RootIO
             end
         end
         StructArray{type}(Tuple(sa))
+    end
+
+    function StructArray{Relation{ED,TD,N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,TD,N,bname}
+        StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
+    end
+
+    function StructArray{PVector{ED,T, N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,T,N,bname}
+        StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
+    end
+
+    function StructArray{SVector{N,T}, bname}(evt::UnROOT.LazyEvent, collid, len) where {N,T,bname}
+        StructArray{SVector{N,T}}(reshape(getproperty(evt, Symbol(bname, "[$N]")), N, len);dims=1)
+    end
+
+    function StructArray{ObjectID{ED}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,bname}
+        inds = getproperty(evt, Symbol(bname, :_index))
+        cids = getproperty(evt, Symbol(bname, :_collectionID))
+        len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
+        StructArray{ObjectID{ED}}((inds, cids))
+    end
+
+    function StructArray{Vector3f, bname}(evt::UnROOT.LazyEvent, collid, len) where {bname}
+        StructArray{Vector3f}((getproperty(evt, Symbol(bname, :_x)), getproperty(evt, Symbol(bname, :_y)), getproperty(evt, Symbol(bname, :_z))))
+    end
+
+    function StructArray{T, bname}(evt::UnROOT.LazyEvent, collid, len) where {T <: Number,bname}
+        getproperty(evt, bname)
+    end
+
+    function StructArray{T,bname}(evt::UnROOT.LazyEvent, collid, len = -1) where {T,bname} 
+        #pnames = propertynames(collection)
+        ftypes = fieldtypes(T)
+        fnames = fieldnames(T)
+        n_rels::Int32  = 0      # number of one-to-one or one-to-many Relations 
+        #n_pvecs = 0      # number of vector member
+        if len == -1     # Need the length to fill missing colums
+            len = length(getproperty(evt, Symbol(bname, :_, fnames[2])))
+        end
+        #=
+        sa = AbstractArray[]
+        for (fn, ft) in zip(fnames, ftypes)
+            if isempty(fieldnames(ft))          # fundamental type (Int, Float,...)
+                push!(sa, getproperty(evt, Symbol(bname, :_, fn)))
+            elseif ft <: Relation               # special treatment because 'begin' and 'end' cannot be fieldnames
+                push!(sa, StructArray{ft, Symbol(bname, :_, fn)}(evt, collid, len))
+                n_rels +=  1
+            elseif ft <: PVector               # special treatment becuase 'begin' and 'end' cannot be fieldnames
+                push!(sa, StructArray{ft, Symbol(bname, "_$(n_pvecs)")}(evt, collid, len))
+            elseif ft <: SVector
+                s = size(ft)[1]
+                push!(sa, StructArray{ft}(reshape(getproperty(evt, Symbol(bname, :_, fn, "[$s]")), s, len);dims=1)) 
+            elseif ft == ObjectID(T)
+                push!(sa, StructArray{ft}((collect(0:len-1),fill(collid,len))))
+            elseif ft <: ObjectID              # index of another one....
+                push!(sa, StructArray{ft, Symbol(bname, "#$(n_rels)")}(evt, collid, len))
+                n_rels += 1
+            else
+                push!(sa, StructArray{ft, Symbol(bname, :_, fn)}(evt, collid, len))
+            end
+        end
+        StructArray{T}(Tuple(sa))
+        =#
+        sa = Tuple( map(zip(fieldnames(T), fieldtypes(T))) do (fn,ft)
+            if ft == ObjectID{T}
+                StructArray{ft}((collect(0:len-1),fill(collid,len)))
+            elseif ft <: Relation
+                n_rels += 1
+                StructArray{ft,Symbol(bname,:_,fn)}(evt, collid, len)
+            elseif ft <: ObjectID              # index of another one....
+                n_rels += 1
+                StructArray{ft, Symbol(bname, "#$(n_rels-1)")}(evt, collid, len)
+            else
+                StructArray{ft,Symbol(bname,:_,fn)}(evt, collid, len)
+            end
+        end)
+        StructArray{T}(sa)
     end
 
     """
