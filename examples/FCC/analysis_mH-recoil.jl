@@ -17,8 +17,10 @@ df = DataFrame(Zcand_m = Float32[], Zcand_recoil_m = Float32[], Zcand_q = Int32[
 nevents = 0
 elaptime = @elapsed for evt in events
     global nevents += 1
-    recps = RootIO.get(reader, evt, "ReconstructedParticles");
-    muons = RootIO.get(reader, evt, "Muon#0"; btype=ObjectID{ReconstructedParticle})
+    muids = StructArray{ObjectID{ReconstructedParticle}, Symbol("Muon#0")}(evt)
+    length(muids) < 2 && continue 
+    recps = StructArray{ReconstructedParticle, :ReconstructedParticles}(evt)
+    muons = recps[muids]
     sel_muons = filter(x -> pₜ(x) > 10GeV, muons)
     zed_leptonic = resonanceBuilder(91GeV, sel_muons)
     zed_leptonic_recoil = recoilBuilder(240GeV, zed_leptonic)

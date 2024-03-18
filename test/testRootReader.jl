@@ -21,8 +21,8 @@ using EDM4hep.RootIO
 
     # Loop over MC particles
     evt = events[1]
-    hits = RootIO.get(reader, evt, "InnerTrackerBarrelCollection")
-    mcps = RootIO.get(reader, evt, "MCParticle")
+    hits = RootIO.get(reader, evt, "InnerTrackerBarrelCollection"; register=true)
+    mcps = RootIO.get(reader, evt, "MCParticle"; register=true)
 
     collid = reader.collectionIDs["InnerTrackerBarrelCollection"]
     for (i,hit) in enumerate(hits[1:20])
@@ -44,8 +44,8 @@ using EDM4hep.RootIO
         end
     end
 
-    barrel_clusters = RootIO.get(reader, evt, "ECalBarrelCollection")
-    contributions = RootIO.get(reader, evt, "AllCaloHitContributionsCombined")
+    barrel_clusters = RootIO.get(reader, evt, "ECalBarrelCollection"; register=true)
+    contributions = RootIO.get(reader, evt, "AllCaloHitContributionsCombined"; register=true)
 
     for c in barrel_clusters[1:20]
         if length(c.contributions) > 0
@@ -54,7 +54,7 @@ using EDM4hep.RootIO
     end
 
     #---PandoraClusters
-    pancls = RootIO.get(reader, evt, "PandoraClusters")
+    pancls = RootIO.get(reader, evt, "PandoraClusters"; register=true)
     @test eltype(pancls) == Cluster
     @test length(pancls) == 35
     cl = pancls[1]

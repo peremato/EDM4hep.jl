@@ -12,7 +12,7 @@ module RootIO
     using StaticArrays
     using PrettyTables
 
-    export isnewpodio
+    export StructArray, isnewpodio
 
     const builtin_types = Dict("int" => Int32, "float" => Float32, "double" => Float64,
     "bool" => Bool, "long" => Int64, "unsigned int" => UInt32, 
@@ -22,9 +22,9 @@ module RootIO
     "string" => String)
 
     const newpodio = v"0.16.99"
-    const podioversion = Ref{VersionNumber}()
-    isnewpodio() = podioversion[] >= newpodio
-    
+    const _isnewpodio = Ref(false)
+    isnewpodio() = _isnewpodio[]
+
     """
     The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
     The layouts maps a set of columns in the LazyTree into an object.
@@ -65,17 +65,22 @@ module RootIO
                 reader.collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
                 reader.podioversion = VersionNumber(meta.major, meta.minor, meta.patch)
             end
-            podioversion[] = reader.podioversion
+            if reader.podioversion >= newpodio
+                _isnewpodio[] = true
+            else
+                _isnewpodio[] = false
+            end
         else
             error("""ROOT file $(reader.filename) does not have a 'podio_metadata' tree. 
                      Is it a PODIO file? or perhaps is from a very old version of podio?
                      Stopping here.""")
-            #reader.collectionIDs = Dict{UInt32, String}()
-            #reader.collectionNames = Dict{String, UInt32}()
         end
         # layouts and branch types
         reader.btypes = Dict{String, Type}()
         reader.layouts = Dict{String, Tuple}()
+        #if !reader.isRNTuple && !(reader.podioversion >= newpodio)
+            include(joinpath(@__DIR__,"../podio/genStructArrays.jl"))
+        #end
         return reader
     end
     
@@ -93,7 +98,6 @@ module RootIO
             pretty_table(io, [bs bt bc], header=["BranchName", "Type", "CollectionID"], alignment=:l, sortkeys = true, max_num_of_rows=100)
         end
     end 
-
 
     function buildlayoutTTree(reader::Reader, branch::String, T::Type)
         layout = []
@@ -185,7 +189,8 @@ module RootIO
         end
         (T, (), Tuple(relations), Tuple(vmembers))
     end
-   
+
+    #=
     # Only for TTree-------
     function getStructArrayTTree(evt::UnROOT.LazyEvent, layout, collid, len = -1)
         if len == -1  # Need the length to fill missing colums
@@ -223,10 +228,9 @@ module RootIO
         end
         StructArray{type}(Tuple(sa))
     end
+    =#
 
     #---Only for RNTuple
-
-
     function getStructArrayRNTuple(evt::UnROOT.LazyEvent, branch, collection, layout, collid, len = -1)
         type = layout[1]
         pnames = propertynames(collection)
@@ -269,66 +273,36 @@ module RootIO
         StructArray{type}(Tuple(sa))
     end
 
-    function StructArray{Relation{ED,TD,N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,TD,N,bname}
+    #---StructArray constructors--------------------------------------------------------------------
+    @inline function StructArray{Relation{ED,TD,N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,TD,N,bname}
         StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
     end
-
-    function StructArray{PVector{ED,T, N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,T,N,bname}
-        StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
+    @inline function StructArray{PVector{ED,T, N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,T,N,bname}
+        StructArray{PVector{ED,T,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
     end
-
-    function StructArray{SVector{N,T}, bname}(evt::UnROOT.LazyEvent, collid, len) where {N,T,bname}
+    @inline function StructArray{SVector{N,T}, bname}(evt::UnROOT.LazyEvent, collid, len) where {N,T,bname}
         StructArray{SVector{N,T}}(reshape(getproperty(evt, Symbol(bname, "[$N]")), N, len);dims=1)
     end
-
-    function StructArray{ObjectID{ED}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,bname}
+    @inline function StructArray{ObjectID{ED}, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {ED,bname}
         inds = getproperty(evt, Symbol(bname, :_index))
         cids = getproperty(evt, Symbol(bname, :_collectionID))
         len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
         StructArray{ObjectID{ED}}((inds, cids))
     end
-
-    function StructArray{Vector3f, bname}(evt::UnROOT.LazyEvent, collid, len) where {bname}
+    @inline function StructArray{Vector3f, bname}(evt::UnROOT.LazyEvent, collid, len) where {bname}
         StructArray{Vector3f}((getproperty(evt, Symbol(bname, :_x)), getproperty(evt, Symbol(bname, :_y)), getproperty(evt, Symbol(bname, :_z))))
     end
-
-    function StructArray{T, bname}(evt::UnROOT.LazyEvent, collid, len) where {T <: Number,bname}
+    @inline function StructArray{T, bname}(evt::UnROOT.LazyEvent, collid, len) where {T <: Number,bname}
         getproperty(evt, bname)
     end
 
-    function StructArray{T,bname}(evt::UnROOT.LazyEvent, collid, len = -1) where {T,bname} 
-        #pnames = propertynames(collection)
-        ftypes = fieldtypes(T)
+    #---Generic StructArray constructor (fall-back)------------------------------------------------
+    function StructArray{T,bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {T,bname} 
         fnames = fieldnames(T)
         n_rels::Int32  = 0      # number of one-to-one or one-to-many Relations 
-        #n_pvecs = 0      # number of vector member
-        if len == -1     # Need the length to fill missing colums
+        if len == -1            # Need the length to fill missing colums
             len = length(getproperty(evt, Symbol(bname, :_, fnames[2])))
         end
-        #=
-        sa = AbstractArray[]
-        for (fn, ft) in zip(fnames, ftypes)
-            if isempty(fieldnames(ft))          # fundamental type (Int, Float,...)
-                push!(sa, getproperty(evt, Symbol(bname, :_, fn)))
-            elseif ft <: Relation               # special treatment because 'begin' and 'end' cannot be fieldnames
-                push!(sa, StructArray{ft, Symbol(bname, :_, fn)}(evt, collid, len))
-                n_rels +=  1
-            elseif ft <: PVector               # special treatment becuase 'begin' and 'end' cannot be fieldnames
-                push!(sa, StructArray{ft, Symbol(bname, "_$(n_pvecs)")}(evt, collid, len))
-            elseif ft <: SVector
-                s = size(ft)[1]
-                push!(sa, StructArray{ft}(reshape(getproperty(evt, Symbol(bname, :_, fn, "[$s]")), s, len);dims=1)) 
-            elseif ft == ObjectID(T)
-                push!(sa, StructArray{ft}((collect(0:len-1),fill(collid,len))))
-            elseif ft <: ObjectID              # index of another one....
-                push!(sa, StructArray{ft, Symbol(bname, "#$(n_rels)")}(evt, collid, len))
-                n_rels += 1
-            else
-                push!(sa, StructArray{ft, Symbol(bname, :_, fn)}(evt, collid, len))
-            end
-        end
-        StructArray{T}(Tuple(sa))
-        =#
         sa = Tuple( map(zip(fieldnames(T), fieldtypes(T))) do (fn,ft)
             if ft == ObjectID{T}
                 StructArray{ft}((collect(0:len-1),fill(collid,len)))
@@ -425,14 +399,14 @@ module RootIO
         end
         collid = Base.get(reader.collectionIDs, bname, 0)             # The CollectionID has beeen assigned when opening the file
         sbranch = Symbol(bname)
-        if isprimitivetype(layout[1])
-            sa = hasproperty(evt, sbranch) ? safe_getproperty(evt,sbranch,layout[1]) : layout[1][]
-        else
-            if reader.isRNTuple
-                sa = getStructArrayRNTuple(evt, sbranch, safe_getproperty(evt, sbranch, layout[1]), layout, collid)
+        if reader.isRNTuple
+            if isprimitivetype(layout[1])
+                sa = hasproperty(evt, sbranch) ? safe_getproperty(evt,sbranch,layout[1]) : layout[1][]
             else
-                sa = getStructArrayTTree(evt, layout, collid)
+                sa = getStructArrayRNTuple(evt, sbranch, safe_getproperty(evt, sbranch, layout[1]), layout, collid)
             end
+        else
+            sa = StructArray{btype,sbranch}(evt, collid)
         end
         if register
             assignEDStore(sa, collid)
@@ -455,15 +429,8 @@ module RootIO
     type known in the ROOT file (C++ class name). The optonal key parameter `register` indicates is the collection
     needs to be registered to the `EDStore`.
     """
-    function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
+    function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=false)
         btype = btype === Any ? reader.btypes[bname] : btype     # Allow the user to force the actual type
-        if btype <: ObjectID
-            ED = eltype(btype)
-            sa = _get(reader, evt, bname, btype, false)
-            return StructArray(ED[convert(ED, oid) for oid in sa])     # explicitly convert to the pointed objects
-        else
-            sa = _get(reader, evt, bname, btype, register)
-            return sa
-        end
+        _get(reader, evt, bname, btype, register)
     end
 end

@@ -72,6 +72,7 @@ struct ObjectID{ED <: POD} <: POD
     index::Int32
     collectionID::UInt32    # in some cases (reading from files) the collection ID is -2
 end
+ObjectID(idx, collid) = ObjectID{POD}(idx,collid)
 Base.zero(::Type{ObjectID{ED}}) where ED = ObjectID{ED}(-1,0)
 Base.iszero(x::ObjectID{ED}) where ED = x.index < 0
 Base.show(io::IO, x::ObjectID{ED}) where ED = print(io, "#$(iszero(x) ? 0 : x.index+1)")
@@ -80,6 +81,8 @@ Base.convert(::Type{ED}, i::ObjectID{ED}) where ED = iszero(i) ? nothing : @inbo
 Base.convert(::Type{ObjectID{ED}}, p::ED) where ED = iszero(p.index) ? register(p).index : return p.index
 Base.convert(::Type{ObjectID{ED}}, i::Integer) where ED = ObjectID{ED}(i,0)
 Base.eltype(::Type{ObjectID{ED}}) where ED = ED
+Base.to_index(oid::ObjectID) = oid.index+1
+Base.checkindex(::Type{Bool}, inds::Base.OneTo{Int64}, i::ObjectID) = first(inds) <= i.index+1 <= last(inds)
 Base.:-(i::ObjectID{ED}) where ED = ObjectID{ED}(-i.index)
 function Base.getproperty(oid::ObjectID{ED}, sym::Symbol) where ED
     if sym == :object
