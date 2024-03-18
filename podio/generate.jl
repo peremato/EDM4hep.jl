@@ -219,6 +219,58 @@ function gen_docstring(io, key, dtype)
     println(io,"\"\"\"")
 end
 
+function gen_structarray(io, key, dtype)
+    jtype = to_julia(key)
+    println(io, "function StructArray{$jtype, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where bname")
+    first = true
+    for m in dtype["Members"] 
+        t, v, c = split_member(m)
+        if first
+            println(io, "    firstmem = getproperty(evt, Symbol(bname, :_$v))")
+            println(io, "    len = length(firstmem)")
+            println(io, "    columns = (StructArray{ObjectID{$jtype}}((collect(0:len-1),fill(collid,len))),")
+            println(io, "        firstmem,")
+            first = false
+        else
+            if t in fundamental_types
+                println(io, "        getproperty(evt, Symbol(bname, :_$v)),")
+            elseif startswith(t, "SVector")
+                N = match(r"SVector{([0-9]+)[, ]([^,]+)}", t).captures[1]
+                println(io, "        StructArray{$t}(reshape(getproperty(evt, Symbol(bname, \"_$v[$N]\")), $N, len);dims=1),")
+            else
+                println(io, "        StructArray{$t, Symbol(bname, :_$v)}(evt, collid, len),")
+            end 
+        end
+    end
+    if haskey(dtype, "VectorMembers")
+        for (i,r) in enumerate(dtype["VectorMembers"])
+            t, v, c = split_member(r)
+            v == "subdetectorHitNumbers" && (v = "subDetectorHitNumbers")   # adhoc fixes
+            println(io, "        StructArray{PVector{$(jtype),$(t),$(i)}, Symbol(bname, :_$v)}(evt, collid, len),")
+        end
+    end
+    n_rels = 0
+    if haskey(dtype, "OneToManyRelations")
+        for (i,r) in enumerate(dtype["OneToManyRelations"])
+            t, v, c = split_member(r)
+            println(io, "        StructArray{Relation{$(jtype),$(t),$(i)}, Symbol(bname, :_$v)}(evt, collid, len),")
+            n_rels += 1
+        end
+    end
+    if haskey(dtype, "OneToOneRelations")
+        for (i,r) in enumerate(dtype["OneToOneRelations"])
+            t, v, c = split_member(r)
+            v == "mcparticle" && (v = "MCParticle")   # adhoc fixes
+            println(io, "        StructArray{ObjectID{$(t)}, isnewpodio() ? Symbol(:_, bname, \"_$v\") : Symbol(bname, \"#$n_rels\")}(evt, collid, len),")
+            n_rels += 1
+        end
+    end
+    println(io, "    )")
+    println(io, "    return StructArray{$jtype}(columns)")
+    println(io, "end\n")
+end
+
+
 function build_graph(datatypes)
     types = to_julia.(keys(datatypes))
     graph = SimpleDiGraph(length(types))
@@ -259,3 +311,10 @@ end
 println(io, "export $(join(unique(exports),", "))")
 close(io)
 
+#---StructArrays--------------------------------------------------------------------------------------
+io = open(joinpath(@__DIR__, "genStructArrays.jl"), "w")
+datatypes = data["datatypes"]
+for (key,value) in pairs(datatypes)
+    gen_structarray(io, key, value)
+end
+close(io)

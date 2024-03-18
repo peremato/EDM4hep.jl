@@ -16,11 +16,11 @@ using EDM4hep.RootIO
     @test length(events) == 100000
 
     # Loop over MC particles
-    for evt in events[1:100]
+    for evt in Iterators.take(events, 100)
         recps = RootIO.get(reader, evt, "ReconstructedParticles");
         tracks = RootIO.get(reader, evt, "EFlowTrack")
         pids  =  RootIO.get(reader, evt, "ParticleIDs")
-        muons = RootIO.get(reader, evt, "Muon#0", btype=ObjectID{ReconstructedParticle})
+        muons = recps[RootIO.get(reader, evt, "Muon#0")]
         if length(muons) == 2
             @test abs(sum(muons.charge)) <= 2.0f0
         end

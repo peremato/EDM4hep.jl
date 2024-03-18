@@ -21,7 +21,7 @@ FHist = "0.10"
 Graphs = "1"
 StaticArrays = "1.9"
 StructArrays = "0.6"
-UnROOT = "=0.10.22"
+UnROOT = "v0.10"
 YAML = "0.4"
 julia = "1"
 
