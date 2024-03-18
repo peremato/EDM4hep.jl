@@ -30,7 +30,6 @@ function Base.append!(d1::MyData, d2::MyData)
     d1.pevts += d2.pevts
     d1.sevts += d2.sevts
 end
-#(ReconstructedParticle, ((ObjectID{ReconstructedParticle}, (-1, -2)), 168, 10, (Vector3f, (180, 214, 252), (), ()), (Vector3f, (231, 2, 255), (), ()), 101, 23, 143, (SVector{10, Float32}, (194, 10)), (Relation{ReconstructedParticle, Cluster, 1}, (215, 164, -2)), (Relation{ReconstructedParticle, Track, 2}, (205, 22, -2)), (Relation{ReconstructedParticle, ReconstructedParticle, 3}, (173, 234, -2)), (Relation{ReconstructedParticle, ParticleID, 4}, (175, 16, -2)), (ObjectID{Vertex}, (100, 244)), (ObjectID{ParticleID}, (24, 26))), (("ReconstructedParticles#0", Cluster), ("ReconstructedParticles#1", Track), ("ReconstructedParticles#2", ReconstructedParticle), ("ReconstructedParticles#3", ParticleID)), ())
 
 function myiteration!(data::MyData, reader, evt)
     data.pevts += 1
@@ -66,6 +65,7 @@ function do_analysis_mt!(data, afunc, reader, events)
     N = Threads.nthreads()
     # Empty the data
     empty!(data)
+
     # Chunk the total number of events to process
     chunks = Iterators.partition(events, length(events) ÷ (tasks_per_thread * N))
     # Spawn the tasks

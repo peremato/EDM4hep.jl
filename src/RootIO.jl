@@ -12,6 +12,7 @@ module RootIO
     using StaticArrays
     using PrettyTables
 
+
     export StructArray, isnewpodio
 
     const builtin_types = Dict("int" => Int32, "float" => Float32, "double" => Float64,
@@ -83,7 +84,7 @@ module RootIO
         #end
         return reader
     end
-    
+
     function Base.show(io::IO, r::Reader)
         data1 = ["File name" r.filename;
                  "# of events" r.isRNTuple ? UnROOT._length(r.file["events"]) : r.file["events"].fEntries;
