@@ -14,5 +14,6 @@ module EDM4hep
     include("RootIO.jl")
     include("SystemOfUnits.jl")
     include("Histograms.jl")
+    include("Analysis.jl")
     
 end # module EDM4hep

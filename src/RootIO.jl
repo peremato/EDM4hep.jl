@@ -27,70 +27,85 @@ module RootIO
     isnewpodio() = _isnewpodio[]
 
     """
-    The Reader struture keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
+    The Reader structure keeps a reference to the UnROOT LazyTree and caches already built 'layouts' of the EDM4hep types.
     The layouts maps a set of columns in the LazyTree into an object.
     """
     mutable struct Reader
-        filename::String
+        filename::Vector{String}
         treename::String
-        file::ROOTFile
+        files::Vector{ROOTFile}
         isRNTuple::Bool
         podioversion::VersionNumber
         collectionIDs::Dict{String, UInt32}
         collectionNames::Dict{UInt32, String}
         btypes::Dict{String, Type} 
-        layouts::Dict{String, Tuple}    # for TTree only
+        layouts::Dict{String, Tuple}
         lazytree::LazyTree
-        function Reader(filename, treename="events")
-            reader = new(filename, treename)
-            initReader(reader)
-        end
+        Reader(filename::AbstractString, treename="events") = initReader(new([filename], treename))
+        Reader(filenames::Vector{<:AbstractString}, treename="events") = initReader(new(filenames, treename))
+        Reader(filenames::Base.Generator{<:AbstractVector}, treename="events") = initReader(new(collect(filenames), treename))
     end
 
     function initReader(reader)
         #---Open the file ------------(need to know which type of file)----------------------------
-        reader.file = ROOTFile(reader.filename)
-        # collection IDs
-        if  "podio_metadata" in keys(reader.file)
-            rtuple = reader.file["podio_metadata"]
-            if rtuple isa UnROOT.RNTuple
-                reader.isRNTuple = true
-                meta = LazyTree(rtuple, ["events___idTable", "events_collectionNames",  "PodioBuildVersion"])[1]
-                reader.collectionIDs = Dict(meta.events_collectionNames .=> meta.events___idTable)
-                reader.collectionNames = Dict(meta.events___idTable .=> meta.events_collectionNames)
-                reader.podioversion = VersionNumber(meta.PodioBuildVersion...)
+        reader.files = ROOTFile.(reader.filename)
+        #---Loop over all files and check consistency --------------------------------------------
+        for (i,tfile) in enumerate(reader.files)
+            if  "podio_metadata" in keys(tfile)
+                rtuple = tfile["podio_metadata"]
+                if rtuple isa UnROOT.RNTuple
+                    isRNTuple = true
+                    meta = LazyTree(rtuple, ["events___idTable", "events_collectionNames",  "PodioBuildVersion"])[1]
+                    collectionIDs = Dict(meta.events_collectionNames .=> meta.events___idTable)
+                    collectionNames = Dict(meta.events___idTable .=> meta.events_collectionNames)
+                    podioversion = VersionNumber(meta.PodioBuildVersion...)
+                else
+                    isRNTuple = false
+                    meta = LazyTree(tfile, "podio_metadata", [Regex("events___idTable/|PodioBuildVersion/(.*)") => s"\1"])[1]
+                    collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
+                    collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
+                    podioversion = VersionNumber(meta.major, meta.minor, meta.patch)
+                end
             else
-                reader.isRNTuple = false
-                meta = LazyTree(reader.file, "podio_metadata", [Regex("events___idTable/|PodioBuildVersion/(.*)") => s"\1"])[1]
-                reader.collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
-                reader.collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
-                reader.podioversion = VersionNumber(meta.major, meta.minor, meta.patch)
+                error("""ROOT file $(reader.filename[i]) does not have a 'podio_metadata' tree. 
+                        Is it a PODIO file? or perhaps is from a very old version of podio?
+                        Stopping here.""")
             end
-            if reader.podioversion >= newpodio
-                _isnewpodio[] = true
+            #---store and check consistency
+            if i == 1
+                reader.isRNTuple = isRNTuple
+                reader.collectionIDs = collectionIDs
+                reader.collectionNames = collectionNames
+                reader.podioversion = podioversion
             else
-                _isnewpodio[] = false
+                reader.isRNTuple != isRNTuple && error("File list is not uniform ROOT I/O format (TTree/RNTuple) for file $(reader.filename[i])")
+                reader.podioversion != podioversion && error("File list is not uniform PODIO version. $(reader.podioversion) != $(podioversion) for file $(reader.filename[i])")
             end
-        else
-            error("""ROOT file $(reader.filename) does not have a 'podio_metadata' tree. 
-                     Is it a PODIO file? or perhaps is from a very old version of podio?
-                     Stopping here.""")
         end
+        if reader.podioversion >= newpodio
+            _isnewpodio[] = true
+        else
+            _isnewpodio[] = false
+        end
+
         # layouts and branch types
         reader.btypes = Dict{String, Type}()
         reader.layouts = Dict{String, Tuple}()
-        #if !reader.isRNTuple && !(reader.podioversion >= newpodio)
-            include(joinpath(@__DIR__,"../podio/genStructArrays.jl"))
-        #end
+        if !reader.isRNTuple
+            pmajor = reader.podioversion >= newpodio ? "17" : "16"
+            include(joinpath(@__DIR__,"../podio/genStructArrays-v$pmajor.jl"))
+        end
         return reader
     end
 
     function Base.show(io::IO, r::Reader)
-        data1 = ["File name" r.filename;
-                 "# of events" r.isRNTuple ? UnROOT._length(r.file["events"]) : r.file["events"].fEntries;
+        nfiles = length(r.filename)
+        nevents = sum([r.isRNTuple ? UnROOT._length(tf["events"]) : tf["events"].fEntries for tf in r.files])
+        data1 = [hcat([i == 1 ? "File Name(s)" : "" for i in 1:nfiles], r.filename);
+                 "# of events" nevents;
                  "IO Format" r.isRNTuple ? "RNTuple" : "TTree";
                  "PODIO version" r.podioversion;
-                 "ROOT version" VersionNumber(r.file.format_version÷10000, r.file.format_version%10000÷100, r.file.format_version%100)]
+                 "ROOT version" VersionNumber(r.files[1].format_version÷10000, r.files[1].format_version%10000÷100, r.files[1].format_version%100)]
         pretty_table(io, data1, header=["Atribute", "Value"], alignment=:l)
         if !isempty(r.btypes)
             bs = sort([b for b in keys(r.btypes) if !occursin("_", b)])
@@ -329,8 +344,8 @@ module RootIO
     """
     function get(reader::Reader, treename::String)
         reader.treename = treename
-        #---buyild a dictionary of branches and associted type
-        tree = reader.file[treename]
+        #---build a dictionary of branches and associted type
+        tree = reader.files[1][treename]
         pattern = r"(edm4hep|podio)::([a-zA-Z]+?)(Data$|$)"
         vpattern = r"(std::)?vector<(std::)?(.*)>"
         if tree isa UnROOT.TTree
@@ -367,7 +382,7 @@ module RootIO
         else
             error("$treename is not a TTree or RNutple")
         end
-        reader.lazytree = LazyTree(reader.file, treename,  keys(reader.btypes))
+        reader.lazytree = reduce(vcat, (LazyTree(tfile, "events", keys(reader.btypes)) for tfile in reader.files))
     end
 
     #---This shouldn't be needed when issue https://github.com/JuliaHEP/UnROOT.jl/issues/305

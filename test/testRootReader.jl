@@ -4,6 +4,7 @@ using EDM4hep.RootIO
 
     if T == :RNTuple
         f = joinpath(@__DIR__, "../examples/Output_REC_rntuple.root")
+        pkgversion(RootIO.UnROOT) >= v"0.10.22" && continue 
     else
         f = joinpath(@__DIR__, "../examples/Output_REC.root")
     end

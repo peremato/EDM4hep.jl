@@ -9,7 +9,7 @@ function StructArray{SimTrackerHit, bname}(evt::UnROOT.LazyEvent, collid = UInt3
         getproperty(evt, Symbol(bname, :_quality)),
         StructArray{Vector3d, Symbol(bname, :_position)}(evt, collid, len),
         StructArray{Vector3f, Symbol(bname, :_momentum)}(evt, collid, len),
-        StructArray{ObjectID{MCParticle}, isnewpodio() ? Symbol(:_, bname, "_MCParticle") : Symbol(bname, "#0")}(evt, collid, len),
+        StructArray{ObjectID{MCParticle}, Symbol(:_, bname, "_MCParticle")}(evt, collid, len),
     )
     return StructArray{SimTrackerHit}(columns)
 end
@@ -65,7 +65,7 @@ function StructArray{Vertex, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), l
         StructArray{SVector{6,Float32}}(reshape(getproperty(evt, Symbol(bname, "_covMatrix[6]")), 6, len);dims=1),
         getproperty(evt, Symbol(bname, :_algorithmType)),
         StructArray{PVector{Vertex,Float32,1}, Symbol(bname, :_parameters)}(evt, collid, len),
-        StructArray{ObjectID{POD}, isnewpodio() ? Symbol(:_, bname, "_associatedParticle") : Symbol(bname, "#0")}(evt, collid, len),
+        StructArray{ObjectID{POD}, Symbol(:_, bname, "_associatedParticle")}(evt, collid, len),
     )
     return StructArray{Vertex}(columns)
 end
@@ -127,8 +127,8 @@ function StructArray{MCRecoTrackParticleAssociation, bname}(evt::UnROOT.LazyEven
     len = length(firstmem)
     columns = (StructArray{ObjectID{MCRecoTrackParticleAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{Track}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{MCParticle}, isnewpodio() ? Symbol(:_, bname, "_sim") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{Track}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{MCParticle}, Symbol(:_, bname, "_sim")}(evt, collid, len),
     )
     return StructArray{MCRecoTrackParticleAssociation}(columns)
 end
@@ -142,7 +142,7 @@ function StructArray{TrackerPulse, bname}(evt::UnROOT.LazyEvent, collid = UInt32
         getproperty(evt, Symbol(bname, :_charge)),
         getproperty(evt, Symbol(bname, :_quality)),
         StructArray{SVector{3,Float32}}(reshape(getproperty(evt, Symbol(bname, "_covMatrix[3]")), 3, len);dims=1),
-        StructArray{ObjectID{TimeSeries}, isnewpodio() ? Symbol(:_, bname, "_timeSeries") : Symbol(bname, "#0")}(evt, collid, len),
+        StructArray{ObjectID{TimeSeries}, Symbol(:_, bname, "_timeSeries")}(evt, collid, len),
     )
     return StructArray{TrackerPulse}(columns)
 end
@@ -152,8 +152,8 @@ function StructArray{MCRecoParticleAssociation, bname}(evt::UnROOT.LazyEvent, co
     len = length(firstmem)
     columns = (StructArray{ObjectID{MCRecoParticleAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{ReconstructedParticle}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{MCParticle}, isnewpodio() ? Symbol(:_, bname, "_sim") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{ReconstructedParticle}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{MCParticle}, Symbol(:_, bname, "_sim")}(evt, collid, len),
     )
     return StructArray{MCRecoParticleAssociation}(columns)
 end
@@ -163,8 +163,8 @@ function StructArray{MCRecoCaloAssociation, bname}(evt::UnROOT.LazyEvent, collid
     len = length(firstmem)
     columns = (StructArray{ObjectID{MCRecoCaloAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{CalorimeterHit}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{SimCalorimeterHit}, isnewpodio() ? Symbol(:_, bname, "_sim") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{CalorimeterHit}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{SimCalorimeterHit}, Symbol(:_, bname, "_sim")}(evt, collid, len),
     )
     return StructArray{MCRecoCaloAssociation}(columns)
 end
@@ -191,7 +191,7 @@ function StructArray{CaloHitContribution, bname}(evt::UnROOT.LazyEvent, collid =
         getproperty(evt, Symbol(bname, :_energy)),
         getproperty(evt, Symbol(bname, :_time)),
         StructArray{Vector3f, Symbol(bname, :_stepPosition)}(evt, collid, len),
-        StructArray{ObjectID{MCParticle}, isnewpodio() ? Symbol(:_, bname, "_particle") : Symbol(bname, "#0")}(evt, collid, len),
+        StructArray{ObjectID{MCParticle}, Symbol(:_, bname, "_particle")}(evt, collid, len),
     )
     return StructArray{CaloHitContribution}(columns)
 end
@@ -201,8 +201,8 @@ function StructArray{MCRecoTrackerHitPlaneAssociation, bname}(evt::UnROOT.LazyEv
     len = length(firstmem)
     columns = (StructArray{ObjectID{MCRecoTrackerHitPlaneAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{TrackerHitPlane}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{SimTrackerHit}, isnewpodio() ? Symbol(:_, bname, "_sim") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{TrackerHitPlane}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{SimTrackerHit}, Symbol(:_, bname, "_sim")}(evt, collid, len),
     )
     return StructArray{MCRecoTrackerHitPlaneAssociation}(columns)
 end
@@ -212,8 +212,8 @@ function StructArray{MCRecoCaloParticleAssociation, bname}(evt::UnROOT.LazyEvent
     len = length(firstmem)
     columns = (StructArray{ObjectID{MCRecoCaloParticleAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{CalorimeterHit}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{MCParticle}, isnewpodio() ? Symbol(:_, bname, "_sim") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{CalorimeterHit}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{MCParticle}, Symbol(:_, bname, "_sim")}(evt, collid, len),
     )
     return StructArray{MCRecoCaloParticleAssociation}(columns)
 end
@@ -256,8 +256,8 @@ function StructArray{ReconstructedParticle, bname}(evt::UnROOT.LazyEvent, collid
         StructArray{Relation{ReconstructedParticle,Track,2}, Symbol(bname, :_tracks)}(evt, collid, len),
         StructArray{Relation{ReconstructedParticle,ReconstructedParticle,3}, Symbol(bname, :_particles)}(evt, collid, len),
         StructArray{Relation{ReconstructedParticle,ParticleID,4}, Symbol(bname, :_particleIDs)}(evt, collid, len),
-        StructArray{ObjectID{Vertex}, isnewpodio() ? Symbol(:_, bname, "_startVertex") : Symbol(bname, "#4")}(evt, collid, len),
-        StructArray{ObjectID{ParticleID}, isnewpodio() ? Symbol(:_, bname, "_particleIDUsed") : Symbol(bname, "#5")}(evt, collid, len),
+        StructArray{ObjectID{Vertex}, Symbol(:_, bname, "_startVertex")}(evt, collid, len),
+        StructArray{ObjectID{ParticleID}, Symbol(:_, bname, "_particleIDUsed")}(evt, collid, len),
     )
     return StructArray{ReconstructedParticle}(columns)
 end
@@ -275,7 +275,7 @@ function StructArray{SimPrimaryIonizationCluster, bname}(evt::UnROOT.LazyEvent, 
         StructArray{PVector{SimPrimaryIonizationCluster,Vector3d,3}, Symbol(bname, :_electronPosition)}(evt, collid, len),
         StructArray{PVector{SimPrimaryIonizationCluster,Float32,4}, Symbol(bname, :_pulseTime)}(evt, collid, len),
         StructArray{PVector{SimPrimaryIonizationCluster,Float32,5}, Symbol(bname, :_pulseAmplitude)}(evt, collid, len),
-        StructArray{ObjectID{MCParticle}, isnewpodio() ? Symbol(:_, bname, "_MCParticle") : Symbol(bname, "#0")}(evt, collid, len),
+        StructArray{ObjectID{MCParticle}, Symbol(:_, bname, "_MCParticle")}(evt, collid, len),
     )
     return StructArray{SimPrimaryIonizationCluster}(columns)
 end
@@ -318,8 +318,8 @@ function StructArray{RecoParticleVertexAssociation, bname}(evt::UnROOT.LazyEvent
     len = length(firstmem)
     columns = (StructArray{ObjectID{RecoParticleVertexAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{ReconstructedParticle}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{Vertex}, isnewpodio() ? Symbol(:_, bname, "_vertex") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{ReconstructedParticle}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{Vertex}, Symbol(:_, bname, "_vertex")}(evt, collid, len),
     )
     return StructArray{RecoParticleVertexAssociation}(columns)
 end
@@ -333,7 +333,7 @@ function StructArray{RecDqdx, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), 
         getproperty(evt, Symbol(bname, :_type)),
         StructArray{SVector{5,Hypothesis}}(reshape(getproperty(evt, Symbol(bname, "_hypotheses[5]")), 5, len);dims=1),
         StructArray{PVector{RecDqdx,HitLevelData,1}, Symbol(bname, :_hitData)}(evt, collid, len),
-        StructArray{ObjectID{Track}, isnewpodio() ? Symbol(:_, bname, "_track") : Symbol(bname, "#0")}(evt, collid, len),
+        StructArray{ObjectID{Track}, Symbol(:_, bname, "_track")}(evt, collid, len),
     )
     return StructArray{RecDqdx}(columns)
 end
@@ -369,8 +369,8 @@ function StructArray{MCRecoTrackerAssociation, bname}(evt::UnROOT.LazyEvent, col
     len = length(firstmem)
     columns = (StructArray{ObjectID{MCRecoTrackerAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{TrackerHit}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{SimTrackerHit}, isnewpodio() ? Symbol(:_, bname, "_sim") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{TrackerHit}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{SimTrackerHit}, Symbol(:_, bname, "_sim")}(evt, collid, len),
     )
     return StructArray{MCRecoTrackerAssociation}(columns)
 end
@@ -393,8 +393,8 @@ function StructArray{MCRecoClusterParticleAssociation, bname}(evt::UnROOT.LazyEv
     len = length(firstmem)
     columns = (StructArray{ObjectID{MCRecoClusterParticleAssociation}}((collect(0:len-1),fill(collid,len))),
         firstmem,
-        StructArray{ObjectID{Cluster}, isnewpodio() ? Symbol(:_, bname, "_rec") : Symbol(bname, "#0")}(evt, collid, len),
-        StructArray{ObjectID{MCParticle}, isnewpodio() ? Symbol(:_, bname, "_sim") : Symbol(bname, "#1")}(evt, collid, len),
+        StructArray{ObjectID{Cluster}, Symbol(:_, bname, "_rec")}(evt, collid, len),
+        StructArray{ObjectID{MCParticle}, Symbol(:_, bname, "_sim")}(evt, collid, len),
     )
     return StructArray{MCRecoClusterParticleAssociation}(columns)
 end

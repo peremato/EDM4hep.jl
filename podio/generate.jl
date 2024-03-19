@@ -219,7 +219,7 @@ function gen_docstring(io, key, dtype)
     println(io,"\"\"\"")
 end
 
-function gen_structarray(io, key, dtype)
+function gen_structarray(io, key, dtype; podio=17)
     jtype = to_julia(key)
     println(io, "function StructArray{$jtype, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where bname")
     first = true
@@ -261,7 +261,11 @@ function gen_structarray(io, key, dtype)
         for (i,r) in enumerate(dtype["OneToOneRelations"])
             t, v, c = split_member(r)
             v == "mcparticle" && (v = "MCParticle")   # adhoc fixes
-            println(io, "        StructArray{ObjectID{$(t)}, isnewpodio() ? Symbol(:_, bname, \"_$v\") : Symbol(bname, \"#$n_rels\")}(evt, collid, len),")
+            if podio == 16
+                println(io, "        StructArray{ObjectID{$(t)}, Symbol(bname, \"#$n_rels\")}(evt, collid, len),")
+            else
+                println(io, "        StructArray{ObjectID{$(t)}, Symbol(:_, bname, \"_$v\")}(evt, collid, len),")
+            end
             n_rels += 1
         end
     end
@@ -312,9 +316,11 @@ println(io, "export $(join(unique(exports),", "))")
 close(io)
 
 #---StructArrays--------------------------------------------------------------------------------------
-io = open(joinpath(@__DIR__, "genStructArrays.jl"), "w")
-datatypes = data["datatypes"]
-for (key,value) in pairs(datatypes)
-    gen_structarray(io, key, value)
+for v in (16,17)
+    local io = open(joinpath(@__DIR__, "genStructArrays-v$(v).jl"), "w")
+    local datatypes = data["datatypes"]
+    for (key,value) in pairs(datatypes)
+        gen_structarray(io, key, value; podio=v)
+    end
+    close(io)
 end
-close(io)
