@@ -78,7 +78,7 @@ mydata.df |> describe |> println
 @time do_analysis!(mydata, myanalysis!, reader, subset; mt=true);
 #Profile.clear_malloc_data()
 @info "MT 2nd run"
-@time do_analysis!(mydata, myanalysis!, reader, subset);
+@time do_analysis!(mydata, myanalysis!, reader, subset; mt=true);
 println("Processed events: $(mydata.pevts), selected: $(mydata.sevts)")
 mydata.df |> describe |> println
 

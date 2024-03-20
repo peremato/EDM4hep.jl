@@ -338,7 +338,7 @@ module RootIO
     """
     get(reader::Reader, treename::String)
 
-    Opens a 'TTree' in the ROOT file (typically the events tree). 
+    Opens a 'TTree' or 'RNTuple' in the ROOT file (typically the events tree). 
     It returns a 'LazyTree' that allows the user to iterate over
     events. 
     """
