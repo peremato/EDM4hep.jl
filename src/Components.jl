@@ -9,7 +9,6 @@ abstract type POD end # Abstract type to denote a POD from PODIO
 include("../podio/genComponents.jl")
 
 #---Vector3d
-Base.convert(::Type{Vector3d}, t::Tuple) = Vector3d(t...)
 Base.convert(::SVector{3,Float64}, v::Vector3d) = SVector{3,Float64}(v...)
 Base.show(io::IO, v::Vector3d) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
@@ -27,7 +26,6 @@ Base.length(v::Vector3d) = 3
 ϕ(v::Vector3d) = atan(v.y, v.x)
 
 #---Vector3f
-Base.convert(::Type{Vector3f}, t::Tuple) = Vector3f(t...)
 Base.show(io::IO, v::Vector3f) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
@@ -44,7 +42,6 @@ Base.length(v::Vector3f) = 3
 ϕ(v::Vector3f) = atan(v.y, v.x)
 
 #---Vector2i
-Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)
 Base.show(io::IO, v::Vector2i) = print(io, "($(v.a), $(v.b))")
 Base.:+(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a + v2.a, v1.b + v2.b)
 Base.:-(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a - v2.a, v1.b - v2.b)
@@ -52,7 +49,6 @@ Base.:*(v::Vector2i, a::Number) = Vector3d(a*v.a, a*v.b)
 Base.:*(a::Number, v::Vector2i) = v * a
 
 #---Vector4f
-Base.convert(::Type{Vector4f}, t::Tuple) = Vector4f(t...)
 Base.show(io::IO, v::Vector4f) = print(io, "($(v.x), $(v.y), $(v.z), $(v.t))")
 Base.:+(v1::Vector4f, v2::Vector4f) = Vector4f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.t + v2.t)
 Base.:-(v1::Vector4f, v2::Vector4f) = Vector4f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.t - v2.t)

@@ -54,17 +54,24 @@ function gen_component(io, key, body)
     gen_docstring(io, key, body)
     println(io, "struct $jtype <: POD")
     members = []
+    types = []
     for m in body["Members"]
         t, v, c = split_member(m)
         vt = "$(v)::$(t)"
         vt = vt * " "^(32 - length(vt))
         println(io, "    $(vt) $(c)")
         push!(members,v)
+        push!(types, t)
     end
     args = join(members, ", ")
     defs = join(["$m=0" for m in members], ", ")
     println(io, "    $jtype($(defs)) = new($args)")
     println(io, "end\n")
+    # add the converters here
+    println(io, "Base.convert(::Type{$(jtype)}, t::Tuple) = $(jtype)(t...)")
+    ntype = "@NamedTuple{$(join(["$m::$t" for (m,t) in zip(members,types)],", "))}"
+    ninit = join(["v.$m" for m in members],", ")
+    println(io, "Base.convert(::Type{$(jtype)}, v::$(ntype)) = $(jtype)($(ninit))\n")
 end
 
 function gen_datatype(io, key, dtype)

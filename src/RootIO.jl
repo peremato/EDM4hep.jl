@@ -108,7 +108,7 @@ module RootIO
                  "ROOT version" VersionNumber(r.files[1].format_version÷10000, r.files[1].format_version%10000÷100, r.files[1].format_version%100)]
         pretty_table(io, data1, header=["Atribute", "Value"], alignment=:l)
         if !isempty(r.btypes)
-            bs = sort([b for b in keys(r.btypes) if !occursin("_", b)])
+            bs = sort([b for b in keys(r.btypes) if b[1] != '_'])
             bt = getindex.(Ref(r.btypes), bs)
             bc = EDM4hep.hex.(Base.get.(Ref(r.collectionIDs), bs, 0x00000000))
             pretty_table(io, [bs bt bc], header=["BranchName", "Type", "CollectionID"], alignment=:l, sortkeys = true, max_num_of_rows=100)
@@ -206,89 +206,6 @@ module RootIO
         (T, (), Tuple(relations), Tuple(vmembers))
     end
 
-    #=
-    # Only for TTree-------
-    function getStructArrayTTree(evt::UnROOT.LazyEvent, layout, collid, len = -1)
-        if len == -1  # Need the length to fill missing colums
-            n = layout[2][2]    # get the second data member (first may be missing)
-            len = length(evt[n])
-        end
-        sa = AbstractArray[]
-        type, inds = layout
-        for l in inds
-            if l isa Tuple 
-                if l[1] <: SVector    # (type,(id, size))
-                    ft, (id, s) = l
-                    push!(sa, StructArray{ft}(reshape(evt[id], s, len);dims=1))
-                elseif l[1] <: ObjectID
-                    ft, (id, cid) = l
-                    if id == -1                             # self ObjectID
-                        push!(sa, StructArray{ft}((collect(0:len-1),fill(collid, len))))
-                    elseif len > 0 && evt[cid][1] == -2     # Handle the case collid is -2 :-( )
-                        push!(sa, StructArray{ft}((evt[id],zeros(UInt32,len))))
-                    else                                    # general case
-                        push!(sa, StructArray{ft}((evt[id],evt[cid])))
-                    end    
-                else
-                    push!(sa, getStructArrayTTree(evt, l, collid, len))
-                end
-            elseif l == 0
-                push!(sa, zeros(Int64,len))
-            elseif l == -1
-                push!(sa, collect(0:len-1))
-            elseif l == -2
-                push!(sa, fill(collid, len))
-            else
-                push!(sa, evt[l])
-            end
-        end
-        StructArray{type}(Tuple(sa))
-    end
-    =#
-
-    #---Only for RNTuple
-    function getStructArrayRNTuple(evt::UnROOT.LazyEvent, branch, collection, layout, collid, len = -1)
-        type = layout[1]
-        pnames = propertynames(collection)
-        ftypes = fieldtypes(type)
-        fnames = fieldnames(type)
-        if len == -1  # Need the length to fill missing colums
-            len = length(getproperty(collection, pnames[1]))
-        end
-        sa = AbstractArray[]
-        for (fn, ft) in zip(fnames, ftypes)
-            if isempty(fieldnames(ft))          # fundamental type (Int, Float,...)
-                if fn in pnames
-                    push!(sa, getproperty(collection, fn))
-                else
-                    push!(sa, zeros(ft,len))
-                end
-            elseif ft <: SVector
-                push!(sa, getproperty(collection, fn))  # no reshaping to be done, it is already an SVector  
-            elseif ft == ObjectID{type}
-                push!(sa, StructArray{ft}((collect(0:len-1),fill(collid,len))))
-            elseif ft <: ObjectID                       # index of another one....
-                na = replace("$(fn)", "_idx" => "", "mcparticle" => "MCParticle")     # remove the added suffix
-                br = "_$(branch)_$(na)"
-                se = getproperty(evt, Symbol(br))
-                push!(sa, StructArray{ft}((se.index, se.collectionID)))
-            elseif ft <: Relation               # special treatment because 'begin' and 'end' cannot be fieldnames
-                bsym = Symbol("$fn" * "_begin")
-                esym = Symbol("$fn" * "_end")
-                push!(sa, StructArray{ft}((getproperty(collection, bsym), getproperty(collection, esym), fill(collid,len))))
-            elseif ft <: PVector               # special treatment becuase 'begin' and 'end' cannot be fieldnames
-                bsym = Symbol("$fn" * "_begin")
-                esym = Symbol("$fn" * "_end")
-                v = StructArray{ft}((getproperty(collection, bsym), getproperty(collection, esym), fill(collid,len)))
-                push!(sa, StructArray{ft}((getproperty(collection, bsym), getproperty(collection, esym), fill(collid,len))))
-            else
-                se = getproperty(collection, fn)
-                push!(sa, getStructArrayRNTuple(evt, branch, se, (ft,(),()), collid, len))
-            end
-        end
-        StructArray{type}(Tuple(sa))
-    end
-
     #---StructArray constructors--------------------------------------------------------------------
     @inline function StructArray{Relation{ED,TD,N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,TD,N,bname}
         StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
@@ -333,6 +250,37 @@ module RootIO
             end
         end)
         StructArray{T}(sa)
+    end
+
+    #---For RNTuple--------------------------------------------------------------------------------
+    function StructArray{T}(evt::UnROOT.LazyEvent, branch::Symbol, collid=UInt32(0)) where {T}
+        sa = getproperty(evt, branch)
+        T == ObjectID && return StructArray{T}(StructArrays.components(sa))
+        fnames = fieldnames(T)
+        ftypes = fieldtypes(T)
+        isempty(fnames) && return sa
+        len = length(getproperty(sa, Symbol(fnames[2])))
+        columns = Tuple( map(zip(fnames, ftypes)) do (fn,ft)
+            if ft == ObjectID{T}
+                StructArray{ft}((collect(0:len-1),fill(collid,len)))
+            elseif ft <: ObjectID                       # index of another one....
+                na = replace("$(fn)", "_idx" => "", "mcparticle" => "MCParticle")     # remove the added suffix
+                br = "_$(branch)_$(na)"
+                StructArray{ft}(StructArrays.components(getproperty(evt, Symbol(br)))) 
+            elseif ft <: Relation || ft <: PVector
+                bsym = Symbol(fn, :_begin)
+                esym = Symbol(fn, :_end)
+                StructArray{ft}((getproperty(sa, bsym), getproperty(sa, esym), fill(collid,len)))
+            else 
+                c = getproperty(sa, fn)
+                if c isa StructArray
+                    StructArray{ft}(StructArrays.components(c))
+                else
+                    c
+                end
+            end
+        end)
+        StructArray{T}(columns)
     end
 
     """
@@ -384,23 +332,6 @@ module RootIO
         end
         reader.lazytree = reduce(vcat, (LazyTree(tfile, "events", keys(reader.btypes)) for tfile in reader.files))
     end
-
-    #---This shouldn't be needed when issue https://github.com/JuliaHEP/UnROOT.jl/issues/305
-    function safe_getproperty(evt::UnROOT.LazyEvent, s::Symbol, t::Type)
-        try
-            return getproperty(evt, s)
-        catch e
-            if e isa MethodError
-                if isempty(fieldnames(t))
-                    return t[]
-                else
-                    return StructArray(t[])
-                end
-            else
-                rethrow()
-            end
-        end
-    end
     
     function _get(reader::Reader, evt::UnROOT.LazyEvent, bname::String, btype::Type, register::Bool)
         if haskey(reader.layouts, bname)                         # Check whether the the layout has been pre-compiled 
@@ -413,14 +344,10 @@ module RootIO
             end
             reader.layouts[bname] = layout
         end
-        collid = Base.get(reader.collectionIDs, bname, 0)             # The CollectionID has beeen assigned when opening the file
+        collid = Base.get(reader.collectionIDs, bname, UInt32(0))             # The CollectionID has beeen assigned when opening the file
         sbranch = Symbol(bname)
         if reader.isRNTuple
-            if isprimitivetype(layout[1])
-                sa = hasproperty(evt, sbranch) ? safe_getproperty(evt,sbranch,layout[1]) : layout[1][]
-            else
-                sa = getStructArrayRNTuple(evt, sbranch, safe_getproperty(evt, sbranch, layout[1]), layout, collid)
-            end
+            sa = StructArray{btype}(evt, sbranch, collid)
         else
             sa = StructArray{btype,sbranch}(evt, collid)
         end

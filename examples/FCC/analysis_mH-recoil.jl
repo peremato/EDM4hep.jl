@@ -1,4 +1,3 @@
-using Revise
 using EDM4hep
 using EDM4hep.RootIO
 using EDM4hep.SystemOfUnits
@@ -7,20 +6,25 @@ using DataFrames
 
 include("analysis_functions.jl")
 
-f = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240/events_000189367.root"
+#f= "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240/events_000189367.root"
+#f = "/Users/mato/cernbox/Data/events_000189367.root"
+f = "/Users/mato/cernbox/Data/events_000189367-rntuple-rc2.root"
 
 reader = RootIO.Reader(f);
 events = RootIO.get(reader, "events");
+
+#const μobjIdx = "Muon#0"
+const μobjIdx = "Muon_objIdx"
 
 df = DataFrame(Zcand_m = Float32[], Zcand_recoil_m = Float32[], Zcand_q = Int32[])
 
 nevents = 0
 elaptime = @elapsed for evt in events
     global nevents += 1
-    muids = StructArray{ObjectID{ReconstructedParticle}, Symbol("Muon#0")}(evt)
-    length(muids) < 2 && continue 
-    recps = StructArray{ReconstructedParticle, :ReconstructedParticles}(evt)
-    muons = recps[muids]
+    μIDs = RootIO.get(reader, evt, μobjIdx)       # get the ids of muons
+    length(μIDs) < 2 && continue                  # skip if less than 2  
+    recps = RootIO.get(reader, evt, "ReconstructedParticles") 
+    muons = recps[μIDs]                           # use the ids to subset the reco particles
     sel_muons = filter(x -> pₜ(x) > 10GeV, muons)
     zed_leptonic = resonanceBuilder(91GeV, sel_muons)
     zed_leptonic_recoil = recoilBuilder(240GeV, zed_leptonic)

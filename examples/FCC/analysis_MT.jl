@@ -22,8 +22,8 @@ events_003579490.root
 froot = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240"
 files = joinpath.(Ref(froot),split(fnames))
 
-files = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240/events_000189367.root"
-#files = "/Users/mato/cernbox/Data/events_000189367.root"
+#files = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240/events_000189367.root"
+files = "/Users/mato/cernbox/Data/events_000189367-rntuple-rc2.root"
 
 reader = RootIO.Reader(files);
 events = RootIO.get(reader, "events");
@@ -41,7 +41,7 @@ end
 function myanalysis!(data::MyData, reader, events)
     for evt in events
         data.pevts += 1                               # count process events
-        μIDs = RootIO.get(reader, evt, "Muon#0")      # get the ids of muons
+        μIDs = RootIO.get(reader, evt, "Muon_objIdx")      # get the ids of muons
         length(μIDs) < 2 && continue                  # skip if less than 2  
         
         recps = RootIO.get(reader, evt, "ReconstructedParticles") 
