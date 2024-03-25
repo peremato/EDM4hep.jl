@@ -281,6 +281,51 @@ function gen_structarray(io, key, dtype; podio=17)
     println(io, "end\n")
 end
 
+function gen_structarray_rntuple(io, key, dtype)
+    jtype = to_julia(key)
+    println(io, "function StructArray{$jtype}(evt::UnROOT.LazyEvent, branch::Symbol, collid = UInt32(0))")
+    println(io, "    sa = getproperty(evt, branch)")
+    first = true
+    for m in dtype["Members"] 
+        t, v, c = split_member(m)
+        if first
+            println(io, "    len = length(sa.$(v))")
+            println(io, "    fcollid = fill(collid,len)")
+            println(io, "    columns = (StructArray{ObjectID{$jtype}}((collect(0:len-1),fcollid)),")
+            println(io, "        sa.$(v),")
+            first = false
+        else
+            if t in fundamental_types || startswith(t, "SVector")
+                println(io, "        sa.$(v),")
+            else
+                println(io, "        StructArray{$(t)}(StructArrays.components(sa.$(v))),")
+            end
+        end
+    end
+    if haskey(dtype, "VectorMembers")
+        for (i,r) in enumerate(dtype["VectorMembers"])
+            t, v, c = split_member(r)
+            v == "subdetectorHitNumbers" && (v = "subDetectorHitNumbers")   # adhoc fixes
+            println(io, "        StructArray{PVector{$(jtype),$(t),$(i)}}((sa.$(v)_begin, sa.$(v)_end, fcollid)),")
+        end
+    end
+    if haskey(dtype, "OneToManyRelations")
+        for (i,r) in enumerate(dtype["OneToManyRelations"])
+            t, v, c = split_member(r)
+            println(io, "        StructArray{Relation{$(jtype),$(t),$(i)}}((sa.$(v)_begin, sa.$(v)_end, fcollid)),")
+        end
+    end
+    if haskey(dtype, "OneToOneRelations")
+        for (i,r) in enumerate(dtype["OneToOneRelations"])
+            t, v, c = split_member(r)
+            v == "mcparticle" && (v = "MCParticle")   # adhoc fixes
+            println(io, "        StructArray{ObjectID{$(t)}}(StructArrays.components(getproperty(evt, Symbol(:_, branch, :_$v)))),")
+        end
+    end
+    println(io, "    )")
+    println(io, "    return StructArray{$jtype}(columns)")
+    println(io, "end\n")
+end
 
 function build_graph(datatypes)
     types = to_julia.(keys(datatypes))
@@ -331,3 +376,9 @@ for v in (16,17)
     end
     close(io)
 end
+io = open(joinpath(@__DIR__, "genStructArrays-rntuple.jl"), "w")
+datatypes = data["datatypes"]
+for (key,value) in pairs(datatypes)
+    gen_structarray_rntuple(io, key, value)
+end
+close(io)

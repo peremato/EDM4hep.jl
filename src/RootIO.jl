@@ -12,7 +12,6 @@ module RootIO
     using StaticArrays
     using PrettyTables
 
-
     export StructArray, isnewpodio
 
     const builtin_types = Dict("int" => Int32, "float" => Float32, "double" => Float64,
@@ -94,6 +93,8 @@ module RootIO
         if !reader.isRNTuple
             pmajor = reader.podioversion >= newpodio ? "17" : "16"
             include(joinpath(@__DIR__,"../podio/genStructArrays-v$pmajor.jl"))
+        else
+            include(joinpath(@__DIR__,"../podio/genStructArrays-rntuple.jl"))
         end
         return reader
     end
@@ -115,83 +116,7 @@ module RootIO
         end
     end 
 
-    function buildlayoutTTree(reader::Reader, branch::String, T::Type)
-        layout = []
-        relations = []
-        vmembers = []
-        fnames = fieldnames(T)
-        ftypes = fieldtypes(T)
-        splitnames = names(reader.lazytree)
-        n_rels  = 0      # number of one-to-one or one-to-many Relations 
-        n_pvecs = 0      # number of vector member
-        for (fn,ft) in zip(fnames, ftypes)
-            n = "$(branch)_$(fn)"
-            if isempty(fieldnames(ft))          # foundamental type (Int, Float,...)
-                id = findfirst(x -> x == n, splitnames)
-                push!(layout, isnothing(id) ? 0 : id)
-            elseif ft <: Relation               # special treatment becuase 'begin' and 'end' cannot be fieldnames
-                b = findfirst(x -> x == n * "_begin", splitnames)
-                e = findfirst(x -> x == n * "_end", splitnames)
-                push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
-                if reader.podioversion >= newpodio
-                    push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
-                else
-                    push!(relations, ("$(branch)#$(n_rels)", eltype(ft)))
-                    n_rels += 1
-                end
-            elseif ft <: PVector
-                b = findfirst(x -> x == n * "_begin", splitnames)
-                if isnothing(b)
-                    b = findfirst(x -> lowercase(x) == lowercase( n * "_begin"), splitnames)
-                end
-                e = findfirst(x -> x == n * "_end", splitnames)
-                if isnothing(e)
-                    e = findfirst(x -> lowercase(x) == lowercase( n * "_end"), splitnames)
-                end
-                push!(layout, (ft, (b,e,-2)))   # -2 is collectionID of himself
-                if reader.podioversion >= newpodio
-                    push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (vector_branchname, target_type)
-                else
-                    push!(vmembers, ("$(branch)_$(n_pvecs)", eltype(ft)))  # add a tuple with (vector_branchname, target_type)
-                    n_pvecs += 1
-                end
-            elseif ft <: ObjectID{T}            # index of himself
-                push!(layout, (ft, (-1,-2)))
-            elseif ft <: ObjectID               # index of another one....
-                na = replace("$(fn)", "_idx" => "")     # remove the added suffix
-                id = cid = nothing
-                if reader.podioversion >= newpodio
-                    id = findfirst(x -> x == "_$(branch)_$(na)_index", splitnames)
-                    if isnothing(id)  # try with case insensitive compare
-                        id = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_index"), splitnames)
-                    end
-                    cid = findfirst(x -> x == "_$(branch)_$(na)_collectionID", splitnames)
-                    if isnothing(cid)  # try with case insensitive compare
-                        cid = findfirst(x -> lowercase(x) == lowercase("_$(branch)_$(na)_collectionID"), splitnames)
-                    end
-                else
-                    id = findfirst(x -> x == "$(branch)#$(n_rels)_index", splitnames)
-                    cid = findfirst(x -> x == "$(branch)#$(n_rels)_collectionID", splitnames)
-                    n_rels += 1
-                end
-                if isnothing(id) || isnothing(cid)  # link not found in the data file
-                    @warn "Cannot find branch for one-to-one relation $(branch)::$(na)"
-                    push!(layout, (ft,(0,0)))
-                else
-                    push!(layout, (ft, (id, cid)))
-                end
-            elseif ft <: SVector                # fixed arrays are translated to SVector
-                s = size(ft)[1]
-                id = findfirst(x-> x == n * "[$(s)]", splitnames)
-                push!(layout, (ft,(id,s))) 
-            else
-                push!(layout, buildlayoutTTree(reader, n, ft))
-            end
-        end
-        (T, Tuple(layout), Tuple(relations), Tuple(vmembers))
-    end
-
-    function buildlayoutRNTuple(reader::Reader, branch::String, T::Type)
+    function buildlayout(reader::Reader, branch::String, T::Type)
         relations = []
         vmembers = []
         fnames = fieldnames(T)
@@ -334,17 +259,13 @@ module RootIO
     end
     
     function _get(reader::Reader, evt::UnROOT.LazyEvent, bname::String, btype::Type, register::Bool)
-        if haskey(reader.layouts, bname)                         # Check whether the the layout has been pre-compiled 
+        if haskey(reader.layouts, bname)                          # Check whether the the layout has been pre-compiled 
             layout = reader.layouts[bname]
         else
-            if reader.isRNTuple
-                layout = buildlayoutRNTuple(reader, bname, btype)
-            else
-                layout = buildlayoutTTree(reader, bname, btype)
-            end
+            layout = buildlayout(reader, bname, btype)
             reader.layouts[bname] = layout
         end
-        collid = Base.get(reader.collectionIDs, bname, UInt32(0))             # The CollectionID has beeen assigned when opening the file
+        collid = Base.get(reader.collectionIDs, bname, UInt32(0)) # The CollectionID has beeen assigned when opening the file
         sbranch = Symbol(bname)
         if reader.isRNTuple
             sa = StructArray{btype}(evt, sbranch, collid)
