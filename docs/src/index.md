@@ -36,7 +36,7 @@ There are a number of issues and problems still to be resolved. We keep track of
 - Be able to read RNTuple files in addition to TTree files - *DONE*
 - Generate doc string with member information - *DONE*
 - Generate accessors for one-to-many relations, vector members - *DONE* 
-- Support latest version (RC2) of RNTuple format (waiting for a file being generated)
+- Support latest version (RC2) of RNTuple format - *DONE*
 - Support for multi-threading (i.e. be able to add `@threads` in the event loop) - *DONE*
 
 ## Tests
