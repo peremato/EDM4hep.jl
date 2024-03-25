@@ -3,8 +3,7 @@ using EDM4hep.RootIO
 @testset "$(T)Reader" for T in (:TTree, :RNTuple)
 
     if T == :RNTuple
-        f = joinpath(@__DIR__, "../examples/Output_REC_rntuple.root")
-        pkgversion(RootIO.UnROOT) >= v"0.10.22" && continue 
+        f = joinpath(@__DIR__, "../examples/Output_REC_rntuple-rc2.root")
     else
         f = joinpath(@__DIR__, "../examples/Output_REC.root")
     end
