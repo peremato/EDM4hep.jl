@@ -41,10 +41,10 @@ end
 function myanalysis!(data::MyData, reader, events)
     for evt in events
         data.pevts += 1                               # count process events
-        μIDs = RootIO.get(reader, evt, "Muon_objIdx")      # get the ids of muons
+        μIDs = RootIO.get(reader, evt, "Muon_objIdx"; register=false) # get the ids of muons
         length(μIDs) < 2 && continue                  # skip if less than 2  
         
-        recps = RootIO.get(reader, evt, "ReconstructedParticles") 
+        recps = RootIO.get(reader, evt, "ReconstructedParticles"; register=false) 
         muons = recps[μIDs]                           # use the ids to subset the reco particles
     
         sel_muons = filter(x -> pₜ(x) > 10GeV, muons)  # select the the Pt of muons

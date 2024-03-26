@@ -121,11 +121,23 @@ module RootIO
         vmembers = []
         fnames = fieldnames(T)
         ftypes = fieldtypes(T)
+        n_rels  = 0      # number of one-to-one or one-to-many Relations 
+        n_pvecs = 0      # number of vector member
         for (fn,ft) in zip(fnames, ftypes)
             if ft <: Relation
-                push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+                if reader.podioversion >= newpodio
+                    push!(relations, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+                else
+                    push!(relations, ("$(branch)#$(n_rels)", eltype(ft)))
+                    n_rels += 1
+                end
             elseif ft <: PVector
-                push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (relation_branchname, target_type)
+                if reader.podioversion >= newpodio
+                    push!(vmembers, ("_$(branch)_$(fn)", eltype(ft)))  # add a tuple with (vector_branchname, target_type)
+                else
+                    push!(vmembers, ("$(branch)_$(n_pvecs)", eltype(ft)))  # add a tuple with (vector_branchname, target_type)
+                    n_pvecs += 1
+                end
             end
         end
         (T, (), Tuple(relations), Tuple(vmembers))
@@ -293,7 +305,7 @@ module RootIO
     type known in the ROOT file (C++ class name). The optonal key parameter `register` indicates is the collection
     needs to be registered to the `EDStore`.
     """
-    function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=false)
+    function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
         btype = btype === Any ? reader.btypes[bname] : btype     # Allow the user to force the actual type
         _get(reader, evt, bname, btype, register)
     end
