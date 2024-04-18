@@ -5,8 +5,6 @@
 # EDM4hep in Julia
 Prototype of the [EDM4hep](https://github.com/key4hep/EDM4hep) (generic Event Data Model for HEP experiments part of Key4hep) for Julia with the goal to have very simple structures (isbits) with the purpose to evaluate its ergonomic design and implementation performance.
 
-See [documenation](docs/src/index.md) for EDM4hep.jl package.
-
 See presentations: 
 - [FCC Software meeting 26/2/2024](https://indico.cern.ch/event/1351111/contributions/5687785/attachments/2807853/4899861/EDM4hep.jl-20240226.pdf)
 - [EDM4hep developers 26/03/2024](https://indico.cern.ch/event/1398635/contributions/5879405/attachments/2826751/4938272/EDM4hep.jl-20240326.pdf) 
