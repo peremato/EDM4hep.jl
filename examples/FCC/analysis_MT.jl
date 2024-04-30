@@ -45,7 +45,7 @@ function myanalysis!(data::MyData, reader, events)
     for evt in events
         data.pevts += 1                               # count process events
         #μIDs = RootIO.get(reader, evt, "Muon#0"; register=false) # get the ids of muons
-        μIDs = RootIO.getCollection{ObjectID,Symbol("Muon#0")}(evt,UInt32(0)) # get the ids of muons        
+        μIDs = RootIO.getCollection{ObjectID{ReconstructedParticle},Symbol("Muon#0")}(evt,UInt32(0)) # get the ids of muons        
         length(μIDs) < 2 && continue                  # skip if less than 2  
         
         #recps = RootIO.get(reader, evt, "ReconstructedParticles"; register=false) 

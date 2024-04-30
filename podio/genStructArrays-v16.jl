@@ -240,6 +240,7 @@ function StructArray{MCParticle, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0
     return StructArray{MCParticle}(columns)
 end
 
+#=
 function StructArray{ReconstructedParticle, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where bname
     firstmem = getproperty(evt, Symbol(bname, :_type))
     len = length(firstmem)
@@ -258,6 +259,34 @@ function StructArray{ReconstructedParticle, bname}(evt::UnROOT.LazyEvent, collid
         StructArray{Relation{ReconstructedParticle,ParticleID,4}, Symbol(bname, :_particleIDs)}(evt, collid, len),
         StructArray{ObjectID{Vertex}, Symbol(bname, "#4")}(evt, collid, len),
         StructArray{ObjectID{ParticleID}, Symbol(bname, "#5")}(evt, collid, len),
+    )
+    return StructArray{ReconstructedParticle}(columns)
+end
+=#
+
+function StructArray{ReconstructedParticle, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where bname
+    firstmem = getproperty(evt, Symbol(bname, :_energy))
+    len = length(firstmem)
+    uint32_z = zeros(UInt32, len) #@view UInt32_zeros[1:len]
+    int32_z = zeros(Int32, len) #@view Int32_zeros[1:len]
+    float32_z = zeros(Float32, len) #@view Float32_zeros[1:len]
+    fcollid = fill(collid,len)
+    columns = (
+        StructArray{ObjectID{ReconstructedParticle}}((collect(0:len-1),fcollid)),
+        int32_z,  # sa.type,
+        firstmem, # getproperty(evt, Symbol(bname, :_energy)),
+        StructArray{Vector3f, Symbol(bname, :_momentum)}(evt, collid, len),
+        StructArray{Vector3f}((float32_z,float32_z, float32_z)), #StructArray{Vector3f, Symbol(bname, :_referencePoint)}(evt, collid, len),
+        getproperty(evt, Symbol(bname, :_charge)),
+        getproperty(evt, Symbol(bname, :_mass)),
+        float32_z, # sa.goodnessOfPID, # getproperty(evt, Symbol(bname, :_goodnessOfPID)),
+        StructArray{SVector{10,Float32}}(reshape(view(Float32_zeros, 1:10*len),10,len);dims=1), #StructArray{SVector{10,Float32}}(reshape(getproperty(evt, Symbol(bname, "_covMatrix[10]")), 10, len);dims=1),
+        StructArray{Relation{ReconstructedParticle,Cluster,1}}((uint32_z, uint32_z, fcollid)), #StructArray{Relation{ReconstructedParticle,Cluster,1}}((sa.clusters_begin, sa.clusters_end, fcollid)),
+        StructArray{Relation{ReconstructedParticle,Track,2}}((uint32_z, uint32_z, fcollid)), #StructArray{Relation{ReconstructedParticle,Track,2}}((sa.tracks_begin, sa.tracks_end, fcollid)),
+        StructArray{Relation{ReconstructedParticle,ReconstructedParticle,3}}((uint32_z, uint32_z, fcollid)), #StructArray{Relation{ReconstructedParticle,ReconstructedParticle,3}}((sa.particles_begin, sa.particles_end, fcollid)),
+        StructArray{Relation{ReconstructedParticle,ParticleID,4}}((uint32_z, uint32_z, fcollid)), #StructArray{Relation{ReconstructedParticle,ParticleID,4}}((sa.particleIDs_begin, sa.particleIDs_end, fcollid)),
+        StructArray{ObjectID{Vertex}}(( int32_z,  uint32_z)), #StructArray{ObjectID{Vertex}}(StructArrays.components(getproperty(evt, Symbol(:_, branch, :_startVertex)))),
+        StructArray{ObjectID{ParticleID}}(( int32_z,  uint32_z)) #StructArray{ObjectID{ParticleID}}(StructArrays.components(getproperty(evt, Symbol(:_, branch, :_particleIDUsed)))),
     )
     return StructArray{ReconstructedParticle}(columns)
 end
