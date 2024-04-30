@@ -280,7 +280,7 @@ function StructArray{ReconstructedParticle, bname}(evt::UnROOT.LazyEvent, collid
         getproperty(evt, Symbol(bname, :_charge)),
         getproperty(evt, Symbol(bname, :_mass)),
         float32_z, # sa.goodnessOfPID, # getproperty(evt, Symbol(bname, :_goodnessOfPID)),
-        StructArray{SVector{10,Float32}}(reshape(view(Float32_zeros, 1:10*len),10,len);dims=1), #StructArray{SVector{10,Float32}}(reshape(getproperty(evt, Symbol(bname, "_covMatrix[10]")), 10, len);dims=1),
+        StructArray{SVector{10,Float32}}(reshape(zeros(Float32, 10*len),10,len);dims=1), #StructArray{SVector{10,Float32}}(reshape(getproperty(evt, Symbol(bname, "_covMatrix[10]")), 10, len);dims=1),
         StructArray{Relation{ReconstructedParticle,Cluster,1}}((uint32_z, uint32_z, fcollid)), #StructArray{Relation{ReconstructedParticle,Cluster,1}}((sa.clusters_begin, sa.clusters_end, fcollid)),
         StructArray{Relation{ReconstructedParticle,Track,2}}((uint32_z, uint32_z, fcollid)), #StructArray{Relation{ReconstructedParticle,Track,2}}((sa.tracks_begin, sa.tracks_end, fcollid)),
         StructArray{Relation{ReconstructedParticle,ReconstructedParticle,3}}((uint32_z, uint32_z, fcollid)), #StructArray{Relation{ReconstructedParticle,ReconstructedParticle,3}}((sa.particles_begin, sa.particles_end, fcollid)),
