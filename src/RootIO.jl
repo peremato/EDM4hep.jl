@@ -90,12 +90,14 @@ module RootIO
         # layouts and branch types
         reader.btypes = Dict{String, Type}()
         reader.layouts = Dict{String, Tuple}()
+        #=
         if !reader.isRNTuple
             pmajor = reader.podioversion >= newpodio ? "17" : "16"
             include(joinpath(@__DIR__,"../podio/genStructArrays-v$pmajor.jl"))
         else
             include(joinpath(@__DIR__,"../podio/genStructArrays-rntuple.jl"))
         end
+        =#
         return reader
     end
 
@@ -144,6 +146,7 @@ module RootIO
     end
 
     #---StructArray constructors--------------------------------------------------------------------
+
     @inline function StructArray{Relation{ED,TD,N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,TD,N,bname}
         StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
     end
@@ -165,6 +168,8 @@ module RootIO
     @inline function StructArray{T, bname}(evt::UnROOT.LazyEvent, collid, len) where {T <: Number,bname}
         getproperty(evt, bname)
     end
+
+    include(joinpath(@__DIR__,"../podio/genStructArrays-v16.jl"))
 
     #---Generic StructArray constructor (fall-back)------------------------------------------------
     function StructArray{T,bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {T,bname} 
@@ -279,11 +284,11 @@ module RootIO
         end
         collid = Base.get(reader.collectionIDs, bname, UInt32(0)) # The CollectionID has beeen assigned when opening the file
         sbranch = Symbol(bname)
-        if reader.isRNTuple
-            sa = StructArray{btype}(evt, sbranch, collid)
-        else
+        #if reader.isRNTuple
+        #    sa = StructArray{btype}(evt, sbranch, collid)
+        #else
             sa = StructArray{btype,sbranch}(evt, collid)
-        end
+        #end
         if register
             assignEDStore(sa, collid)
             if !isempty(layout[3])  # check if there are relations in this branch
@@ -308,5 +313,14 @@ module RootIO
     function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
         btype = btype === Any ? reader.btypes[bname] : btype     # Allow the user to force the actual type
         _get(reader, evt, bname, btype, register)
+    end
+
+    struct getCollection{ED <: EDM4hep.POD, B}; end
+    function getCollection{ED}(reader::Reader, evt::UnROOT.LazyEvent, bname::String) where ED
+        collid = Base.get(reader.collectionIDs, bname, UInt32(0))
+        StructArray{ED, Symbol(bname)}(evt, collid, -1)
+    end
+    @inline function getCollection{ED,bname}(evt::UnROOT.LazyEvent, collid::UInt32) where {ED,bname}
+        StructArray{ED, bname}(evt, collid)
     end
 end

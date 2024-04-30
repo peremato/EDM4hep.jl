@@ -8,22 +8,25 @@ using DataFrames
 include("analysis_functions.jl")
 
 fnames = """
-events_000189367.root
-events_000787350.root
-events_001145354.root
-events_001680909.root
-events_001893485.root
-events_002227306.root
-events_002498645.root
-events_002528960.root
-events_002763770.root
-events_003579490.root
+events_017670037.root
+events_020572434.root
+events_031357685.root
+events_043326581.root
+events_063734251.root
+events_067932171.root
+events_100167569.root
+events_115460704.root
+events_137485372.root
+events_184128869.root
+events_192636993.root
+events_193400175.root
 """
-froot = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240"
+froot = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/wzp6_ee_mumuH_ecm240"
 files = joinpath.(Ref(froot),split(fnames))
 
 #files = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240/events_000189367.root"
-files = "/Users/mato/cernbox/Data/events_000189367-rntuple-rc2.root"
+#files = "/Users/mato/cernbox/Data/events_000189367-rntuple-rc2.root"
+#files = "/Users/mato/cernbox/Data/events_017670037.root"
 
 reader = RootIO.Reader(files);
 events = RootIO.get(reader, "events");
@@ -41,10 +44,12 @@ end
 function myanalysis!(data::MyData, reader, events)
     for evt in events
         data.pevts += 1                               # count process events
-        μIDs = RootIO.get(reader, evt, "Muon_objIdx"; register=false) # get the ids of muons
+        #μIDs = RootIO.get(reader, evt, "Muon#0"; register=false) # get the ids of muons
+        μIDs = RootIO.getCollection{ObjectID,Symbol("Muon#0")}(evt,UInt32(0)) # get the ids of muons        
         length(μIDs) < 2 && continue                  # skip if less than 2  
         
-        recps = RootIO.get(reader, evt, "ReconstructedParticles"; register=false) 
+        #recps = RootIO.get(reader, evt, "ReconstructedParticles"; register=false) 
+        recps = RootIO.getCollection{ReconstructedParticle, :ReconstructedParticles}(evt, UInt32(15)) # get the reco particles
         muons = recps[μIDs]                           # use the ids to subset the reco particles
     
         sel_muons = filter(x -> pₜ(x) > 10GeV, muons)  # select the the Pt of muons
