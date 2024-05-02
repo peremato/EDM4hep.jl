@@ -1,5 +1,6 @@
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 EDM4hep = "eb32b910-dde9-4347-8fce-cd6be3498f0c"
 FHist = "68837c9b-b678-4cd5-9925-8a54edc8f695"
 IterTools = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
