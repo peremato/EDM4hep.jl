@@ -162,6 +162,11 @@ module RootIO
         len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
         StructArray{ObjectID{ED}}((inds, cids))
     end
+    @inline function StructArray{ObjectID, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {bname}
+        inds = getproperty(evt, Symbol(bname, :_index))
+        cids = getproperty(evt, Symbol(bname, :_collectionID))
+        StructArray{ObjectID}((inds, cids))
+    end
     @inline function StructArray{Vector3f, bname}(evt::UnROOT.LazyEvent, collid, len) where {bname}
         StructArray{Vector3f}((getproperty(evt, Symbol(bname, :_x)), getproperty(evt, Symbol(bname, :_y)), getproperty(evt, Symbol(bname, :_z))))
     end
@@ -323,4 +328,18 @@ module RootIO
     @inline function getCollection{ED,bname}(evt::UnROOT.LazyEvent, collid::UInt32) where {ED,bname}
         StructArray{ED, bname}(evt, collid)
     end
+
+
+    function create_getter(reader::Reader, bname::String)
+        btype = reader.btypes[bname]
+        collid = Base.get(reader.collectionIDs, bname, UInt32(0))
+        fname = "get_" * replace(bname, "#" => "_", " " => "_")
+        code = """
+        function $fname(evt::UnROOT.LazyEvent)
+            StructArray{$btype, Symbol(\"$bname\")}(evt, $collid)
+        end
+        """
+        Meta.parse(code) |> eval
+    end
 end
+

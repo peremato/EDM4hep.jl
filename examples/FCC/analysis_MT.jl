@@ -41,15 +41,20 @@ mutable struct MyData <: AbstractAnalysisData
     MyData() = new(DataFrame(Zcand_m = Float32[], Zcand_recoil_m = Float32[], Zcand_q = Int32[]), 0, 0)
 end
 
+get_μIDs  = RootIO.create_getter(reader, "Muon#0")
+get_recps = RootIO.create_getter(reader, "ReconstructedParticles")
+
 function myanalysis!(data::MyData, reader, events)
     for evt in events
         data.pevts += 1                               # count process events
         #μIDs = RootIO.get(reader, evt, "Muon#0"; register=false) # get the ids of muons
-        μIDs = RootIO.getCollection{ObjectID{ReconstructedParticle},Symbol("Muon#0")}(evt,UInt32(0)) # get the ids of muons        
+        #μIDs = RootIO.getCollection{ObjectID{ReconstructedParticle},Symbol("Muon#0")}(evt,UInt32(0)) # get the ids of muons
+        μIDs = get_μIDs(evt)        
         length(μIDs) < 2 && continue                  # skip if less than 2  
         
         #recps = RootIO.get(reader, evt, "ReconstructedParticles"; register=false) 
-        recps = RootIO.getCollection{ReconstructedParticle, :ReconstructedParticles}(evt, UInt32(15)) # get the reco particles
+        #recps = RootIO.getCollection{ReconstructedParticle, :ReconstructedParticles}(evt, UInt32(15)) # get the reco particles
+        recps = get_recps(evt)
         muons = recps[μIDs]                           # use the ids to subset the reco particles
     
         sel_muons = filter(x -> pₜ(x) > 10GeV, muons)  # select the the Pt of muons
