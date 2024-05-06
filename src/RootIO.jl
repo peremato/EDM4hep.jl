@@ -159,7 +159,8 @@ module RootIO
     @inline function StructArray{ObjectID{ED}, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {ED,bname}
         inds = getproperty(evt, Symbol(bname, :_index))
         cids = getproperty(evt, Symbol(bname, :_collectionID))
-        len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
+        #len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
+        replace!(cids, -2 => 0)
         StructArray{ObjectID{ED}}((inds, cids))
     end
     @inline function StructArray{ObjectID, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {bname}
