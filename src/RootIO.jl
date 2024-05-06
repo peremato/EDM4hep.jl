@@ -90,12 +90,14 @@ module RootIO
         # layouts and branch types
         reader.btypes = Dict{String, Type}()
         reader.layouts = Dict{String, Tuple}()
+        #=
         if !reader.isRNTuple
             pmajor = reader.podioversion >= newpodio ? "17" : "16"
             include(joinpath(@__DIR__,"../podio/genStructArrays-v$pmajor.jl"))
         else
             include(joinpath(@__DIR__,"../podio/genStructArrays-rntuple.jl"))
         end
+        =#
         return reader
     end
 
@@ -144,6 +146,7 @@ module RootIO
     end
 
     #---StructArray constructors--------------------------------------------------------------------
+
     @inline function StructArray{Relation{ED,TD,N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,TD,N,bname}
         StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
     end
@@ -156,8 +159,14 @@ module RootIO
     @inline function StructArray{ObjectID{ED}, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {ED,bname}
         inds = getproperty(evt, Symbol(bname, :_index))
         cids = getproperty(evt, Symbol(bname, :_collectionID))
-        len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
+        #len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
+        replace!(cids, -2 => 0)
         StructArray{ObjectID{ED}}((inds, cids))
+    end
+    @inline function StructArray{ObjectID, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {bname}
+        inds = getproperty(evt, Symbol(bname, :_index))
+        cids = getproperty(evt, Symbol(bname, :_collectionID))
+        StructArray{ObjectID}((inds, cids))
     end
     @inline function StructArray{Vector3f, bname}(evt::UnROOT.LazyEvent, collid, len) where {bname}
         StructArray{Vector3f}((getproperty(evt, Symbol(bname, :_x)), getproperty(evt, Symbol(bname, :_y)), getproperty(evt, Symbol(bname, :_z))))
@@ -181,8 +190,14 @@ module RootIO
                 StructArray{ft,Symbol(bname,:_,fn)}(evt, collid, len)
             elseif ft <: ObjectID              # index of another one....
                 n_rels += 1
-                StructArray{ft, Symbol(bname, "#$(n_rels-1)")}(evt, collid, len)
+                if isnewpodio()
+                    na = replace("$(fn)", "_idx" => "", "mcparticle" => "MCParticle")     # remove the added suffix
+                    StructArray{ft, Symbol("_", bname, "_$(na)")}(evt, collid, len)
+                else
+                    StructArray{ft, Symbol(bname, "#$(n_rels-1)")}(evt, collid, len)
+                end
             else
+                fn == :subdetectorHitNumbers && (fn = :subDetectorHitNumbers)   # adhoc fixes
                 StructArray{ft,Symbol(bname,:_,fn)}(evt, collid, len)
             end
         end)
@@ -309,4 +324,76 @@ module RootIO
         btype = btype === Any ? reader.btypes[bname] : btype     # Allow the user to force the actual type
         _get(reader, evt, bname, btype, register)
     end
-end
+
+    selectednames(btype::Type, selection::Union{AbstractString, Symbol, Regex}) = selectednames(btype, [selection])
+    function selectednames(btype::Type, selection)
+        field_names = fieldnames(btype)
+        _m(r::Regex) = Base.Fix1(occursin, r) ∘ string
+        filtered_names = mapreduce(∪, selection) do b
+            if b isa Regex
+                filter(_m(b), field_names)
+            elseif b isa String
+                Symbol(b) in field_names ? [Symbol(b)] : []
+            elseif b isa Symbol
+                b in field_names ? [b] : []
+            else
+                error("branch selection must be String, Symbol or Regex")
+            end
+        end
+        filtered_names
+    end
+
+    """
+    create_getter(reader::Reader, bname::String; selection=nothing)
+
+    This function creates a getter function for a given branch name. The getter function is a function that takes an event and
+    returns a `StructArray` with the data of the branch. The getter function is created as a function with the name `get_<branchname>`.
+    The optional parameter `selection` is a list of field names to be selected from the branch. If `selection` is not provided, all fields are selected.
+    The user can use a list of strings, symbols or regular expressions to select the fields.
+    """
+    function create_getter(reader::Reader, bname::String; selection=nothing)
+        btype = reader.btypes[bname]
+        collid = Base.get(reader.collectionIDs, bname, UInt32(0))
+        snames = isnothing(selection) ? fieldnames(btype) : selectednames(btype, selection) 
+        fname = "get_" * replace(bname, "#" => "_", " " => "_")
+        #---Create the function as a string and evaluate it
+        code = "function $fname(evt::UnROOT.LazyEvent)\n"
+        if btype == ObjectID
+            code *= "    return StructArray{ObjectID}((getproperty(evt, Symbol(\"$bname\",:_index)),getproperty(evt, Symbol(\"$bname\",:_collectionID))))\n"
+        else
+            first = true
+            n_rels = 0    # number of one-to-one or one-to-many Relations
+            for (ft, fn) in zip(fieldtypes(btype), fieldnames(btype))
+                #fn in snames || continue
+                if first
+                    fn == :index && continue    # skip the index field
+                    code *= "    firstmem = getproperty(evt, Symbol(\"$(bname)_$fn\"))\n"
+                    code *= "    len = length(firstmem)\n"
+                    code *= "    columns = (StructArray{ObjectID{$(btype)}}((collect(0:len-1),fill($(collid),len))),\n"
+                    code *= "        firstmem,\n"
+                    first = false
+                else
+                    (ft <: Relation || ft <: ObjectID) && (n_rels += 1)
+                    if fn in snames
+                        if isprimitivetype(ft)
+                            code *= "        getproperty(evt, Symbol(\"$(bname)_$fn\")),\n"
+                        elseif ft <: SVector
+                            N = size(ft)[1]
+                            code *= "        StructArray{$ft}(reshape(getproperty(evt, Symbol(\"$(bname)_$fn[$N]\")), $N, len);dims=1),\n"
+                        elseif ft <: ObjectID  # one-to-one relation
+                            code *= "        StructArray{$ft, Symbol(\"$(bname)#$(n_rels-1)\")}(evt, $(collid), len),\n"
+                        else
+                            code *= "        StructArray{$ft, Symbol(\"$(bname)_$fn\")}(evt, $(collid), len),\n"
+                        end
+                    else
+                        code *= "        zeros($ft, len),\n"
+                    end
+                end
+            end
+            code *= "    )\n"
+            code *= "    return StructArray{$btype}(columns)\n"
+        end
+        code *= "end\n"
+        Meta.parse(code) |> eval
+    end
+end # module RootIO

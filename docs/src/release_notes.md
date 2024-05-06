@@ -1,6 +1,13 @@
 
 # Release Notes
 
+
+## 0.4.0
+### New Functionality
+- Added function `RootIO.create_getter(reader::Reader, bname::String; selection=nothing)` to create a getter function for a specific branch.
+  The optional argument allows to select leaves to be read.
+- The overall performance is highly improved (factor 3 with respect previous version)
+
 ## 0.3.1
 ### Bug Fixes
 - Legacy podio test fixed

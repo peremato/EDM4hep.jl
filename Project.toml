@@ -19,11 +19,11 @@ Accessors = "0.1"
 Corpuscles = "2"
 FHist = "0.10"
 Graphs = "1"
+PrettyTables = "2"
 StaticArrays = "1.9"
 StructArrays = "0.6"
 UnROOT = "0.10"
 YAML = "0.4"
-PrettyTables = "2"
 julia = "1"
 
 [extras]

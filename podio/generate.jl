@@ -226,6 +226,7 @@ function gen_docstring(io, key, dtype)
     println(io,"\"\"\"")
 end
 
+#=
 function gen_structarray(io, key, dtype; podio=17)
     jtype = to_julia(key)
     println(io, "function StructArray{$jtype, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where bname")
@@ -326,6 +327,7 @@ function gen_structarray_rntuple(io, key, dtype)
     println(io, "    return StructArray{$jtype}(columns)")
     println(io, "end\n")
 end
+=#
 
 function build_graph(datatypes)
     types = to_julia.(keys(datatypes))
@@ -340,7 +342,6 @@ function build_graph(datatypes)
     end
     graph
 end
-
 
 #---Components-------------------------------------------------------------------------------------
 io = open(joinpath(@__DIR__, "genComponents.jl"), "w")
@@ -367,6 +368,7 @@ end
 println(io, "export $(join(unique(exports),", "))")
 close(io)
 
+#=
 #---StructArrays--------------------------------------------------------------------------------------
 for v in (16,17)
     local io = open(joinpath(@__DIR__, "genStructArrays-v$(v).jl"), "w")
@@ -381,4 +383,6 @@ datatypes = data["datatypes"]
 for (key,value) in pairs(datatypes)
     gen_structarray_rntuple(io, key, value)
 end
+=#
+
 close(io)

@@ -24,6 +24,7 @@ Base.iterate(v::Vector3d, i=1) = i > 3 ? nothing : (getproperty(v, propertynames
 Base.length(v::Vector3d) = 3
 θ(v::Vector3d) = atan(√(v.x^2+v.y^2), v.z)
 ϕ(v::Vector3d) = atan(v.y, v.x)
+Base.zero(::Type{Vector3d}) = Vector3d()
 
 #---Vector3f
 Base.show(io::IO, v::Vector3f) = print(io, "($(v.x), $(v.y), $(v.z))")
@@ -40,6 +41,7 @@ Base.iterate(v::Vector3f, i=1) = i > 3 ? nothing : (getproperty(v, propertynames
 Base.length(v::Vector3f) = 3
 θ(v::Vector3f) = atan(√(v.x^2+v.y^2), v.z)
 ϕ(v::Vector3f) = atan(v.y, v.x)
+Base.zero(::Type{Vector3f}) = Vector3f()
 
 #---Vector2i
 Base.show(io::IO, v::Vector2i) = print(io, "($(v.a), $(v.b))")
@@ -47,6 +49,7 @@ Base.:+(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a + v2.a, v1.b + v2.b)
 Base.:-(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a - v2.a, v1.b - v2.b)
 Base.:*(v::Vector2i, a::Number) = Vector3d(a*v.a, a*v.b)
 Base.:*(a::Number, v::Vector2i) = v * a
+Base.zero(::Type{Vector2i}) = Vector2i()
 
 #---Vector4f
 Base.show(io::IO, v::Vector4f) = print(io, "($(v.x), $(v.y), $(v.z), $(v.t))")
@@ -60,6 +63,7 @@ function Base.isapprox(v1::Vector4f, v2::Vector4f; atol::Real=0, rtol::Real=Base
     isapprox(v1.z, v2.z; atol=atol, rtol=rtol, nans=nans) &&
     isapprox(v1.t, v2.t; atol=atol, rtol=rtol, nans=nans)
 end
+Base.zero(::Type{Vector4f}) = Vector4f()
 
 #--------------------------------------------------------------------------------------------------
 #---ObjectID{ED}-----------------------------------------------------------------------------------
@@ -145,6 +149,7 @@ Base.getindex(r::Relation{ED,TD,N}, i) where {ED,TD,N} = 0 < i <= (r.last - r.fi
 Base.size(r::Relation) = (r.last-r.first,)
 Base.length(r::Relation) = r.last-r.first
 Base.eltype(::Type{Relation{ED,TD,N}}) where {ED,TD,N} = TD
+Base.zero(::Type{Relation{ED,TD,N}}) where {ED,TD,N} = Relation{ED,TD,N}(0,0,0)
 function relations(::Type{ED}) where ED
     (ft for ft in fieldtypes(ED) if ft <: Relation)
 end
