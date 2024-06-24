@@ -65,6 +65,50 @@ function Base.isapprox(v1::Vector4f, v2::Vector4f; atol::Real=0, rtol::Real=Base
 end
 Base.zero(::Type{Vector4f}) = Vector4f()
 
+#---CovMatrix
+_to_lower_tri(i,j) = i > j ? ((i-1)*i)÷2 + j : ((j-1)*j)÷2 + i
+_show(io, m, T, N) = begin
+    print(io, "$N×$N CovMatrix{$T}[")
+    for i in 1:N
+        for j in 1:i
+            print(io, m[i,j])
+            j < i && print(io, " ")
+        end
+        i < N && print(io, "; ")
+    end
+    print(io, "]")
+end
+
+#---CovMatrix2f
+CovMatrix2f(a,b,c) = CovMatrix2f((a,b,c))   # 3 elements
+Base.show(io::IO, m::CovMatrix2f) = _show(io, m, Float32, 2)
+Base.zero(::Type{CovMatrix2f}) = CovMatrix2f()
+Base.getindex(cov::CovMatrix2f, i::Int) = cov.values[i]
+Base.getindex(cov::CovMatrix2f, i::Int, j::Int) = cov.values[_to_lower_tri(i,j)]
+Base.setindex(cov::CovMatrix2f, v, i::Int) = CovMatrix2f(setindex(cov.values, v, i))
+Base.setindex(cov::CovMatrix2f, v, i::Int, j::Int) = CovMatrix2f(setindex(cov.values, v, _to_lower_tri(i,j)))
+Base.iterate(cov::CovMatrix2f, i=1) = i > 3 ? nothing : (cov[i], i+1)
+
+#---CovMatrix3f
+CovMatrix3f(a,b,c,d,e,f) = CovMatrix3f((a,b,c,d,e,f))   # 6 elements
+Base.show(io::IO, m::CovMatrix3f) = _show(io, m, Float32, 3)
+Base.zero(::Type{CovMatrix3f}) = CovMatrix3f()
+Base.getindex(cov::CovMatrix3f, i::Int) = cov.values[i]
+Base.getindex(cov::CovMatrix3f, i::Int, j::Int) = cov.values[_to_lower_tri(i,j)]
+Base.setindex(cov::CovMatrix3f, v, i::Int) = CovMatrix3f(setindex(cov.values, v, i))
+Base.setindex(cov::CovMatrix3f, v, i::Int, j::Int) = CovMatrix3f(setindex(cov.values, v, _to_lower_tri(i,j)))
+Base.iterate(cov::CovMatrix3f, i=1) = i > 6 ? nothing : (cov[i], i+1)
+
+#---CovMatrix4f
+CovMatrix4f(a,b,c,d,e,f,g,h,i,j) = CovMatrix4f((a,b,c,d,e,f,g,h,i,j))   # 10 elements
+Base.show(io::IO, m::CovMatrix4f) = _show(io, m, Float32, 4)
+Base.zero(::Type{CovMatrix4f}) = CovMatrix4f()
+Base.getindex(cov::CovMatrix4f, i::Int) = cov.values[i]
+Base.getindex(cov::CovMatrix4f, i::Int, j::Int) = cov.values[_to_lower_tri(i,j)]
+Base.setindex(cov::CovMatrix4f, v, i::Int) = CovMatrix4f(setindex(cov.values, v, i))
+Base.setindex(cov::CovMatrix4f, v, i::Int, j::Int) = CovMatrix4f(setindex(cov.values, v, _to_lower_tri(i,j)))
+Base.iterate(cov::CovMatrix4f, i=1) = i > 10 ? nothing : (cov[i], i+1)
+
 #--------------------------------------------------------------------------------------------------
 #---ObjectID{ED}-----------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------

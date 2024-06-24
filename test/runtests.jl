@@ -7,6 +7,7 @@ using EDM4hep
     include("testSimTrackerHit.jl")   # one-to-one relation
     include("testParticleID.jl")      # vector members
     include("testCluster.jl")         # several one-to-many and Vector members
+    include("testCovMatrix.jl")       # CovMatrix utility functions
     #---ROOT I/O----------------------
     include("testRootReader.jl")      # TTree and RNTuple reader
     include("testRootReaderLegacy.jl")# Testing podio version < 0.17

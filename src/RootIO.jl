@@ -35,6 +35,7 @@ module RootIO
         files::Vector{ROOTFile}
         isRNTuple::Bool
         podioversion::VersionNumber
+        schemaversion::VersionNumber
         collectionIDs::Dict{String, UInt32}
         collectionNames::Dict{UInt32, String}
         btypes::Dict{String, Type} 
@@ -58,12 +59,15 @@ module RootIO
                     collectionIDs = Dict(meta.events_collectionNames .=> meta.events___idTable)
                     collectionNames = Dict(meta.events___idTable .=> meta.events_collectionNames)
                     podioversion = VersionNumber(meta.PodioBuildVersion...)
+                    schemaversion = LazyTree(reader.files[1],"podio_metadata",["schemaVersion_events"])[1][1][1] |> VersionNumber
+
                 else
                     isRNTuple = false
                     meta = LazyTree(tfile, "podio_metadata", [Regex("events___idTable/|PodioBuildVersion/(.*)") => s"\1"])[1]
                     collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
                     collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
                     podioversion = VersionNumber(meta.major, meta.minor, meta.patch)
+                    schemaversion = LazyTree(reader.files[1],"podio_metadata",["events___CollectionTypeInfo/events___CollectionTypeInfo._3"])[1][1][1] |> VersionNumber
                 end
             else
                 error("""ROOT file $(reader.filename[i]) does not have a 'podio_metadata' tree. 
@@ -76,9 +80,11 @@ module RootIO
                 reader.collectionIDs = collectionIDs
                 reader.collectionNames = collectionNames
                 reader.podioversion = podioversion
+                reader.schemaversion = schemaversion
             else
                 reader.isRNTuple != isRNTuple && error("File list is not uniform ROOT I/O format (TTree/RNTuple) for file $(reader.filename[i])")
                 reader.podioversion != podioversion && error("File list is not uniform PODIO version. $(reader.podioversion) != $(podioversion) for file $(reader.filename[i])")
+                reader.schemaversion != schemaversion && error("File list is not uniform Schema version. $(reader.schemaversion) != $(schemaversion) for file $(reader.filename[i])")
             end
         end
         if reader.podioversion >= newpodio
@@ -107,6 +113,7 @@ module RootIO
         data1 = [hcat([i == 1 ? "File Name(s)" : "" for i in 1:nfiles], r.filename);
                  "# of events" nevents;
                  "IO Format" r.isRNTuple ? "RNTuple" : "TTree";
+                 "EDM4hep schema" r.schemaversion;
                  "PODIO version" r.podioversion;
                  "ROOT version" VersionNumber(r.files[1].format_version÷10000, r.files[1].format_version%10000÷100, r.files[1].format_version%100)]
         pretty_table(io, data1, header=["Attribute", "Value"], alignment=:l)
