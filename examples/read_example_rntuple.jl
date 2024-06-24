@@ -4,7 +4,7 @@ using EDM4hep.RootIO
 
 cd(@__DIR__)
 
-f = "ttbar_edm4hep_digi_rntuple.root"
+f = "Output_REC_rntuple-rc2.root"
 
 reader = RootIO.Reader(f)
 events = RootIO.get(reader, "events");

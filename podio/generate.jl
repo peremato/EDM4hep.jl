@@ -16,6 +16,8 @@ const fundamental_types = [
     "Csize_t", "Cptrdiff_t"
 ]
 
+const interface_subtypes = Dict{String,String}()
+
 function to_julia(ctype)
     ctype = ctype |> strip 
     #---Primitive type
@@ -37,17 +39,32 @@ end
 
 function split_member(member)
     comment = ""
-    m = match(r"(.*)[ ]*//[ ]*(.*)", member)
+    units = ""
+    # extract comment
+    pos = findfirst("//", member)
+    if !isnothing(pos)
+        comment =  "# " * member[pos[1]+2:end]
+        member = member[1:pos[1]-1] |> strip
+    end
+    # extract units     
+    m = match(r"(.*)[ ]*(\[.*\])", member)
     if !isnothing(m)
-        comment = "# " * m.captures[2]
         member = m.captures[1] |> strip
+        units = m.captures[2]
     end
     sep = findlast(' ', member)
-    member[1:sep-1] |> to_julia, member[sep+1:end], comment
+    member[1:sep-1] |> to_julia, member[sep+1:end], "$comment $units"
 end
 
 data = YAML.load_file(joinpath(@__DIR__, "edm4hep.yaml"))
 io = Base.stdout
+
+function gen_interface(io, key, body)
+    jtype = to_julia(key)
+    gen_docstring(io, key, body)
+    println(io, "abstract type $jtype <: POD")
+    println(io, "end\n")
+end
 
 function gen_component(io, key, body)
     jtype = to_julia(key)
@@ -64,7 +81,7 @@ function gen_component(io, key, body)
         push!(types, t)
     end
     args = join(members, ", ")
-    defs = join(["$m=0" for m in members], ", ")
+    defs = join(["$m=zero($t)" for (m,t) in zip(members,types)], ", ")
     println(io, "    $jtype($(defs)) = new($args)")
     println(io, "end\n")
     # add the converters here
@@ -77,7 +94,11 @@ end
 function gen_datatype(io, key, dtype)
     jtype = to_julia(key)
     gen_docstring(io, key, dtype)
-    println(io, "struct $jtype <: POD")
+    if haskey(interface_subtypes, jtype)
+        println(io, "struct $jtype <: $(interface_subtypes[jtype])")
+    else
+        println(io, "struct $jtype <: POD")
+    end
     vt = gen_member("index", "ObjectID{$jtype}")
     println(io, "    $(vt) # ObjectID of himself")
     println(io, "    #---Data Members")
@@ -329,15 +350,17 @@ function gen_structarray_rntuple(io, key, dtype)
 end
 =#
 
-function build_graph(datatypes)
+function build_graph(datatypes, interfaces=Dict())
     types = to_julia.(keys(datatypes))
+    interfaces = to_julia.(keys(interfaces))
     graph = SimpleDiGraph(length(types))
     for (i,dtype) in enumerate(values(datatypes))
-        for r in [get(dtype,"OneToOneRelations",[]);get(dtype,"OneToManyRelations",[])]
+        for r in [get(dtype,"OneToOneRelations",[]);get(dtype,"OneToManyRelations",[]);get(dtype,"Members",[])]
             t = split_member(r)[1]
             t == "POD" && continue
+            t in interfaces && continue
             d = findfirst(x->x == t, types)
-            i != d && add_edge!(graph, d, i)
+            i != d && !isnothing(d) && add_edge!(graph, d, i)
         end
     end
     graph
@@ -352,12 +375,28 @@ println(io, "schema_version = v\"$schema_version\"\n")
 
 components = data["components"]
 exports = []
-for (key,value) in pairs(components)
-    key == "edm4hep::ObjectID" && continue    # skip ObjectID (need a pametric one)
-    gen_component(io, key, value)
-    push!(exports, to_julia(key)) 
+ctypes = collect(keys(components))
+graph = build_graph(components)
+for i in topological_sort(graph)
+    gen_component(io, ctypes[i], components[ctypes[i]])
+    push!(exports, to_julia(ctypes[i])) 
 end
 println(io, "export $(join(exports,", "))")
+close(io)
+
+#---Interfaces-------------------------------------------------------------------------------------
+
+io = open(joinpath(@__DIR__, "genInterfaces.jl"), "w")
+interfaces = data["interfaces"]
+exports = []
+for (key,body) in pairs(interfaces)
+    gen_interface(io, key, body)
+    push!(exports, to_julia(key))
+    for t in body["Types"]
+        interface_subtypes[to_julia(t)] = to_julia(key)
+    end
+end
+println(io, "export $(join(unique(exports),", "))")
 close(io)
 
 #---Datatypes--------------------------------------------------------------------------------------
@@ -365,7 +404,7 @@ io = open(joinpath(@__DIR__, "genDatatypes.jl"), "w")
 datatypes = data["datatypes"]
 exports = []
 dtypes = collect(keys(datatypes))
-graph = build_graph(datatypes)
+graph = build_graph(datatypes, interfaces)
 for i in topological_sort(graph)
     gen_datatype(io, dtypes[i], datatypes[dtypes[i]])
     push!(exports, to_julia(dtypes[i])) 

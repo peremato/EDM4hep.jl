@@ -5,9 +5,9 @@ module Histograms
 
     export H1D, H2D, H3D
 
-    const Hist1DType = typeof(Hist1D(bins=range(0,1,10)))
-    const Hist2DType = typeof(Hist2D(bins=(range(0,1,10),range(0,1,10))))
-    const Hist3DType = typeof(Hist3D(bins=(range(0,1,10),range(0,1,10),range(0,1,10))))
+    const Hist1DType = typeof(Hist1D(binedges=range(0,1,10)))
+    const Hist2DType = typeof(Hist2D(binedges=(range(0,1,10),range(0,1,10))))
+    const Hist3DType = typeof(Hist3D(binedges=(range(0,1,10),range(0,1,10),range(0,1,10))))
 
     _getvalue(unit::Symbol) = getfield(EDM4hep.SystemOfUnits, unit)
     _getvalue(units::Tuple{Symbol,Symbol}) = (getfield(EDM4hep.SystemOfUnits, units[1]), getfield(EDM4hep.SystemOfUnits, units[2]))

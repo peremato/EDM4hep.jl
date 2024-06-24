@@ -2,57 +2,34 @@
 schema_version = v"1"
 
 """
-HitLevelData
+Vector2f
 # Fields
-- `cellID::UInt64`: cell id
-- `N::UInt32`: number of reconstructed ionization cluster.
-- `eDep::Float32`: reconstructed energy deposit [GeV].
-- `pathLength::Float32`: track path length [mm].
+- `a::Float32`: 
+- `b::Float32`: 
 """
-struct HitLevelData <: POD
-    cellID::UInt64                   # cell id
-    N::UInt32                        # number of reconstructed ionization cluster.
-    eDep::Float32                    # reconstructed energy deposit [GeV].
-    pathLength::Float32              # track path length [mm].
-    HitLevelData(cellID=0, N=0, eDep=0, pathLength=0) = new(cellID, N, eDep, pathLength)
+struct Vector2f <: POD
+    a::Float32                        
+    b::Float32                        
+    Vector2f(a=zero(Float32), b=zero(Float32)) = new(a, b)
 end
 
-Base.convert(::Type{HitLevelData}, t::Tuple) = HitLevelData(t...)
-Base.convert(::Type{HitLevelData}, v::@NamedTuple{cellID::UInt64, N::UInt32, eDep::Float32, pathLength::Float32}) = HitLevelData(v.cellID, v.N, v.eDep, v.pathLength)
+Base.convert(::Type{Vector2f}, t::Tuple) = Vector2f(t...)
+Base.convert(::Type{Vector2f}, v::@NamedTuple{a::Float32, b::Float32}) = Vector2f(v.a, v.b)
 
 """
-Vector3d
+Vector2i
 # Fields
-- `x::Float64`: 
-- `y::Float64`: 
-- `z::Float64`: 
+- `a::Int32`: 
+- `b::Int32`: 
 """
-struct Vector3d <: POD
-    x::Float64                       
-    y::Float64                       
-    z::Float64                       
-    Vector3d(x=0, y=0, z=0) = new(x, y, z)
+struct Vector2i <: POD
+    a::Int32                          
+    b::Int32                          
+    Vector2i(a=zero(Int32), b=zero(Int32)) = new(a, b)
 end
 
-Base.convert(::Type{Vector3d}, t::Tuple) = Vector3d(t...)
-Base.convert(::Type{Vector3d}, v::@NamedTuple{x::Float64, y::Float64, z::Float64}) = Vector3d(v.x, v.y, v.z)
-
-"""
-Quantity
-# Fields
-- `type::Int16`: flag identifying how to interpret the quantity
-- `value::Float32`: value of the quantity
-- `error::Float32`: error on the value of the quantity
-"""
-struct Quantity <: POD
-    type::Int16                      # flag identifying how to interpret the quantity
-    value::Float32                   # value of the quantity
-    error::Float32                   # error on the value of the quantity
-    Quantity(type=0, value=0, error=0) = new(type, value, error)
-end
-
-Base.convert(::Type{Quantity}, t::Tuple) = Quantity(t...)
-Base.convert(::Type{Quantity}, v::@NamedTuple{type::Int16, value::Float32, error::Float32}) = Quantity(v.type, v.value, v.error)
+Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)
+Base.convert(::Type{Vector2i}, v::@NamedTuple{a::Int32, b::Int32}) = Vector2i(v.a, v.b)
 
 """
 Vector3f
@@ -62,75 +39,63 @@ Vector3f
 - `z::Float32`: 
 """
 struct Vector3f <: POD
-    x::Float32                       
-    y::Float32                       
-    z::Float32                       
-    Vector3f(x=0, y=0, z=0) = new(x, y, z)
+    x::Float32                        
+    y::Float32                        
+    z::Float32                        
+    Vector3f(x=zero(Float32), y=zero(Float32), z=zero(Float32)) = new(x, y, z)
 end
 
 Base.convert(::Type{Vector3f}, t::Tuple) = Vector3f(t...)
 Base.convert(::Type{Vector3f}, v::@NamedTuple{x::Float32, y::Float32, z::Float32}) = Vector3f(v.x, v.y, v.z)
 
 """
-TrackState
+HitLevelData
 # Fields
-- `location::Int32`: for use with At{Other|IP|FirstHit|LastHit|Calorimeter|Vertex}|LastLocation
-- `D0::Float32`: transverse impact parameter
-- `phi::Float32`: azimuthal angle
-- `omega::Float32`: is the signed curvature of the track in [1/mm].
-- `Z0::Float32`: longitudinal impact parameter
-- `tanLambda::Float32`: lambda is the dip angle of the track in r-z
-- `time::Float32`: time of the track at this trackstate
-- `referencePoint::Vector3f`: Reference point of the track parameters, e.g. the origin at the IP, or the position  of the first/last hits or the entry point into the calorimeter. [mm]
-- `covMatrix::SVector{21,Float32}`: lower triangular covariance matrix of the track parameters.  the order of parameters is  d0, phi, omega, z0, tan(lambda), time. the array is a row-major flattening of the matrix.
+- `cellID::UInt64`:  cell id 
+- `N::UInt32`:  number of reconstructed ionization cluster 
+- `eDep::Float32`:  reconstructed energy deposit [GeV]
+- `pathLength::Float32`:  track path length [mm]
 """
-struct TrackState <: POD
-    location::Int32                  # for use with At{Other|IP|FirstHit|LastHit|Calorimeter|Vertex}|LastLocation
-    D0::Float32                      # transverse impact parameter
-    phi::Float32                     # azimuthal angle
-    omega::Float32                   # is the signed curvature of the track in [1/mm].
-    Z0::Float32                      # longitudinal impact parameter
-    tanLambda::Float32               # lambda is the dip angle of the track in r-z
-    time::Float32                    # time of the track at this trackstate
-    referencePoint::Vector3f         # Reference point of the track parameters, e.g. the origin at the IP, or the position  of the first/last hits or the entry point into the calorimeter. [mm]
-    covMatrix::SVector{21,Float32}   # lower triangular covariance matrix of the track parameters.  the order of parameters is  d0, phi, omega, z0, tan(lambda), time. the array is a row-major flattening of the matrix.
-    TrackState(location=0, D0=0, phi=0, omega=0, Z0=0, tanLambda=0, time=0, referencePoint=0, covMatrix=0) = new(location, D0, phi, omega, Z0, tanLambda, time, referencePoint, covMatrix)
+struct HitLevelData <: POD
+    cellID::UInt64                   #  cell id 
+    N::UInt32                        #  number of reconstructed ionization cluster 
+    eDep::Float32                    #  reconstructed energy deposit [GeV]
+    pathLength::Float32              #  track path length [mm]
+    HitLevelData(cellID=zero(UInt64), N=zero(UInt32), eDep=zero(Float32), pathLength=zero(Float32)) = new(cellID, N, eDep, pathLength)
 end
 
-Base.convert(::Type{TrackState}, t::Tuple) = TrackState(t...)
-Base.convert(::Type{TrackState}, v::@NamedTuple{location::Int32, D0::Float32, phi::Float32, omega::Float32, Z0::Float32, tanLambda::Float32, time::Float32, referencePoint::Vector3f, covMatrix::SVector{21,Float32}}) = TrackState(v.location, v.D0, v.phi, v.omega, v.Z0, v.tanLambda, v.time, v.referencePoint, v.covMatrix)
+Base.convert(::Type{HitLevelData}, t::Tuple) = HitLevelData(t...)
+Base.convert(::Type{HitLevelData}, v::@NamedTuple{cellID::UInt64, N::UInt32, eDep::Float32, pathLength::Float32}) = HitLevelData(v.cellID, v.N, v.eDep, v.pathLength)
 
 """
-Hypothesis
+Quantity
 # Fields
-- `chi2::Float32`: chi2
-- `expected::Float32`: expected value
-- `sigma::Float32`: sigma value
+- `type::Int16`:  flag identifying how to interpret the quantity 
+- `value::Float32`:  value of the quantity 
+- `error::Float32`:  error on the value of the quantity 
 """
-struct Hypothesis <: POD
-    chi2::Float32                    # chi2
-    expected::Float32                # expected value
-    sigma::Float32                   # sigma value
-    Hypothesis(chi2=0, expected=0, sigma=0) = new(chi2, expected, sigma)
+struct Quantity <: POD
+    type::Int16                      #  flag identifying how to interpret the quantity 
+    value::Float32                   #  value of the quantity 
+    error::Float32                   #  error on the value of the quantity 
+    Quantity(type=zero(Int16), value=zero(Float32), error=zero(Float32)) = new(type, value, error)
 end
 
-Base.convert(::Type{Hypothesis}, t::Tuple) = Hypothesis(t...)
-Base.convert(::Type{Hypothesis}, v::@NamedTuple{chi2::Float32, expected::Float32, sigma::Float32}) = Hypothesis(v.chi2, v.expected, v.sigma)
+Base.convert(::Type{Quantity}, t::Tuple) = Quantity(t...)
+Base.convert(::Type{Quantity}, v::@NamedTuple{type::Int16, value::Float32, error::Float32}) = Quantity(v.type, v.value, v.error)
 
 """
-Vector2i
+A generic 4 dimensional covariance matrix with values stored in lower triangular form
 # Fields
-- `a::Int32`: 
-- `b::Int32`: 
+- `values::SVector{10,Float32}`:  the covariance matrix values 
 """
-struct Vector2i <: POD
-    a::Int32                         
-    b::Int32                         
-    Vector2i(a=0, b=0) = new(a, b)
+struct CovMatrix4f <: POD
+    values::SVector{10,Float32}      #  the covariance matrix values 
+    CovMatrix4f(values=zero(SVector{10,Float32})) = new(values)
 end
 
-Base.convert(::Type{Vector2i}, t::Tuple) = Vector2i(t...)
-Base.convert(::Type{Vector2i}, v::@NamedTuple{a::Int32, b::Int32}) = Vector2i(v.a, v.b)
+Base.convert(::Type{CovMatrix4f}, t::Tuple) = CovMatrix4f(t...)
+Base.convert(::Type{CovMatrix4f}, v::@NamedTuple{values::SVector{10,Float32}}) = CovMatrix4f(v.values)
 
 """
 Generic vector for storing classical 4D coordinates in memory. Four momentum helper functions are in edm4hep::utils
@@ -141,29 +106,116 @@ Generic vector for storing classical 4D coordinates in memory. Four momentum hel
 - `t::Float32`: 
 """
 struct Vector4f <: POD
-    x::Float32                       
-    y::Float32                       
-    z::Float32                       
-    t::Float32                       
-    Vector4f(x=0, y=0, z=0, t=0) = new(x, y, z, t)
+    x::Float32                        
+    y::Float32                        
+    z::Float32                        
+    t::Float32                        
+    Vector4f(x=zero(Float32), y=zero(Float32), z=zero(Float32), t=zero(Float32)) = new(x, y, z, t)
 end
 
 Base.convert(::Type{Vector4f}, t::Tuple) = Vector4f(t...)
 Base.convert(::Type{Vector4f}, v::@NamedTuple{x::Float32, y::Float32, z::Float32, t::Float32}) = Vector4f(v.x, v.y, v.z, v.t)
 
 """
-Vector2f
+Vector3d
 # Fields
-- `a::Float32`: 
-- `b::Float32`: 
+- `x::Float64`: 
+- `y::Float64`: 
+- `z::Float64`: 
 """
-struct Vector2f <: POD
-    a::Float32                       
-    b::Float32                       
-    Vector2f(a=0, b=0) = new(a, b)
+struct Vector3d <: POD
+    x::Float64                        
+    y::Float64                        
+    z::Float64                        
+    Vector3d(x=zero(Float64), y=zero(Float64), z=zero(Float64)) = new(x, y, z)
 end
 
-Base.convert(::Type{Vector2f}, t::Tuple) = Vector2f(t...)
-Base.convert(::Type{Vector2f}, v::@NamedTuple{a::Float32, b::Float32}) = Vector2f(v.a, v.b)
+Base.convert(::Type{Vector3d}, t::Tuple) = Vector3d(t...)
+Base.convert(::Type{Vector3d}, v::@NamedTuple{x::Float64, y::Float64, z::Float64}) = Vector3d(v.x, v.y, v.z)
 
-export HitLevelData, Vector3d, Quantity, Vector3f, TrackState, Hypothesis, Vector2i, Vector4f, Vector2f
+"""
+A generic 6 dimensional covariance matrix with values stored in lower triangular form
+# Fields
+- `values::SVector{21,Float32}`:  the covariance matrix values 
+"""
+struct CovMatrix6f <: POD
+    values::SVector{21,Float32}      #  the covariance matrix values 
+    CovMatrix6f(values=zero(SVector{21,Float32})) = new(values)
+end
+
+Base.convert(::Type{CovMatrix6f}, t::Tuple) = CovMatrix6f(t...)
+Base.convert(::Type{CovMatrix6f}, v::@NamedTuple{values::SVector{21,Float32}}) = CovMatrix6f(v.values)
+
+"""
+TrackState
+# Fields
+- `location::Int32`:  for use with At{Other|IP|FirstHit|LastHit|Calorimeter|Vertex}|LastLocation 
+- `D0::Float32`:  transverse impact parameter 
+- `phi::Float32`:  azimuthal angle 
+- `omega::Float32`:  is the signed curvature of the track [1/mm]
+- `Z0::Float32`:  longitudinal impact parameter 
+- `tanLambda::Float32`:  lambda is the dip angle of the track in r-z 
+- `time::Float32`:  time of the track at this trackstate [ns]
+- `referencePoint::Vector3f`:  Reference point of the track parameters, e.g. the origin at the IP, or the position  of the first/last hits or the entry point into the calorimeter [mm]
+- `covMatrix::CovMatrix6f`:  covariance matrix of the track parameters. 
+"""
+struct TrackState <: POD
+    location::Int32                  #  for use with At{Other|IP|FirstHit|LastHit|Calorimeter|Vertex}|LastLocation 
+    D0::Float32                      #  transverse impact parameter 
+    phi::Float32                     #  azimuthal angle 
+    omega::Float32                   #  is the signed curvature of the track [1/mm]
+    Z0::Float32                      #  longitudinal impact parameter 
+    tanLambda::Float32               #  lambda is the dip angle of the track in r-z 
+    time::Float32                    #  time of the track at this trackstate [ns]
+    referencePoint::Vector3f         #  Reference point of the track parameters, e.g. the origin at the IP, or the position  of the first/last hits or the entry point into the calorimeter [mm]
+    covMatrix::CovMatrix6f           #  covariance matrix of the track parameters. 
+    TrackState(location=zero(Int32), D0=zero(Float32), phi=zero(Float32), omega=zero(Float32), Z0=zero(Float32), tanLambda=zero(Float32), time=zero(Float32), referencePoint=zero(Vector3f), covMatrix=zero(CovMatrix6f)) = new(location, D0, phi, omega, Z0, tanLambda, time, referencePoint, covMatrix)
+end
+
+Base.convert(::Type{TrackState}, t::Tuple) = TrackState(t...)
+Base.convert(::Type{TrackState}, v::@NamedTuple{location::Int32, D0::Float32, phi::Float32, omega::Float32, Z0::Float32, tanLambda::Float32, time::Float32, referencePoint::Vector3f, covMatrix::CovMatrix6f}) = TrackState(v.location, v.D0, v.phi, v.omega, v.Z0, v.tanLambda, v.time, v.referencePoint, v.covMatrix)
+
+"""
+Hypothesis
+# Fields
+- `chi2::Float32`:  chi2 
+- `expected::Float32`:  expected value 
+- `sigma::Float32`:  sigma value 
+"""
+struct Hypothesis <: POD
+    chi2::Float32                    #  chi2 
+    expected::Float32                #  expected value 
+    sigma::Float32                   #  sigma value 
+    Hypothesis(chi2=zero(Float32), expected=zero(Float32), sigma=zero(Float32)) = new(chi2, expected, sigma)
+end
+
+Base.convert(::Type{Hypothesis}, t::Tuple) = Hypothesis(t...)
+Base.convert(::Type{Hypothesis}, v::@NamedTuple{chi2::Float32, expected::Float32, sigma::Float32}) = Hypothesis(v.chi2, v.expected, v.sigma)
+
+"""
+A generic 2 dimensional covariance matrix with values stored in lower triangular form
+# Fields
+- `values::SVector{3,Float32}`:  the covariance matrix values 
+"""
+struct CovMatrix2f <: POD
+    values::SVector{3,Float32}       #  the covariance matrix values 
+    CovMatrix2f(values=zero(SVector{3,Float32})) = new(values)
+end
+
+Base.convert(::Type{CovMatrix2f}, t::Tuple) = CovMatrix2f(t...)
+Base.convert(::Type{CovMatrix2f}, v::@NamedTuple{values::SVector{3,Float32}}) = CovMatrix2f(v.values)
+
+"""
+A generic 3 dimensional covariance matrix with values stored in lower triangular form
+# Fields
+- `values::SVector{6,Float32}`:  the covariance matrix values 
+"""
+struct CovMatrix3f <: POD
+    values::SVector{6,Float32}       #  the covariance matrix values 
+    CovMatrix3f(values=zero(SVector{6,Float32})) = new(values)
+end
+
+Base.convert(::Type{CovMatrix3f}, t::Tuple) = CovMatrix3f(t...)
+Base.convert(::Type{CovMatrix3f}, v::@NamedTuple{values::SVector{6,Float32}}) = CovMatrix3f(v.values)
+
+export Vector2f, Vector2i, Vector3f, HitLevelData, Quantity, CovMatrix4f, Vector4f, Vector3d, CovMatrix6f, TrackState, Hypothesis, CovMatrix2f, CovMatrix3f
