@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 options:
   getSyntax: True
   exposePODMembers: False
@@ -129,7 +129,9 @@ components:
         declaration: "
           constexpr CovMatrix2f() = default;\n
           template<typename... Vs>\n
-          constexpr CovMatrix2f(Vs... v) : values{v...} {}\n
+          constexpr CovMatrix2f(Vs... v) : values{static_cast<float>(v)...} {
+            static_assert(sizeof...(v) == 3, \"CovMatrix2f requires 3 values\");
+          }\n
           constexpr CovMatrix2f(const std::array<float, 3>& v) : values(v) {}\n
           constexpr CovMatrix2f& operator=(std::array<float, 3>& v) { values = v; return *this; }\n
           bool operator==(const CovMatrix2f& v) const { return v.values == values; }\n
@@ -148,7 +150,9 @@ components:
           constexpr CovMatrix3f() = default;\n
           constexpr CovMatrix3f(const std::array<float, 6>& v) : values(v) {}\n
           template<typename... Vs>\n
-          constexpr CovMatrix3f(Vs... v) : values{v...} {}\n
+          constexpr CovMatrix3f(Vs... v) : values{static_cast<float>(v)...} {
+            static_assert(sizeof...(v) == 6, \"CovMatrix3f requires 6 values\");
+          }\n
           constexpr CovMatrix3f& operator=(std::array<float, 6>& v) { values = v; return *this; }\n
           bool operator==(const CovMatrix3f& v) const { return v.values == values; }\n
           bool operator!=(const CovMatrix3f& v) const { return v.values != values; }\n
@@ -164,7 +168,9 @@ components:
         declaration: "
           constexpr CovMatrix4f() = default;\n
           template<typename... Vs>\n
-          constexpr CovMatrix4f(Vs... v) : values{v...} {}\n
+          constexpr CovMatrix4f(Vs... v) : values{static_cast<float>(v)...} {
+            static_assert(sizeof...(v) == 10, \"CovMatrix4f requires 10 values\");
+          }\n
           constexpr CovMatrix4f(const std::array<float, 10>& v) : values(v) {}\n
           constexpr CovMatrix4f& operator=(std::array<float, 10>& v) { values = v; return *this; }\n
           bool operator==(const CovMatrix4f& v) const { return v.values == values; }\n
@@ -182,7 +188,9 @@ components:
         declaration: "
           constexpr CovMatrix6f() = default;\n
           template<typename... Vs>\n
-          constexpr CovMatrix6f(Vs... v) : values{v...} {}\n
+          constexpr CovMatrix6f(Vs... v) : values{static_cast<float>(v)...} {
+            static_assert(sizeof...(v) == 21, \"CovMatrix6f requires 21 values\");
+          }\n
           constexpr CovMatrix6f(const std::array<float, 21>& v) : values(v) {}\n
           constexpr CovMatrix6f& operator=(std::array<float, 21>& v) { values = v; return *this; }\n
           bool operator==(const CovMatrix6f& v) const { return v.values == values; }\n
@@ -227,22 +235,6 @@ components:
         - float value  // value of the quantity
         - float error  // error on the value of the quantity
 
-
-    # Hypothesis for 5 particle types
-    edm4hep::Hypothesis:
-      Members:
-        - float chi2       // chi2
-        - float expected   // expected value
-        - float sigma      // sigma value
-
-    # Reconstructed hit information
-    edm4hep::HitLevelData:
-      Members:
-        - uint64_t cellID  // cell id
-        - uint32_t N       // number of reconstructed ionization cluster
-        - float eDep [GeV]      // reconstructed energy deposit
-        - float pathLength [mm] // track path length
-
 datatypes:
 
 
@@ -280,18 +272,18 @@ datatypes:
     MutableExtraCode:
       includes: "#include <cmath>"
       declaration: "
-      int32_t  set_bit(int32_t val, int num, bool bitval){ return (val & ~(1<<num)) | (bitval << num); }                               \n
-      void setCreatedInSimulation(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITCreatedInSimulation , bitval ) ) ;  }  		     \n
-      void setBackscatter(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITBackscatter , bitval ) ) ;   }  			     \n
-      void setVertexIsNotEndpointOfParent(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITVertexIsNotEndpointOfParent , bitval ) ) ; } \n
-      void setDecayedInTracker(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITDecayedInTracker , bitval ) ) ;   }  		     \n
-      void setDecayedInCalorimeter(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITDecayedInCalorimeter , bitval ) ) ;   }  		     \n
-      void setHasLeftDetector(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITLeftDetector , bitval ) ) ;   }  			     \n
-      void setStopped(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITStopped , bitval ) ) ;   }  				     \n
-      void setOverlay(bool bitval) { setSimulatorStatus( set_bit( getSimulatorStatus() , BITOverlay , bitval ) ) ;   }         \n
+      void setCreatedInSimulation(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITCreatedInSimulation , bitval ) ) ;  }  		     \n
+      void setBackscatter(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITBackscatter , bitval ) ) ;   }  			     \n
+      void setVertexIsNotEndpointOfParent(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITVertexIsNotEndpointOfParent , bitval ) ) ; } \n
+      void setDecayedInTracker(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITDecayedInTracker , bitval ) ) ;   }  		     \n
+      void setDecayedInCalorimeter(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITDecayedInCalorimeter , bitval ) ) ;   }  		     \n
+      void setHasLeftDetector(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITLeftDetector , bitval ) ) ;   }  			     \n
+      void setStopped(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITStopped , bitval ) ) ;   }  				     \n
+      void setOverlay(bool bitval) { setSimulatorStatus( utils::setBit( getSimulatorStatus() , BITOverlay , bitval ) ) ;   }         \n
       "
 
     ExtraCode:
+      includes: "#include <edm4hep/utils/bit_utils.h>\n"
       declaration: "
       // define the bit positions for the simulation flag\n
       static const int BITCreatedInSimulation = 30;\n
@@ -307,21 +299,21 @@ datatypes:
                                         getMomentum()[2]*getMomentum()[2] + getMass()*getMass()  )  ;} \n
 
       /// True if the particle has been created by the simulation program (rather than the generator).     \n
-      bool isCreatedInSimulation() const { return ( getSimulatorStatus() & ( 0x1 << BITCreatedInSimulation ))  ; }    \n
+      bool isCreatedInSimulation() const { return utils::checkBit(getSimulatorStatus(), BITCreatedInSimulation); }    \n
       /// True if the particle is the result of a backscatter from a calorimeter shower. \n
-      bool isBackscatter() const { return ( getSimulatorStatus() & ( 0x1 << BITBackscatter )) ; }   \n
+      bool isBackscatter() const { return utils::checkBit(getSimulatorStatus(), BITBackscatter); }   \n
       /// True if the particle's vertex is not the endpoint of the  parent particle.     \n
-      bool vertexIsNotEndpointOfParent() const { return ( getSimulatorStatus() & ( 0x1 << BITVertexIsNotEndpointOfParent )) ; } \n
+      bool vertexIsNotEndpointOfParent() const { return utils::checkBit(getSimulatorStatus(), BITVertexIsNotEndpointOfParent); } \n
       /// True if the particle has interacted in a tracking region.                \n
-      bool isDecayedInTracker() const { return ( getSimulatorStatus() & ( 0x1 << BITDecayedInTracker )) ; }     \n
+      bool isDecayedInTracker() const { return utils::checkBit(getSimulatorStatus(), BITDecayedInTracker); }     \n
       /// True if the particle has interacted in a calorimeter region.             \n
-      bool isDecayedInCalorimeter() const { return ( getSimulatorStatus() & ( 0x1 << BITDecayedInCalorimeter )) ; }   \n
+      bool isDecayedInCalorimeter() const { return utils::checkBit(getSimulatorStatus(), BITDecayedInCalorimeter); }   \n
       /// True if the particle has left the world volume undecayed.                \n
-      bool hasLeftDetector() const { return ( getSimulatorStatus() & ( 0x1 << BITLeftDetector )) ; }\n
+      bool hasLeftDetector() const { return utils::checkBit(getSimulatorStatus(), BITLeftDetector); }\n
       /// True if the particle has been stopped by the simulation program.         \n
-      bool isStopped() const { return ( getSimulatorStatus() & ( 0x1 << BITStopped )) ; }     \n
+      bool isStopped() const { return utils::checkBit(getSimulatorStatus(), BITStopped); }     \n
       /// True if the particle has been overlayed by the simulation (or digitization)  program.\n
-      bool isOverlay() const { return ( getSimulatorStatus() & ( 0x1 << BITOverlay )) ; }     \n
+      bool isOverlay() const { return utils::checkBit(getSimulatorStatus(), BITOverlay); }     \n
       "
 
 
@@ -432,7 +424,7 @@ datatypes:
     Description: "Calorimeter Hit Cluster"
     Author: "EDM4hep authors"
     Members:
-      - int32_t                  type            // flagword that defines the type of cluster. Bits 16-31 are used internally
+      - int32_t                  type            // flagword that defines the type of cluster
       - float                energy [GeV]        // energy of the cluster
       - float                energyError [GeV]   // error on the energy
       - edm4hep::Vector3f    position [mm]       // position of the cluster
@@ -528,21 +520,20 @@ datatypes:
     VectorMembers:
        - int32_t adcCounts          // raw data (32-bit) word at i
 
+
  #-------- Track
   edm4hep::Track:
     Description: "Reconstructed track"
     Author: "EDM4hep authors"
     Members:
-      - int32_t type                         // flagword that defines the type of track.Bits 16-31 are used internally
+      - int32_t type                         // flagword that defines the type of track
       - float chi2                       // Chi^2 of the track fit
       - int32_t ndf                          // number of degrees of freedom of the track fit
-      - float dEdx                       // dEdx of the track
-      - float dEdxError                  // error of dEdx
-      - float radiusOfInnermostHit       // radius of the innermost hit that has been used in the track fit
+      - int32_t Nholes                   // number of holes on track
     VectorMembers:
       - int32_t subdetectorHitNumbers        // number of hits in particular subdetectors
+      - int32_t subdetectorHoleNumbers       // number of holes in particular subdetectors
       - edm4hep::TrackState trackStates  // track states
-      - edm4hep::Quantity dxQuantities // different measurements of dx quantities
     OneToManyRelations:
       - edm4hep::TrackerHit trackerHits  // hits that have been used to create this track
       - edm4hep::Track tracks            // tracks (segments) that have been combined to create this track
@@ -552,28 +543,46 @@ datatypes:
     Description: "Vertex"
     Author: "EDM4hep authors"
     Members:
-      - int32_t                 primary       // boolean flag, if vertex is the primary vertex of the event
+      - uint32_t            type          // Flagword that defines the type of the vertex, see reserved bits for more information
       - float               chi2          // chi-squared of the vertex fit
-      - float               probability   // probability of the vertex fit
+      - int32_t             ndf           // number of degrees of freedom of the vertex fit
       - edm4hep::Vector3f   position      // [mm] position of the vertex
       - edm4hep::CovMatrix3f covMatrix // covariance matrix of the position
       - int32_t                 algorithmType // type code for the algorithm that has been used to create the vertex
     VectorMembers:
       - float               parameters    // additional parameters related to this vertex
-    OneToOneRelations:
-    #  - edm4hep::ReconstructedParticle associatedParticle // reconstructed particle associated to this vertex    
-      - edm4hep::POD associatedParticle // reconstructed particle associated to this vertex    
+    OneToManyRelations:
+    #  - edm4hep::ReconstructedParticle particles // particles that have been used to form this vertex, aka the decay particles emerging from this vertex
+      - edm4hep::POD particles // particles that have been used to form this vertex, aka the decay particles emerging from this vertex
     ExtraCode:
-      includes: "#include <edm4hep/Constants.h>"
+      includes: "#include <edm4hep/Constants.h>\n
+                 #include <edm4hep/utils/bit_utils.h>\n"
       declaration: "
       /// Get the position covariance matrix value for the two passed dimensions\n
       float getCovMatrix(edm4hep::Cartesian dimI, edm4hep::Cartesian dimJ) const { return getCovMatrix().getValue(dimI, dimJ); }\n
+      // Reserved bits for the type flagword\n
+      static constexpr int BITPrimaryVertex = 1;\n
+      static constexpr int BITSecondaryVertex = 2;\n
+      static constexpr int BITTertiaryVertex = 2;\n
+
+      /// Check if this is a primary vertex\n
+      bool isPrimary() const { return utils::checkBit(getType(), BITPrimaryVertex); }\n
+      /// Check if this is a secondary vertex\n
+      bool isSecondary() const { return utils::checkBit(getType(), BITSecondaryVertex); }\n
+      /// Check if this is a tertiary vertex\n
+      bool isTertiary() const { return utils::checkBit(getType(), BITTertiaryVertex); }\n
       "
     MutableExtraCode:
-      includes: "#include <edm4hep/Constants.h>"
       declaration: "
       /// Set the position covariance matrix value for the two passed dimensions\n
       void setCovMatrix(float value, edm4hep::Cartesian dimI, edm4hep::Cartesian dimJ) { getCovMatrix().setValue(value, dimI, dimJ); }\n
+
+      /// Set the primary vertex flag for this vertex\n
+      void setPrimary(bool value=true) { setType(utils::setBit(getType(), BITPrimaryVertex, value)); }\n
+      /// Set the secondary vertex flag for this vertex\n
+      void setSecondary(bool value=true) { setType(utils::setBit(getType(), BITSecondaryVertex, value)); }\n
+      /// Set the tertiary vertex flag for this vertex\n
+      void setTertiary(bool value=true) { setType(utils::setBit(getType(), BITTertiaryVertex, value)); }\n
       "
 
   #------- ReconstructedParticle
@@ -590,7 +599,7 @@ datatypes:
       - float                  goodnessOfPID  // overall goodness of the PID on a scale of [0;1]
       - edm4hep::CovMatrix4f   covMatrix      // covariance matrix of the reconstructed particle 4vector
     OneToOneRelations:
-      - edm4hep::Vertex          startVertex    // start vertex associated to this particle
+      - edm4hep::Vertex          decayVertex    // decay vertex for the particle (if it is a composite particle)
     OneToManyRelations:
       - edm4hep::Cluster               clusters     // clusters that have been used for this particle
       - edm4hep::Track                 tracks       // tracks that have been used for this particle
@@ -615,148 +624,195 @@ datatypes:
       void setCovMatrix(float value, edm4hep::FourMomCoords dimI, edm4hep::FourMomCoords dimJ) { getCovMatrix().setValue(value, dimI, dimJ); }\n
       "
 
-  edm4hep::MCRecoParticleAssociation:
-    Description: "Association between a ReconstructedParticle and the corresponding MCParticle"
+  edm4hep::RecoMCParticleLink:
+    Description: "Link between a ReconstructedParticle and the corresponding MCParticle"
     Author: "EDM4hep authors"
     Members:
-      - float weight                        // weight of this association
+      - float weight                        // weight of this link
     OneToOneRelations:
-     - edm4hep::ReconstructedParticle  rec  // reference to the reconstructed particle
-     - edm4hep::MCParticle sim              // reference to the Monte-Carlo particle
-
-  edm4hep::MCRecoCaloAssociation:
-    Description: "Association between a CalorimeterHit and the corresponding SimCalorimeterHit"
-    Author: "EDM4hep authors"
-    Members:
-      - float weight                    // weight of this association
-    OneToOneRelations:
-     - edm4hep::CalorimeterHit rec     // reference to the reconstructed hit
-     - edm4hep::SimCalorimeterHit sim  // reference to the simulated hit
-
-  edm4hep::MCRecoTrackerAssociation:
-    Description: "Association between a TrackerHit and the corresponding SimTrackerHit"
-    Author: "EDM4hep authors"
-    Members:
-      - float weight              // weight of this association
-    OneToOneRelations:
-     - edm4hep::TrackerHit rec    // reference to the reconstructed hit
-     - edm4hep::SimTrackerHit sim // reference to the simulated hit
-
-  edm4hep::MCRecoTrackerHitPlaneAssociation:
-    Description: "Association between a TrackerHitPlane and the corresponding SimTrackerHit"
-    Author: "EDM4hep authors"
-    Members:
-      - float weight                // weight of this association
-    OneToOneRelations:
-     - edm4hep::TrackerHitPlane rec // reference to the reconstructed hit
-     - edm4hep::SimTrackerHit sim   // reference to the simulated hit
-
-  edm4hep::MCRecoCaloParticleAssociation:
-    Description: "Association between a CalorimeterHit and the corresponding MCParticle"
-    Author: "EDM4hep authors"
-    Members:
-      - float weight                // weight of this association
-    OneToOneRelations:
-     - edm4hep::CalorimeterHit rec  // reference to the reconstructed hit
-     - edm4hep::MCParticle sim      // reference to the Monte-Carlo particle
-
-  edm4hep::MCRecoClusterParticleAssociation:
-    Description: "Association between a Cluster and the corresponding MCParticle"
-    Author: "EDM4hep authors"
-    Members:
-      - float weight                // weight of this association
-    OneToOneRelations:
-     - edm4hep::Cluster rec         // reference to the cluster
-     - edm4hep::MCParticle sim      // reference to the Monte-Carlo particle
-
-  edm4hep::MCRecoTrackParticleAssociation:
-    Description: "Association between a Track and the corresponding MCParticle"
-    Author: "EDM4hep authors"
-    Members:
-      - float weight                // weight of this association
-    OneToOneRelations:
-     - edm4hep::Track   rec         // reference to the track
-     - edm4hep::MCParticle sim      // reference to the Monte-Carlo particle
-
-  edm4hep::RecoParticleVertexAssociation:
-    Description: "Association between a ReconstructedParticle and a Vertex"
-    Author: "EDM4hep authors"
-    Members:
-      - float weight                      // weight of this association
-    OneToOneRelations:
-     - edm4hep::ReconstructedParticle rec // reference to the reconstructed particle
-     - edm4hep::Vertex vertex             // reference to the vertex
-
-
-  #----------- SimPrimaryIonizationCluster
-  edm4hep::SimPrimaryIonizationCluster:
-    Description: "Simulated Primary Ionization"
-    Author: "EDM4hep authors"
-    Members:
-      - uint64_t cellID                      // cell id
-      - float time [ns]                      // the primary ionization's time in the lab frame
-      - edm4hep::Vector3d position [mm]      // the primary ionization's position
-      - int16_t type                         // type
-    VectorMembers:
-       - uint64_t electronCellID             // cell id
-       - float electronTime [ns]             // the time in the lab frame
-       - edm4hep::Vector3d electronPosition [mm]  // the position in the lab frame
-       - float pulseTime [ns]                // the pulse's time in the lab frame
-       - float pulseAmplitude [fC]           // the pulse's amplitude
-    OneToOneRelations:
-      - edm4hep::MCParticle particle       // the particle that caused the ionizing collisions
-    MutableExtraCode:
-      includes: "
-      #include <cmath>\n
-      #include <edm4hep/MCParticle.h>\n
-      "
-      declaration: "
-      [[deprecated(\"use setParticle instead\")]]\n
-      void setMCParticle(edm4hep::MCParticle particle) { setParticle(std::move(particle)); }\n
-      "
-
+     - edm4hep::ReconstructedParticle  from  // reference to the reconstructed particle
+     - edm4hep::MCParticle to              // reference to the Monte-Carlo particle
     ExtraCode:
-      includes: "#include <edm4hep/MCParticle.h>\n"
       declaration: "
-      [[deprecated(\"use getParticle instead\")]]
-      edm4hep::MCParticle getMCParticle() const { return getParticle(); }\n
-      "
-
- #----------  TrackerPulse
-  edm4hep::TrackerPulse:
-    Description: "Reconstructed Tracker Pulse"
-    Author: "EDM4hep authors"
-    Members:
-       - uint64_t cellID                 // cell id
-       - float time [ns]                 // time
-       - float charge [fC]               // charge
-       - int16_t quality                 // quality
-       - edm4hep::CovMatrix2f covMatrix  // covariance matrix of the charge and time measurements
-    OneToOneRelations:
-      - edm4hep::TimeSeries timeSeries   // Optionally, the timeSeries that has been used to create the pulse can be stored with the pulse
-    ExtraCode:
-      includes: "#include <edm4hep/Constants.h>"
-      declaration: "
-      /// Get the position covariance matrix value for the two passed dimensions\n
-      float getCovMatrix(edm4hep::TrackerPulseDims dimI, edm4hep::TrackerPulseDims dimJ) const { return getCovMatrix().getValue(dimI, dimJ); }\n
-      "
+      [[deprecated(\"use getFrom instead\")]] edm4hep::ReconstructedParticle getRec() const;\n
+      [[deprecated(\"use getTo instead\")]] edm4hep::MCParticle getSim() const;\n"
+      implementation: "
+      edm4hep::ReconstructedParticle {name}::getRec() const { return getFrom(); }\n
+      edm4hep::MCParticle {name}::getSim() const { return getTo(); }\n"
     MutableExtraCode:
-      includes: "#include <edm4hep/Constants.h>"
       declaration: "
-      /// Set the position covariance matrix value for the two passed dimensions\n
-      void setCovMatrix(float value, edm4hep::TrackerPulseDims dimI, edm4hep::TrackerPulseDims dimJ) { getCovMatrix().setValue(value, dimI, dimJ); }\n
+      [[deprecated(\"use setFrom instead\")]]\n
+      void setRec(const edm4hep::ReconstructedParticle& rec);\n
+      [[deprecated(\"use setTo instead\")]]\n
+      void setSim(const edm4hep::MCParticle& sim);\n
+      "
+      implementation: "
+      void {name}::setSim(const edm4hep::MCParticle& sim) { setTo(sim); }\n
+      void {name}::setRec(const edm4hep::ReconstructedParticle& rec) { setFrom(rec); }\n
       "
 
- #----------  RecIonizationCluster
-  edm4hep::RecIonizationCluster:
-    Description: "Reconstructed Ionization Cluster"
+  edm4hep::CaloHitSimCaloHitLink:
+    Description: "Link between a CalorimeterHit and the corresponding SimCalorimeterHit"
     Author: "EDM4hep authors"
     Members:
-       - uint64_t cellID            // cell id
-       - float significance         // significance
-       - int16_t type               // type
-    OneToManyRelations:
-       - edm4hep::TrackerPulse trackerPulse // the TrackerPulse used to create the ionization cluster
+      - float weight                    // weight of this link
+    OneToOneRelations:
+     - edm4hep::CalorimeterHit from     // reference to the reconstructed hit
+     - edm4hep::SimCalorimeterHit to  // reference to the simulated hit
+    ExtraCode:
+      declaration: "
+      [[deprecated(\"use getFrom instead\")]] edm4hep::CalorimeterHit getRec() const;\n
+      [[deprecated(\"use getTo instead\")]] edm4hep::SimCalorimeterHit getSim() const;\n"
+      implementation: "
+      edm4hep::CalorimeterHit {name}::getRec() const { return getFrom(); }\n
+      edm4hep::SimCalorimeterHit {name}::getSim() const { return getTo(); }\n"
+    MutableExtraCode:
+      declaration: "
+      [[deprecated(\"use setFrom instead\")]]\n
+      void setRec(const edm4hep::CalorimeterHit& rec);\n
+      [[deprecated(\"use setTo instead\")]]\n
+      void setSim(const edm4hep::SimCalorimeterHit& sim);\n
+      "
+      implementation: "
+      void {name}::setSim(const edm4hep::SimCalorimeterHit& sim) { setTo(sim); }\n
+      void {name}::setRec(const edm4hep::CalorimeterHit& rec) { setFrom(rec); }\n
+      "
+
+
+  edm4hep::TrackerHitSimTrackerHitLink:
+    Description: "Link between a TrackerHit and the corresponding SimTrackerHit"
+    Author: "EDM4hep authors"
+    Members:
+      - float weight              // weight of this link
+    OneToOneRelations:
+     - edm4hep::TrackerHit from    // reference to the reconstructed hit
+     - edm4hep::SimTrackerHit to // reference to the simulated hit
+    ExtraCode:
+      declaration: "
+      [[deprecated(\"use getFrom instead\")]] edm4hep::TrackerHit getRec() const;\n
+      [[deprecated(\"use getTo instead\")]] edm4hep::SimTrackerHit getSim() const;\n"
+      implementation: "
+      edm4hep::TrackerHit {name}::getRec() const { return getFrom(); }\n
+      edm4hep::SimTrackerHit {name}::getSim() const { return getTo(); }\n"
+    MutableExtraCode:
+      declaration: "
+      [[deprecated(\"use setFrom instead\")]]\n
+      void setRec(const edm4hep::TrackerHit& rec);\n
+      [[deprecated(\"use setTo instead\")]]\n
+      void setSim(const edm4hep::SimTrackerHit& sim);\n
+      "
+      implementation: "
+      void {name}::setSim(const edm4hep::SimTrackerHit& sim) { setTo(sim); }\n
+      void {name}::setRec(const edm4hep::TrackerHit& rec) { setFrom(rec); }\n
+      "
+
+  edm4hep::CaloHitMCParticleLink:
+    Description: "Link between a CalorimeterHit and the corresponding MCParticle"
+    Author: "EDM4hep authors"
+    Members:
+      - float weight                // weight of this link
+    OneToOneRelations:
+     - edm4hep::CalorimeterHit from  // reference to the reconstructed hit
+     - edm4hep::MCParticle to      // reference to the Monte-Carlo particle
+    ExtraCode:
+      declaration: "
+      [[deprecated(\"use getFrom instead\")]] edm4hep::CalorimeterHit getRec() const;\n
+      [[deprecated(\"use getTo instead\")]] edm4hep::MCParticle getSim() const;\n"
+      implementation: "
+      edm4hep::CalorimeterHit {name}::getRec() const { return getFrom(); }\n
+      edm4hep::MCParticle {name}::getSim() const { return getTo(); }\n"
+    MutableExtraCode:
+      declaration: "
+      [[deprecated(\"use setFrom instead\")]]\n
+      void setRec(const edm4hep::CalorimeterHit& rec);\n
+      [[deprecated(\"use setTo instead\")]]\n
+      void setSim(const edm4hep::MCParticle& sim);\n
+      "
+      implementation: "
+      void {name}::setSim(const edm4hep::MCParticle& sim) { setTo(sim); }\n
+      void {name}::setRec(const edm4hep::CalorimeterHit& rec) { setFrom(rec); }\n
+      "
+
+  edm4hep::ClusterMCParticleLink:
+    Description: "Link between a Cluster and the corresponding MCParticle"
+    Author: "EDM4hep authors"
+    Members:
+      - float weight                // weight of this link
+    OneToOneRelations:
+     - edm4hep::Cluster from         // reference to the cluster
+     - edm4hep::MCParticle to      // reference to the Monte-Carlo particle
+    ExtraCode:
+      declaration: "
+      [[deprecated(\"use getFrom instead\")]] edm4hep::Cluster getRec() const;\n
+      [[deprecated(\"use getTo instead\")]] edm4hep::MCParticle getSim() const;\n"
+      implementation: "
+      edm4hep::Cluster {name}::getRec() const { return getFrom(); }\n
+      edm4hep::MCParticle {name}::getSim() const { return getTo(); }\n"
+    MutableExtraCode:
+      declaration: "
+      [[deprecated(\"use setFrom instead\")]]\n
+      void setRec(const edm4hep::Cluster& rec);\n
+      [[deprecated(\"use setTo instead\")]]\n
+      void setSim(const edm4hep::MCParticle& sim);\n
+      "
+      implementation: "
+      void {name}::setSim(const edm4hep::MCParticle& sim) { setTo(sim); }\n
+      void {name}::setRec(const edm4hep::Cluster& rec) { setFrom(rec); }\n
+      "
+
+  edm4hep::TrackMCParticleLink:
+    Description: "Link between a Track and the corresponding MCParticle"
+    Author: "EDM4hep authors"
+    Members:
+      - float weight                // weight of this link
+    OneToOneRelations:
+     - edm4hep::Track   from         // reference to the track
+     - edm4hep::MCParticle to      // reference to the Monte-Carlo particle
+    ExtraCode:
+      declaration: "
+      [[deprecated(\"use getFrom instead\")]] edm4hep::Track getRec() const;\n
+      [[deprecated(\"use getTo instead\")]] edm4hep::MCParticle getSim() const;\n"
+      implementation: "
+      edm4hep::Track {name}::getRec() const { return getFrom(); }\n
+      edm4hep::MCParticle {name}::getSim() const { return getTo(); }\n"
+    MutableExtraCode:
+      declaration: "
+      [[deprecated(\"use setFrom instead\")]]\n
+      void setRec(const edm4hep::Track& rec);\n
+      [[deprecated(\"use setTo instead\")]]\n
+      void setSim(const edm4hep::MCParticle& sim);\n
+      "
+      implementation: "
+      void {name}::setSim(const edm4hep::MCParticle& sim) { setTo(sim); }\n
+      void {name}::setRec(const edm4hep::Track& rec) { setFrom(rec); }\n
+      "
+
+  edm4hep::VertexRecoParticleLink:
+    Description: "Link between a Vertex and a ReconstructedParticle"
+    Author: "EDM4hep authors"
+    Members:
+      - float weight                      // weight of this link
+    OneToOneRelations:
+     - edm4hep::ReconstructedParticle to // reference to the reconstructed particle
+     - edm4hep::Vertex from             // reference to the vertex
+    ExtraCode:
+      declaration: "
+      [[deprecated(\"use getTo instead\")]] edm4hep::ReconstructedParticle getRec() const;\n
+      [[deprecated(\"use getFrom instead\")]] edm4hep::Vertex getVertex() const;\n"
+      implementation: "
+      edm4hep::ReconstructedParticle {name}::getRec() const { return getTo(); }\n
+      edm4hep::Vertex {name}::getVertex() const { return getFrom(); }\n"
+    MutableExtraCode:
+      declaration: "
+      [[deprecated(\"use setFrom instead\")]]\n
+      void setVertex(const edm4hep::Vertex& rec);\n
+      [[deprecated(\"use setTo instead\")]]\n
+      void setRec(const edm4hep::ReconstructedParticle& sim);\n
+      "
+      implementation: "
+      void {name}::setVertex(const edm4hep::Vertex& vertex) { setFrom(vertex); }\n
+      void {name}::setRec(const edm4hep::ReconstructedParticle& rec) { setTo(rec); }\n
+      "
 
  #----------  TimeSeries
   edm4hep::TimeSeries:
@@ -772,15 +828,10 @@ datatypes:
 
   #-------------  RecDqdx
   edm4hep::RecDqdx:
-    Description: "dN/dx or dE/dx info of Track."
+    Description: "dN/dx or dE/dx info of a Track"
     Author: "EDM4hep authors"
     Members:
       - edm4hep::Quantity dQdx         // the reconstructed dEdx or dNdx and its error
-      - int16_t particleType           // particle type, e(0),mu(1),pi(2),K(3),p(4)
-      - int16_t type                   // type
-      - std::array<edm4hep::Hypothesis, 5> hypotheses // 5 particle hypothesis
-    VectorMembers:
-      - edm4hep::HitLevelData hitData   // hit level data
     OneToOneRelations:
       - edm4hep::Track track           // the corresponding track
 
