@@ -30,6 +30,10 @@ end
     end
     
     reader = RootIO.Reader(f)
+    if reader.schemaversion.major != EDM4hep.schema_version.major
+        @warn "Schema version mismatch: file is $(reader.schemaversion) vs model is $(EDM4hep.schema_version)"
+        return
+    end
     events = RootIO.get(reader, "events")
 
     @test length(split(string(reader),'\n')) > 100    # check the show() method

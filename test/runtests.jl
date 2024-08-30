@@ -10,7 +10,8 @@ using EDM4hep
     include("testCovMatrix.jl")       # CovMatrix utility functions
     #---ROOT I/O----------------------
     include("testRootReader.jl")      # TTree and RNTuple reader
-    include("testRootReaderLegacy.jl")# Testing podio version < 0.17
+    include("testRootReaderLegacy.jl")# Testing podio verion < 0.17
+    include("testEDM4hepFile.jl")     # EDM4hep file reader
     #---Analysis----------------------
     include("testAnalysis.jl")        # Testing analysis interface (NThreads)
 end

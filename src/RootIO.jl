@@ -19,7 +19,13 @@ module RootIO
     "int16_t" => Int16, "int32_t" => Int32,  "uint64_t" => UInt64, "uint32_t" => UInt32, 
     "unsigned long" => UInt64, "char" => Char, "short" => Int16,
     "long long" => Int64, "unsigned long long" => UInt64,
-    "string" => String)
+    "string" => String, 
+    "vector<int>" => Vector{Int32}, 
+    "vector<float>" => Vector{Float32}, 
+    "vector<double>" => Vector{Float64},
+    "vector<bool>" => Vector{Bool},
+    "vector<long>" => Vector{Int64},
+    "vector<string>" => Vector{String})
 
     const newpodio = v"0.16.99"
     const _isnewpodio = Ref(false)
@@ -185,11 +191,17 @@ module RootIO
     #---Generic StructArray constructor (fall-back)------------------------------------------------
     function StructArray{T,bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {T,bname} 
         fnames = fieldnames(T)
+        ftypes = fieldtypes(T)
         n_rels::Int32  = 0      # number of one-to-one or one-to-many Relations 
-        if len == -1            # Need the length to fill missing columns
-            len = length(getproperty(evt, Symbol(bname, :_, fnames[2])))
+        if len == -1            # Need the length to fill missing colums
+            pindex = findfirst(t -> isprimitivetype(t), ftypes)
+            if isnothing(pindex)  # No primitive type found (go next level)
+                len = length(getproperty(evt, Symbol(bname, :_, fnames[2], :_, fieldnames(ftypes[2])[1])))
+            else
+                len = length(getproperty(evt, Symbol(bname, :_, fnames[pindex])))
+            end
         end
-        sa = Tuple( map(zip(fieldnames(T), fieldtypes(T))) do (fn,ft)
+        sa = Tuple( map(zip(fnames, ftypes)) do (fn,ft)
             if ft == ObjectID{T}
                 StructArray{ft}((collect(0:len-1),fill(collid,len)))
             elseif ft <: Relation
@@ -204,7 +216,6 @@ module RootIO
                     StructArray{ft, Symbol(bname, "#$(n_rels-1)")}(evt, collid, len)
                 end
             else
-                fn == :subdetectorHitNumbers && (fn = :subDetectorHitNumbers)   # adhoc fixes
                 StructArray{ft,Symbol(bname,:_,fn)}(evt, collid, len)
             end
         end)
@@ -253,14 +264,14 @@ module RootIO
         reader.treename = treename
         #---build a dictionary of branches and associated type
         tree = reader.files[1][treename]
-        pattern = r"(edm4hep|podio)::([a-zA-Z]+?)(Data$|$)"
+        pattern = r"(edm4hep|podio)::([a-zA-Z0-9]+?)(Data$|$)"
         vpattern = r"(std::)?vector<(std::)?(.*)>"
         if tree isa UnROOT.TTree
             for (i,key) in enumerate(keys(tree))
                 classname = tree.fBranches[i].fClassName
                 result = match(vpattern, classname)
                 isnothing(result) && continue
-                classname = result.captures[3]
+                classname = result.captures[3] |> strip
                 result = match(pattern, classname)
                 if isnothing(result) # Primitive type
                     reader.btypes[key] = builtin_types[classname]

@@ -5,6 +5,10 @@ using EDM4hep.RootIO
     #f = "/Users/mato/cernbox/Data/events_000189367.root"
 
     reader = RootIO.Reader(f)
+    if reader.schemaversion.major != EDM4hep.schema_version.major
+        @warn "Schema version mismatch: file is $(reader.schemaversion) vs model is $(EDM4hep.schema_version)"
+        return
+    end
     events = RootIO.get(reader, "events")
     
     @test reader.isRNTuple == false

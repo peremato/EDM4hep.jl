@@ -58,7 +58,7 @@ end
 Calorimeter Hit Cluster
 - Author: EDM4hep authors
 # Fields
-- `type::Int32`:  flagword that defines the type of cluster. Bits 16-31 are used internally 
+- `type::Int32`:  flagword that defines the type of cluster 
 - `energy::Float32`:  energy of the cluster [GeV]
 - `energyError::Float32`:  error on the energy [GeV]
 - `position::Vector3f`:  position of the cluster [mm]
@@ -82,7 +82,7 @@ Calorimeter Hit Cluster
 struct Cluster <: POD
     index::ObjectID{Cluster}         # ObjectID of himself
     #---Data Members
-    type::Int32                      #  flagword that defines the type of cluster. Bits 16-31 are used internally 
+    type::Int32                      #  flagword that defines the type of cluster 
     energy::Float32                  #  energy of the cluster [GeV]
     energyError::Float32             #  error on the energy [GeV]
     position::Vector3f               #  position of the cluster [mm]
@@ -202,142 +202,33 @@ function popFromDaughters(c::MCParticle)
     update(c)
 end
 """
-Simulated Primary Ionization
+Link between a CalorimeterHit and the corresponding MCParticle
 - Author: EDM4hep authors
 # Fields
-- `cellID::UInt64`:  cell id 
-- `time::Float32`:  the primary ionization's time in the lab frame [ns]
-- `position::Vector3d`:  the primary ionization's position [mm]
-- `type::Int16`:  type 
-- `electronCellID::PVector{UInt64}`:  cell id 
-- `electronTime::PVector{Float32}`:  the time in the lab frame [ns]
-- `electronPosition::PVector{Vector3d}`:  the position in the lab frame [mm]
-- `pulseTime::PVector{Float32}`:  the pulse's time in the lab frame [ns]
-- `pulseAmplitude::PVector{Float32}`:  the pulse's amplitude [fC]
+- `weight::Float32`:  weight of this link 
 # Relations
-- `particle::MCParticle`:  the particle that caused the ionizing collisions 
-# Methods
-- `setElectronCellID(object::SimPrimaryIonizationCluster, v::AbstractVector{UInt64})`: assign a set of values to the `electronCellID` vector member
-- `setElectronTime(object::SimPrimaryIonizationCluster, v::AbstractVector{Float32})`: assign a set of values to the `electronTime` vector member
-- `setElectronPosition(object::SimPrimaryIonizationCluster, v::AbstractVector{Vector3d})`: assign a set of values to the `electronPosition` vector member
-- `setPulseTime(object::SimPrimaryIonizationCluster, v::AbstractVector{Float32})`: assign a set of values to the `pulseTime` vector member
-- `setPulseAmplitude(object::SimPrimaryIonizationCluster, v::AbstractVector{Float32})`: assign a set of values to the `pulseAmplitude` vector member
+- `from::CalorimeterHit`:  reference to the reconstructed hit 
+- `to::MCParticle`:  reference to the Monte-Carlo particle 
 """
-struct SimPrimaryIonizationCluster <: POD
-    index::ObjectID{SimPrimaryIonizationCluster}  # ObjectID of himself
+struct CaloHitMCParticleLink <: POD
+    index::ObjectID{CaloHitMCParticleLink}  # ObjectID of himself
     #---Data Members
-    cellID::UInt64                   #  cell id 
-    time::Float32                    #  the primary ionization's time in the lab frame [ns]
-    position::Vector3d               #  the primary ionization's position [mm]
-    type::Int16                      #  type 
-    #---VectorMembers
-    electronCellID::PVector{SimPrimaryIonizationCluster,UInt64,1}  #  cell id 
-    electronTime::PVector{SimPrimaryIonizationCluster,Float32,2}  #  the time in the lab frame [ns]
-    electronPosition::PVector{SimPrimaryIonizationCluster,Vector3d,3}  #  the position in the lab frame [mm]
-    pulseTime::PVector{SimPrimaryIonizationCluster,Float32,4}  #  the pulse's time in the lab frame [ns]
-    pulseAmplitude::PVector{SimPrimaryIonizationCluster,Float32,5}  #  the pulse's amplitude [fC]
+    weight::Float32                  #  weight of this link 
     #---OneToOneRelations
-    particle_idx::ObjectID{MCParticle}  #  the particle that caused the ionizing collisions 
+    from_idx::ObjectID{CalorimeterHit}  #  reference to the reconstructed hit 
+    to_idx::ObjectID{MCParticle}     #  reference to the Monte-Carlo particle 
 end
 
-function SimPrimaryIonizationCluster(;cellID=0, time=0, position=Vector3d(), type=0, electronCellID=PVector{SimPrimaryIonizationCluster,UInt64,1}(), electronTime=PVector{SimPrimaryIonizationCluster,Float32,2}(), electronPosition=PVector{SimPrimaryIonizationCluster,Vector3d,3}(), pulseTime=PVector{SimPrimaryIonizationCluster,Float32,4}(), pulseAmplitude=PVector{SimPrimaryIonizationCluster,Float32,5}(), particle=-1)
-    SimPrimaryIonizationCluster(-1, cellID, time, position, type, electronCellID, electronTime, electronPosition, pulseTime, pulseAmplitude, particle)
+function CaloHitMCParticleLink(;weight=0, from=-1, to=-1)
+    CaloHitMCParticleLink(-1, weight, from, to)
 end
 
-function Base.getproperty(obj::SimPrimaryIonizationCluster, sym::Symbol)
-    if sym == :particle
-        idx = getfield(obj, :particle_idx)
-        return iszero(idx) ? nothing : convert(MCParticle, idx)
-    else # fallback to getfield
-        return getfield(obj, sym)
-    end
-end
-function setElectronCellID(o::SimPrimaryIonizationCluster, v::AbstractVector{UInt64})
-    iszero(o.index) && (o = register(o))
-    o = @set o.electronCellID = v
-    update(o)
-end
-function setElectronTime(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
-    iszero(o.index) && (o = register(o))
-    o = @set o.electronTime = v
-    update(o)
-end
-function setElectronPosition(o::SimPrimaryIonizationCluster, v::AbstractVector{Vector3d})
-    iszero(o.index) && (o = register(o))
-    o = @set o.electronPosition = v
-    update(o)
-end
-function setPulseTime(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
-    iszero(o.index) && (o = register(o))
-    o = @set o.pulseTime = v
-    update(o)
-end
-function setPulseAmplitude(o::SimPrimaryIonizationCluster, v::AbstractVector{Float32})
-    iszero(o.index) && (o = register(o))
-    o = @set o.pulseAmplitude = v
-    update(o)
-end
-"""
-Association between a Cluster and the corresponding MCParticle
-- Author: EDM4hep authors
-# Fields
-- `weight::Float32`:  weight of this association 
-# Relations
-- `rec::Cluster`:  reference to the cluster 
-- `sim::MCParticle`:  reference to the Monte-Carlo particle 
-"""
-struct MCRecoClusterParticleAssociation <: POD
-    index::ObjectID{MCRecoClusterParticleAssociation}  # ObjectID of himself
-    #---Data Members
-    weight::Float32                  #  weight of this association 
-    #---OneToOneRelations
-    rec_idx::ObjectID{Cluster}       #  reference to the cluster 
-    sim_idx::ObjectID{MCParticle}    #  reference to the Monte-Carlo particle 
-end
-
-function MCRecoClusterParticleAssociation(;weight=0, rec=-1, sim=-1)
-    MCRecoClusterParticleAssociation(-1, weight, rec, sim)
-end
-
-function Base.getproperty(obj::MCRecoClusterParticleAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
-        return iszero(idx) ? nothing : convert(Cluster, idx)
-    elseif sym == :sim
-        idx = getfield(obj, :sim_idx)
-        return iszero(idx) ? nothing : convert(MCParticle, idx)
-    else # fallback to getfield
-        return getfield(obj, sym)
-    end
-end
-"""
-Association between a CalorimeterHit and the corresponding MCParticle
-- Author: EDM4hep authors
-# Fields
-- `weight::Float32`:  weight of this association 
-# Relations
-- `rec::CalorimeterHit`:  reference to the reconstructed hit 
-- `sim::MCParticle`:  reference to the Monte-Carlo particle 
-"""
-struct MCRecoCaloParticleAssociation <: POD
-    index::ObjectID{MCRecoCaloParticleAssociation}  # ObjectID of himself
-    #---Data Members
-    weight::Float32                  #  weight of this association 
-    #---OneToOneRelations
-    rec_idx::ObjectID{CalorimeterHit}  #  reference to the reconstructed hit 
-    sim_idx::ObjectID{MCParticle}    #  reference to the Monte-Carlo particle 
-end
-
-function MCRecoCaloParticleAssociation(;weight=0, rec=-1, sim=-1)
-    MCRecoCaloParticleAssociation(-1, weight, rec, sim)
-end
-
-function Base.getproperty(obj::MCRecoCaloParticleAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
+function Base.getproperty(obj::CaloHitMCParticleLink, sym::Symbol)
+    if sym == :from
+        idx = getfield(obj, :from_idx)
         return iszero(idx) ? nothing : convert(CalorimeterHit, idx)
-    elseif sym == :sim
-        idx = getfield(obj, :sim_idx)
+    elseif sym == :to
+        idx = getfield(obj, :to_idx)
         return iszero(idx) ? nothing : convert(MCParticle, idx)
     else # fallback to getfield
         return getfield(obj, sym)
@@ -473,39 +364,6 @@ function setAdcCounts(o::RawTimeSeries, v::AbstractVector{Int32})
     update(o)
 end
 """
-Association between a CalorimeterHit and the corresponding SimCalorimeterHit
-- Author: EDM4hep authors
-# Fields
-- `weight::Float32`:  weight of this association 
-# Relations
-- `rec::CalorimeterHit`:  reference to the reconstructed hit 
-- `sim::SimCalorimeterHit`:  reference to the simulated hit 
-"""
-struct MCRecoCaloAssociation <: POD
-    index::ObjectID{MCRecoCaloAssociation}  # ObjectID of himself
-    #---Data Members
-    weight::Float32                  #  weight of this association 
-    #---OneToOneRelations
-    rec_idx::ObjectID{CalorimeterHit}  #  reference to the reconstructed hit 
-    sim_idx::ObjectID{SimCalorimeterHit}  #  reference to the simulated hit 
-end
-
-function MCRecoCaloAssociation(;weight=0, rec=-1, sim=-1)
-    MCRecoCaloAssociation(-1, weight, rec, sim)
-end
-
-function Base.getproperty(obj::MCRecoCaloAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
-        return iszero(idx) ? nothing : convert(CalorimeterHit, idx)
-    elseif sym == :sim
-        idx = getfield(obj, :sim_idx)
-        return iszero(idx) ? nothing : convert(SimCalorimeterHit, idx)
-    else # fallback to getfield
-        return getfield(obj, sym)
-    end
-end
-"""
 Generator event parameters
 - Author: EDM4hep authors
 # Fields
@@ -564,37 +422,34 @@ function setCrossSectionErrors(o::GeneratorEventParameters, v::AbstractVector{Fl
     update(o)
 end
 """
-Reconstructed Tracker Pulse
+Link between a Cluster and the corresponding MCParticle
 - Author: EDM4hep authors
 # Fields
-- `cellID::UInt64`:  cell id 
-- `time::Float32`:  time [ns]
-- `charge::Float32`:  charge [fC]
-- `quality::Int16`:  quality 
-- `covMatrix::CovMatrix2f`:  covariance matrix of the charge and time measurements 
+- `weight::Float32`:  weight of this link 
 # Relations
-- `timeSeries::TimeSeries`:  Optionally, the timeSeries that has been used to create the pulse can be stored with the pulse 
+- `from::Cluster`:  reference to the cluster 
+- `to::MCParticle`:  reference to the Monte-Carlo particle 
 """
-struct TrackerPulse <: POD
-    index::ObjectID{TrackerPulse}    # ObjectID of himself
+struct ClusterMCParticleLink <: POD
+    index::ObjectID{ClusterMCParticleLink}  # ObjectID of himself
     #---Data Members
-    cellID::UInt64                   #  cell id 
-    time::Float32                    #  time [ns]
-    charge::Float32                  #  charge [fC]
-    quality::Int16                   #  quality 
-    covMatrix::CovMatrix2f           #  covariance matrix of the charge and time measurements 
+    weight::Float32                  #  weight of this link 
     #---OneToOneRelations
-    timeSeries_idx::ObjectID{TimeSeries}  #  Optionally, the timeSeries that has been used to create the pulse can be stored with the pulse 
+    from_idx::ObjectID{Cluster}      #  reference to the cluster 
+    to_idx::ObjectID{MCParticle}     #  reference to the Monte-Carlo particle 
 end
 
-function TrackerPulse(;cellID=0, time=0, charge=0, quality=0, covMatrix=CovMatrix2f(), timeSeries=-1)
-    TrackerPulse(-1, cellID, time, charge, quality, covMatrix, timeSeries)
+function ClusterMCParticleLink(;weight=0, from=-1, to=-1)
+    ClusterMCParticleLink(-1, weight, from, to)
 end
 
-function Base.getproperty(obj::TrackerPulse, sym::Symbol)
-    if sym == :timeSeries
-        idx = getfield(obj, :timeSeries_idx)
-        return iszero(idx) ? nothing : convert(TimeSeries, idx)
+function Base.getproperty(obj::ClusterMCParticleLink, sym::Symbol)
+    if sym == :from
+        idx = getfield(obj, :from_idx)
+        return iszero(idx) ? nothing : convert(Cluster, idx)
+    elseif sym == :to
+        idx = getfield(obj, :to_idx)
+        return iszero(idx) ? nothing : convert(MCParticle, idx)
     else # fallback to getfield
         return getfield(obj, sym)
     end
@@ -652,43 +507,6 @@ function RawCalorimeterHit(;cellID=0, amplitude=0, timeStamp=0)
 end
 
 """
-Reconstructed Ionization Cluster
-- Author: EDM4hep authors
-# Fields
-- `cellID::UInt64`:  cell id 
-- `significance::Float32`:  significance 
-- `type::Int16`:  type 
-# Relations
-- `trackerPulse::TrackerPulse`:  the TrackerPulse used to create the ionization cluster 
-# Methods
-- `pushToTrackerPulse(obj::RecIonizationCluster, robj::TrackerPulse)`: push related object to the `trackerPulse` relation
-- `popFromTrackerPulse(obj::RecIonizationCluster)`: pop last related object from `trackerPulse` relation
-"""
-struct RecIonizationCluster <: POD
-    index::ObjectID{RecIonizationCluster}  # ObjectID of himself
-    #---Data Members
-    cellID::UInt64                   #  cell id 
-    significance::Float32            #  significance 
-    type::Int16                      #  type 
-    #---OneToManyRelations
-    trackerPulse::Relation{RecIonizationCluster,TrackerPulse,1}  #  the TrackerPulse used to create the ionization cluster 
-end
-
-function RecIonizationCluster(;cellID=0, significance=0, type=0, trackerPulse=Relation{RecIonizationCluster,TrackerPulse,1}())
-    RecIonizationCluster(-1, cellID, significance, type, trackerPulse)
-end
-
-function pushToTrackerPulse(c::RecIonizationCluster, o::TrackerPulse)
-    iszero(c.index) && (c = register(c))
-    c = @set c.trackerPulse = push(c.trackerPulse, o)
-    update(c)
-end
-function popFromTrackerPulse(c::RecIonizationCluster)
-    iszero(c.index) && (c = register(c))
-    c = @set c.trackerPulse = pop(c.trackerPulse)
-    update(c)
-end
-"""
 Tracker hit
 - Author: EDM4hep authors
 # Fields
@@ -722,44 +540,48 @@ end
 Vertex
 - Author: EDM4hep authors
 # Fields
-- `primary::Int32`:  boolean flag, if vertex is the primary vertex of the event 
+- `type::UInt32`:  Flagword that defines the type of the vertex, see reserved bits for more information 
 - `chi2::Float32`:  chi-squared of the vertex fit 
-- `probability::Float32`:  probability of the vertex fit 
+- `ndf::Int32`:  number of degrees of freedom of the vertex fit 
 - `position::Vector3f`:  [mm] position of the vertex 
 - `covMatrix::CovMatrix3f`:  covariance matrix of the position 
 - `algorithmType::Int32`:  type code for the algorithm that has been used to create the vertex 
 - `parameters::PVector{Float32}`:  additional parameters related to this vertex 
 # Relations
-- `associatedParticle::POD`:  reconstructed particle associated to this vertex 
+- `particles::POD`:  particles that have been used to form this vertex, aka the decay particles emerging from this vertex 
 # Methods
 - `setParameters(object::Vertex, v::AbstractVector{Float32})`: assign a set of values to the `parameters` vector member
+- `pushToParticles(obj::Vertex, robj::POD)`: push related object to the `particles` relation
+- `popFromParticles(obj::Vertex)`: pop last related object from `particles` relation
 """
 struct Vertex <: POD
     index::ObjectID{Vertex}          # ObjectID of himself
     #---Data Members
-    primary::Int32                   #  boolean flag, if vertex is the primary vertex of the event 
+    type::UInt32                     #  Flagword that defines the type of the vertex, see reserved bits for more information 
     chi2::Float32                    #  chi-squared of the vertex fit 
-    probability::Float32             #  probability of the vertex fit 
+    ndf::Int32                       #  number of degrees of freedom of the vertex fit 
     position::Vector3f               #  [mm] position of the vertex 
     covMatrix::CovMatrix3f           #  covariance matrix of the position 
     algorithmType::Int32             #  type code for the algorithm that has been used to create the vertex 
     #---VectorMembers
     parameters::PVector{Vertex,Float32,1}  #  additional parameters related to this vertex 
-    #---OneToOneRelations
-    associatedParticle_idx::ObjectID{POD}  #  reconstructed particle associated to this vertex 
+    #---OneToManyRelations
+    particles::Relation{Vertex,POD,1}  #  particles that have been used to form this vertex, aka the decay particles emerging from this vertex 
 end
 
-function Vertex(;primary=0, chi2=0, probability=0, position=Vector3f(), covMatrix=CovMatrix3f(), algorithmType=0, parameters=PVector{Vertex,Float32,1}(), associatedParticle=-1)
-    Vertex(-1, primary, chi2, probability, position, covMatrix, algorithmType, parameters, associatedParticle)
+function Vertex(;type=0, chi2=0, ndf=0, position=Vector3f(), covMatrix=CovMatrix3f(), algorithmType=0, parameters=PVector{Vertex,Float32,1}(), particles=Relation{Vertex,POD,1}())
+    Vertex(-1, type, chi2, ndf, position, covMatrix, algorithmType, parameters, particles)
 end
 
-function Base.getproperty(obj::Vertex, sym::Symbol)
-    if sym == :associatedParticle
-        idx = getfield(obj, :associatedParticle_idx)
-        return iszero(idx) ? nothing : convert(POD, idx)
-    else # fallback to getfield
-        return getfield(obj, sym)
-    end
+function pushToParticles(c::Vertex, o::POD)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particles = push(c.particles, o)
+    update(c)
+end
+function popFromParticles(c::Vertex)
+    iszero(c.index) && (c = register(c))
+    c = @set c.particles = pop(c.particles)
+    update(c)
 end
 function setParameters(o::Vertex, v::AbstractVector{Float32})
     iszero(o.index) && (o = register(o))
@@ -770,22 +592,20 @@ end
 Reconstructed track
 - Author: EDM4hep authors
 # Fields
-- `type::Int32`:  flagword that defines the type of track.Bits 16-31 are used internally 
+- `type::Int32`:  flagword that defines the type of track 
 - `chi2::Float32`:  Chi^2 of the track fit 
 - `ndf::Int32`:  number of degrees of freedom of the track fit 
-- `dEdx::Float32`:  dEdx of the track 
-- `dEdxError::Float32`:  error of dEdx 
-- `radiusOfInnermostHit::Float32`:  radius of the innermost hit that has been used in the track fit 
+- `Nholes::Int32`:  number of holes on track 
 - `subdetectorHitNumbers::PVector{Int32}`:  number of hits in particular subdetectors 
+- `subdetectorHoleNumbers::PVector{Int32}`:  number of holes in particular subdetectors 
 - `trackStates::PVector{TrackState}`:  track states 
-- `dxQuantities::PVector{Quantity}`:  different measurements of dx quantities 
 # Relations
 - `trackerHits::TrackerHit`:  hits that have been used to create this track 
 - `tracks::Track`:  tracks (segments) that have been combined to create this track 
 # Methods
 - `setSubdetectorHitNumbers(object::Track, v::AbstractVector{Int32})`: assign a set of values to the `subdetectorHitNumbers` vector member
+- `setSubdetectorHoleNumbers(object::Track, v::AbstractVector{Int32})`: assign a set of values to the `subdetectorHoleNumbers` vector member
 - `setTrackStates(object::Track, v::AbstractVector{TrackState})`: assign a set of values to the `trackStates` vector member
-- `setDxQuantities(object::Track, v::AbstractVector{Quantity})`: assign a set of values to the `dxQuantities` vector member
 - `pushToTrackerHits(obj::Track, robj::TrackerHit)`: push related object to the `trackerHits` relation
 - `popFromTrackerHits(obj::Track)`: pop last related object from `trackerHits` relation
 - `pushToTracks(obj::Track, robj::Track)`: push related object to the `tracks` relation
@@ -794,23 +614,21 @@ Reconstructed track
 struct Track <: POD
     index::ObjectID{Track}           # ObjectID of himself
     #---Data Members
-    type::Int32                      #  flagword that defines the type of track.Bits 16-31 are used internally 
+    type::Int32                      #  flagword that defines the type of track 
     chi2::Float32                    #  Chi^2 of the track fit 
     ndf::Int32                       #  number of degrees of freedom of the track fit 
-    dEdx::Float32                    #  dEdx of the track 
-    dEdxError::Float32               #  error of dEdx 
-    radiusOfInnermostHit::Float32    #  radius of the innermost hit that has been used in the track fit 
+    Nholes::Int32                    #  number of holes on track 
     #---VectorMembers
     subdetectorHitNumbers::PVector{Track,Int32,1}  #  number of hits in particular subdetectors 
-    trackStates::PVector{Track,TrackState,2}  #  track states 
-    dxQuantities::PVector{Track,Quantity,3}  #  different measurements of dx quantities 
+    subdetectorHoleNumbers::PVector{Track,Int32,2}  #  number of holes in particular subdetectors 
+    trackStates::PVector{Track,TrackState,3}  #  track states 
     #---OneToManyRelations
     trackerHits::Relation{Track,TrackerHit,1}  #  hits that have been used to create this track 
     tracks::Relation{Track,Track,2}  #  tracks (segments) that have been combined to create this track 
 end
 
-function Track(;type=0, chi2=0, ndf=0, dEdx=0, dEdxError=0, radiusOfInnermostHit=0, subdetectorHitNumbers=PVector{Track,Int32,1}(), trackStates=PVector{Track,TrackState,2}(), dxQuantities=PVector{Track,Quantity,3}(), trackerHits=Relation{Track,TrackerHit,1}(), tracks=Relation{Track,Track,2}())
-    Track(-1, type, chi2, ndf, dEdx, dEdxError, radiusOfInnermostHit, subdetectorHitNumbers, trackStates, dxQuantities, trackerHits, tracks)
+function Track(;type=0, chi2=0, ndf=0, Nholes=0, subdetectorHitNumbers=PVector{Track,Int32,1}(), subdetectorHoleNumbers=PVector{Track,Int32,2}(), trackStates=PVector{Track,TrackState,3}(), trackerHits=Relation{Track,TrackerHit,1}(), tracks=Relation{Track,Track,2}())
+    Track(-1, type, chi2, ndf, Nholes, subdetectorHitNumbers, subdetectorHoleNumbers, trackStates, trackerHits, tracks)
 end
 
 function pushToTrackerHits(c::Track, o::TrackerHit)
@@ -838,44 +656,44 @@ function setSubdetectorHitNumbers(o::Track, v::AbstractVector{Int32})
     o = @set o.subdetectorHitNumbers = v
     update(o)
 end
+function setSubdetectorHoleNumbers(o::Track, v::AbstractVector{Int32})
+    iszero(o.index) && (o = register(o))
+    o = @set o.subdetectorHoleNumbers = v
+    update(o)
+end
 function setTrackStates(o::Track, v::AbstractVector{TrackState})
     iszero(o.index) && (o = register(o))
     o = @set o.trackStates = v
     update(o)
 end
-function setDxQuantities(o::Track, v::AbstractVector{Quantity})
-    iszero(o.index) && (o = register(o))
-    o = @set o.dxQuantities = v
-    update(o)
-end
 """
-Association between a Track and the corresponding MCParticle
+Link between a Track and the corresponding MCParticle
 - Author: EDM4hep authors
 # Fields
-- `weight::Float32`:  weight of this association 
+- `weight::Float32`:  weight of this link 
 # Relations
-- `rec::Track`:  reference to the track 
-- `sim::MCParticle`:  reference to the Monte-Carlo particle 
+- `from::Track`:  reference to the track 
+- `to::MCParticle`:  reference to the Monte-Carlo particle 
 """
-struct MCRecoTrackParticleAssociation <: POD
-    index::ObjectID{MCRecoTrackParticleAssociation}  # ObjectID of himself
+struct TrackMCParticleLink <: POD
+    index::ObjectID{TrackMCParticleLink}  # ObjectID of himself
     #---Data Members
-    weight::Float32                  #  weight of this association 
+    weight::Float32                  #  weight of this link 
     #---OneToOneRelations
-    rec_idx::ObjectID{Track}         #  reference to the track 
-    sim_idx::ObjectID{MCParticle}    #  reference to the Monte-Carlo particle 
+    from_idx::ObjectID{Track}        #  reference to the track 
+    to_idx::ObjectID{MCParticle}     #  reference to the Monte-Carlo particle 
 end
 
-function MCRecoTrackParticleAssociation(;weight=0, rec=-1, sim=-1)
-    MCRecoTrackParticleAssociation(-1, weight, rec, sim)
+function TrackMCParticleLink(;weight=0, from=-1, to=-1)
+    TrackMCParticleLink(-1, weight, from, to)
 end
 
-function Base.getproperty(obj::MCRecoTrackParticleAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
+function Base.getproperty(obj::TrackMCParticleLink, sym::Symbol)
+    if sym == :from
+        idx = getfield(obj, :from_idx)
         return iszero(idx) ? nothing : convert(Track, idx)
-    elseif sym == :sim
-        idx = getfield(obj, :sim_idx)
+    elseif sym == :to
+        idx = getfield(obj, :to_idx)
         return iszero(idx) ? nothing : convert(MCParticle, idx)
     else # fallback to getfield
         return getfield(obj, sym)
@@ -894,7 +712,7 @@ Reconstructed Particle
 - `goodnessOfPID::Float32`:  overall goodness of the PID on a scale of [0;1] 
 - `covMatrix::CovMatrix4f`:  covariance matrix of the reconstructed particle 4vector 
 # Relations
-- `startVertex::Vertex`:  start vertex associated to this particle 
+- `decayVertex::Vertex`:  decay vertex for the particle (if it is a composite particle) 
 - `clusters::Cluster`:  clusters that have been used for this particle 
 - `tracks::Track`:  tracks that have been used for this particle 
 - `particles::ReconstructedParticle`:  reconstructed particles that have been combined to this particle 
@@ -922,16 +740,16 @@ struct ReconstructedParticle <: POD
     tracks::Relation{ReconstructedParticle,Track,2}  #  tracks that have been used for this particle 
     particles::Relation{ReconstructedParticle,ReconstructedParticle,3}  #  reconstructed particles that have been combined to this particle 
     #---OneToOneRelations
-    startVertex_idx::ObjectID{Vertex}  #  start vertex associated to this particle 
+    decayVertex_idx::ObjectID{Vertex}  #  decay vertex for the particle (if it is a composite particle) 
 end
 
-function ReconstructedParticle(;PDG=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=CovMatrix4f(), clusters=Relation{ReconstructedParticle,Cluster,1}(), tracks=Relation{ReconstructedParticle,Track,2}(), particles=Relation{ReconstructedParticle,ReconstructedParticle,3}(), startVertex=-1)
-    ReconstructedParticle(-1, PDG, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, clusters, tracks, particles, startVertex)
+function ReconstructedParticle(;PDG=0, energy=0, momentum=Vector3f(), referencePoint=Vector3f(), charge=0, mass=0, goodnessOfPID=0, covMatrix=CovMatrix4f(), clusters=Relation{ReconstructedParticle,Cluster,1}(), tracks=Relation{ReconstructedParticle,Track,2}(), particles=Relation{ReconstructedParticle,ReconstructedParticle,3}(), decayVertex=-1)
+    ReconstructedParticle(-1, PDG, energy, momentum, referencePoint, charge, mass, goodnessOfPID, covMatrix, clusters, tracks, particles, decayVertex)
 end
 
 function Base.getproperty(obj::ReconstructedParticle, sym::Symbol)
-    if sym == :startVertex
-        idx = getfield(obj, :startVertex_idx)
+    if sym == :decayVertex
+        idx = getfield(obj, :decayVertex_idx)
         return iszero(idx) ? nothing : convert(Vertex, idx)
     else # fallback to getfield
         return getfield(obj, sym)
@@ -968,66 +786,66 @@ function popFromParticles(c::ReconstructedParticle)
     update(c)
 end
 """
-Association between a ReconstructedParticle and the corresponding MCParticle
+Link between a ReconstructedParticle and the corresponding MCParticle
 - Author: EDM4hep authors
 # Fields
-- `weight::Float32`:  weight of this association 
+- `weight::Float32`:  weight of this link 
 # Relations
-- `rec::ReconstructedParticle`:  reference to the reconstructed particle 
-- `sim::MCParticle`:  reference to the Monte-Carlo particle 
+- `from::ReconstructedParticle`:  reference to the reconstructed particle 
+- `to::MCParticle`:  reference to the Monte-Carlo particle 
 """
-struct MCRecoParticleAssociation <: POD
-    index::ObjectID{MCRecoParticleAssociation}  # ObjectID of himself
+struct RecoMCParticleLink <: POD
+    index::ObjectID{RecoMCParticleLink}  # ObjectID of himself
     #---Data Members
-    weight::Float32                  #  weight of this association 
+    weight::Float32                  #  weight of this link 
     #---OneToOneRelations
-    rec_idx::ObjectID{ReconstructedParticle}  #  reference to the reconstructed particle 
-    sim_idx::ObjectID{MCParticle}    #  reference to the Monte-Carlo particle 
+    from_idx::ObjectID{ReconstructedParticle}  #  reference to the reconstructed particle 
+    to_idx::ObjectID{MCParticle}     #  reference to the Monte-Carlo particle 
 end
 
-function MCRecoParticleAssociation(;weight=0, rec=-1, sim=-1)
-    MCRecoParticleAssociation(-1, weight, rec, sim)
+function RecoMCParticleLink(;weight=0, from=-1, to=-1)
+    RecoMCParticleLink(-1, weight, from, to)
 end
 
-function Base.getproperty(obj::MCRecoParticleAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
+function Base.getproperty(obj::RecoMCParticleLink, sym::Symbol)
+    if sym == :from
+        idx = getfield(obj, :from_idx)
         return iszero(idx) ? nothing : convert(ReconstructedParticle, idx)
-    elseif sym == :sim
-        idx = getfield(obj, :sim_idx)
+    elseif sym == :to
+        idx = getfield(obj, :to_idx)
         return iszero(idx) ? nothing : convert(MCParticle, idx)
     else # fallback to getfield
         return getfield(obj, sym)
     end
 end
 """
-Association between a ReconstructedParticle and a Vertex
+Link between a Vertex and a ReconstructedParticle
 - Author: EDM4hep authors
 # Fields
-- `weight::Float32`:  weight of this association 
+- `weight::Float32`:  weight of this link 
 # Relations
-- `rec::ReconstructedParticle`:  reference to the reconstructed particle 
-- `vertex::Vertex`:  reference to the vertex 
+- `to::ReconstructedParticle`:  reference to the reconstructed particle 
+- `from::Vertex`:  reference to the vertex 
 """
-struct RecoParticleVertexAssociation <: POD
-    index::ObjectID{RecoParticleVertexAssociation}  # ObjectID of himself
+struct VertexRecoParticleLink <: POD
+    index::ObjectID{VertexRecoParticleLink}  # ObjectID of himself
     #---Data Members
-    weight::Float32                  #  weight of this association 
+    weight::Float32                  #  weight of this link 
     #---OneToOneRelations
-    rec_idx::ObjectID{ReconstructedParticle}  #  reference to the reconstructed particle 
-    vertex_idx::ObjectID{Vertex}     #  reference to the vertex 
+    to_idx::ObjectID{ReconstructedParticle}  #  reference to the reconstructed particle 
+    from_idx::ObjectID{Vertex}       #  reference to the vertex 
 end
 
-function RecoParticleVertexAssociation(;weight=0, rec=-1, vertex=-1)
-    RecoParticleVertexAssociation(-1, weight, rec, vertex)
+function VertexRecoParticleLink(;weight=0, to=-1, from=-1)
+    VertexRecoParticleLink(-1, weight, to, from)
 end
 
-function Base.getproperty(obj::RecoParticleVertexAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
+function Base.getproperty(obj::VertexRecoParticleLink, sym::Symbol)
+    if sym == :to
+        idx = getfield(obj, :to_idx)
         return iszero(idx) ? nothing : convert(ReconstructedParticle, idx)
-    elseif sym == :vertex
-        idx = getfield(obj, :vertex_idx)
+    elseif sym == :from
+        idx = getfield(obj, :from_idx)
         return iszero(idx) ? nothing : convert(Vertex, idx)
     else # fallback to getfield
         return getfield(obj, sym)
@@ -1078,34 +896,23 @@ function setParameters(o::ParticleID, v::AbstractVector{Float32})
     update(o)
 end
 """
-dN/dx or dE/dx info of Track.
+dN/dx or dE/dx info of a Track
 - Author: EDM4hep authors
 # Fields
 - `dQdx::Quantity`:  the reconstructed dEdx or dNdx and its error 
-- `particleType::Int16`:  particle type, e(0),mu(1),pi(2),K(3),p(4) 
-- `type::Int16`:  type 
-- `hypotheses::SVector{5,Hypothesis}`:  5 particle hypothesis 
-- `hitData::PVector{HitLevelData}`:  hit level data 
 # Relations
 - `track::Track`:  the corresponding track 
-# Methods
-- `setHitData(object::RecDqdx, v::AbstractVector{HitLevelData})`: assign a set of values to the `hitData` vector member
 """
 struct RecDqdx <: POD
     index::ObjectID{RecDqdx}         # ObjectID of himself
     #---Data Members
     dQdx::Quantity                   #  the reconstructed dEdx or dNdx and its error 
-    particleType::Int16              #  particle type, e(0),mu(1),pi(2),K(3),p(4) 
-    type::Int16                      #  type 
-    hypotheses::SVector{5,Hypothesis}  #  5 particle hypothesis 
-    #---VectorMembers
-    hitData::PVector{RecDqdx,HitLevelData,1}  #  hit level data 
     #---OneToOneRelations
     track_idx::ObjectID{Track}       #  the corresponding track 
 end
 
-function RecDqdx(;dQdx=Quantity(), particleType=0, type=0, hypotheses=zero(SVector{5,Hypothesis}), hitData=PVector{RecDqdx,HitLevelData,1}(), track=-1)
-    RecDqdx(-1, dQdx, particleType, type, hypotheses, hitData, track)
+function RecDqdx(;dQdx=Quantity(), track=-1)
+    RecDqdx(-1, dQdx, track)
 end
 
 function Base.getproperty(obj::RecDqdx, sym::Symbol)
@@ -1115,11 +922,6 @@ function Base.getproperty(obj::RecDqdx, sym::Symbol)
     else # fallback to getfield
         return getfield(obj, sym)
     end
-end
-function setHitData(o::RecDqdx, v::AbstractVector{HitLevelData})
-    iszero(o.index) && (o = register(o))
-    o = @set o.hitData = v
-    update(o)
 end
 """
 Tracker hit plane
@@ -1200,69 +1002,69 @@ function Base.getproperty(obj::SimTrackerHit, sym::Symbol)
     end
 end
 """
-Association between a TrackerHitPlane and the corresponding SimTrackerHit
+Link between a TrackerHit and the corresponding SimTrackerHit
 - Author: EDM4hep authors
 # Fields
-- `weight::Float32`:  weight of this association 
+- `weight::Float32`:  weight of this link 
 # Relations
-- `rec::TrackerHitPlane`:  reference to the reconstructed hit 
-- `sim::SimTrackerHit`:  reference to the simulated hit 
+- `from::TrackerHit`:  reference to the reconstructed hit 
+- `to::SimTrackerHit`:  reference to the simulated hit 
 """
-struct MCRecoTrackerHitPlaneAssociation <: POD
-    index::ObjectID{MCRecoTrackerHitPlaneAssociation}  # ObjectID of himself
+struct TrackerHitSimTrackerHitLink <: POD
+    index::ObjectID{TrackerHitSimTrackerHitLink}  # ObjectID of himself
     #---Data Members
-    weight::Float32                  #  weight of this association 
+    weight::Float32                  #  weight of this link 
     #---OneToOneRelations
-    rec_idx::ObjectID{TrackerHitPlane}  #  reference to the reconstructed hit 
-    sim_idx::ObjectID{SimTrackerHit} #  reference to the simulated hit 
+    from_idx::ObjectID{TrackerHit}   #  reference to the reconstructed hit 
+    to_idx::ObjectID{SimTrackerHit}  #  reference to the simulated hit 
 end
 
-function MCRecoTrackerHitPlaneAssociation(;weight=0, rec=-1, sim=-1)
-    MCRecoTrackerHitPlaneAssociation(-1, weight, rec, sim)
+function TrackerHitSimTrackerHitLink(;weight=0, from=-1, to=-1)
+    TrackerHitSimTrackerHitLink(-1, weight, from, to)
 end
 
-function Base.getproperty(obj::MCRecoTrackerHitPlaneAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
-        return iszero(idx) ? nothing : convert(TrackerHitPlane, idx)
-    elseif sym == :sim
-        idx = getfield(obj, :sim_idx)
-        return iszero(idx) ? nothing : convert(SimTrackerHit, idx)
-    else # fallback to getfield
-        return getfield(obj, sym)
-    end
-end
-"""
-Association between a TrackerHit and the corresponding SimTrackerHit
-- Author: EDM4hep authors
-# Fields
-- `weight::Float32`:  weight of this association 
-# Relations
-- `rec::TrackerHit`:  reference to the reconstructed hit 
-- `sim::SimTrackerHit`:  reference to the simulated hit 
-"""
-struct MCRecoTrackerAssociation <: POD
-    index::ObjectID{MCRecoTrackerAssociation}  # ObjectID of himself
-    #---Data Members
-    weight::Float32                  #  weight of this association 
-    #---OneToOneRelations
-    rec_idx::ObjectID{TrackerHit}    #  reference to the reconstructed hit 
-    sim_idx::ObjectID{SimTrackerHit} #  reference to the simulated hit 
-end
-
-function MCRecoTrackerAssociation(;weight=0, rec=-1, sim=-1)
-    MCRecoTrackerAssociation(-1, weight, rec, sim)
-end
-
-function Base.getproperty(obj::MCRecoTrackerAssociation, sym::Symbol)
-    if sym == :rec
-        idx = getfield(obj, :rec_idx)
+function Base.getproperty(obj::TrackerHitSimTrackerHitLink, sym::Symbol)
+    if sym == :from
+        idx = getfield(obj, :from_idx)
         return iszero(idx) ? nothing : convert(TrackerHit, idx)
-    elseif sym == :sim
-        idx = getfield(obj, :sim_idx)
+    elseif sym == :to
+        idx = getfield(obj, :to_idx)
         return iszero(idx) ? nothing : convert(SimTrackerHit, idx)
     else # fallback to getfield
         return getfield(obj, sym)
     end
 end
-export setAmplitude, TimeSeries, CalorimeterHit, pushToClusters, popFromClusters, pushToHits, popFromHits, setShapeParameters, setSubdetectorEnergies, Cluster, pushToParents, popFromParents, pushToDaughters, popFromDaughters, MCParticle, setElectronCellID, setElectronTime, setElectronPosition, setPulseTime, setPulseAmplitude, SimPrimaryIonizationCluster, MCRecoClusterParticleAssociation, MCRecoCaloParticleAssociation, GeneratorPdfInfo, CaloHitContribution, pushToContributions, popFromContributions, SimCalorimeterHit, setAdcCounts, RawTimeSeries, MCRecoCaloAssociation, pushToSignalVertex, popFromSignalVertex, setCrossSections, setCrossSectionErrors, GeneratorEventParameters, TrackerPulse, setWeights, EventHeader, RawCalorimeterHit, pushToTrackerPulse, popFromTrackerPulse, RecIonizationCluster, TrackerHit3D, setParameters, Vertex, pushToTrackerHits, popFromTrackerHits, pushToTracks, popFromTracks, setSubdetectorHitNumbers, setTrackStates, setDxQuantities, Track, MCRecoTrackParticleAssociation, pushToParticles, popFromParticles, ReconstructedParticle, MCRecoParticleAssociation, RecoParticleVertexAssociation, ParticleID, setHitData, RecDqdx, TrackerHitPlane, SimTrackerHit, MCRecoTrackerHitPlaneAssociation, MCRecoTrackerAssociation
+"""
+Link between a CalorimeterHit and the corresponding SimCalorimeterHit
+- Author: EDM4hep authors
+# Fields
+- `weight::Float32`:  weight of this link 
+# Relations
+- `from::CalorimeterHit`:  reference to the reconstructed hit 
+- `to::SimCalorimeterHit`:  reference to the simulated hit 
+"""
+struct CaloHitSimCaloHitLink <: POD
+    index::ObjectID{CaloHitSimCaloHitLink}  # ObjectID of himself
+    #---Data Members
+    weight::Float32                  #  weight of this link 
+    #---OneToOneRelations
+    from_idx::ObjectID{CalorimeterHit}  #  reference to the reconstructed hit 
+    to_idx::ObjectID{SimCalorimeterHit}  #  reference to the simulated hit 
+end
+
+function CaloHitSimCaloHitLink(;weight=0, from=-1, to=-1)
+    CaloHitSimCaloHitLink(-1, weight, from, to)
+end
+
+function Base.getproperty(obj::CaloHitSimCaloHitLink, sym::Symbol)
+    if sym == :from
+        idx = getfield(obj, :from_idx)
+        return iszero(idx) ? nothing : convert(CalorimeterHit, idx)
+    elseif sym == :to
+        idx = getfield(obj, :to_idx)
+        return iszero(idx) ? nothing : convert(SimCalorimeterHit, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
+end
+export setAmplitude, TimeSeries, CalorimeterHit, pushToClusters, popFromClusters, pushToHits, popFromHits, setShapeParameters, setSubdetectorEnergies, Cluster, pushToParents, popFromParents, pushToDaughters, popFromDaughters, MCParticle, CaloHitMCParticleLink, GeneratorPdfInfo, CaloHitContribution, pushToContributions, popFromContributions, SimCalorimeterHit, setAdcCounts, RawTimeSeries, pushToSignalVertex, popFromSignalVertex, setCrossSections, setCrossSectionErrors, GeneratorEventParameters, ClusterMCParticleLink, setWeights, EventHeader, RawCalorimeterHit, TrackerHit3D, pushToParticles, popFromParticles, setParameters, Vertex, pushToTrackerHits, popFromTrackerHits, pushToTracks, popFromTracks, setSubdetectorHitNumbers, setSubdetectorHoleNumbers, setTrackStates, Track, TrackMCParticleLink, ReconstructedParticle, RecoMCParticleLink, VertexRecoParticleLink, ParticleID, RecDqdx, TrackerHitPlane, SimTrackerHit, TrackerHitSimTrackerHitLink, CaloHitSimCaloHitLink
