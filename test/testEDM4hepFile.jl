@@ -10,8 +10,8 @@ mutable struct Counter
 end
 ++(c::Counter) = c.count += 1
 
-@testset "ReadEDM4hepfile" begin
-    f = joinpath(@__DIR__, "EDM4hep.root")
+@testset "ReadEDM4hep$(T)file" for T in (:TTree, :RNTuple)
+    f = joinpath(@__DIR__, "EDM4hep_$T.root")
     reader = RootIO.Reader(f)
     events = RootIO.get(reader, "events")
 
@@ -150,8 +150,6 @@ end
             @test c.directionError.x == ++(count)
             @test c.directionError.y == ++(count)
             @test c.directionError.z == ++(count)
-            #@test c.shapeParameters == [++(count) for i in 1:vectorsize]
-            #@test c.subdetectorEnergies == [++(count) for i in 1:vectorsize]
             for i in 1:vectorsize
                 @test c.shapeParameters[i] == ++(count)
                 @test c.subdetectorEnergies[i] == ++(count)
@@ -207,22 +205,22 @@ end
             @test t.type == ++(count)
             @test t.chi2 == ++(count)
             @test t.ndf == ++(count)
-            @test t.Nholes == 0
-            @test t.subdetectorHoleNumbers == [++(count) for i in 1:t.Nholes]
+            @test t.subdetectorHoleNumbers == []
             for (i, s) in t.trackStates |> enumerate
-                t.subdetectorHitNumbers[i] == ++(count)
-                s.location == ++(count)
-                s.D0 == ++(count)
-                s.phi == ++(count)
-                s.omega == ++(count)
-                s.Z0 == ++(count)
-                s.tanLambda == ++(count)
-                s.time == ++(count)
-                s.referencePoint == Vector3f(++(count), ++(count), ++(count))
-                s.covMatrix == cov6f
+                @test t.subdetectorHitNumbers[i] == ++(count)
+                @test s.location == ++(count)
+                @test s.D0 == 0; ++(count)
+                @test s.phi == ++(count)
+                @test s.omega == ++(count)
+                @test s.Z0 == 0; ++(count)
+                @test s.tanLambda == ++(count)
+                @test s.time == ++(count)
+                @test s.referencePoint == Vector3f(++(count), ++(count), ++(count))
+                @test s.covMatrix == cov6f
             end
-            t.trackerHits[1] == th3d[1]
-            t.tracks[1] == tc[1]
+            @test t.Nholes == ++(count)
+            @test t.trackerHits[1] == th3d[1]
+            @test t.tracks[1] == tc[1]
         end
 
         #---VertexCollection------------------------------------------------------------------------
