@@ -73,7 +73,11 @@ module RootIO
                     collectionIDs = Dict(meta.m_names .=> meta.m_collectionIDs)
                     collectionNames = Dict(meta.m_collectionIDs .=> meta.m_names)
                     podioversion = VersionNumber(meta.major, meta.minor, meta.patch)
-                    schemaversion = LazyTree(reader.files[1],"podio_metadata",["events___CollectionTypeInfo/events___CollectionTypeInfo._3"])[1][1][1] |> VersionNumber
+                    if (tfile["podio_metadata"]["events___CollectionTypeInfo"] |> UnROOT.children |> length) > 3
+                        schemaversion = LazyTree(tfile,"podio_metadata",["events___CollectionTypeInfo/events___CollectionTypeInfo._3"])[1][1][1] |> VersionNumber
+                    else
+                        schemaversion = VersionNumber(1)
+                    end
                 end
             else
                 error("""ROOT file $(reader.filename[i]) does not have a 'podio_metadata' tree. 
