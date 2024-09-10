@@ -209,10 +209,10 @@ end
             for (i, s) in t.trackStates |> enumerate
                 @test t.subdetectorHitNumbers[i] == ++(count)
                 @test s.location == ++(count)
-                @test s.D0 == 0; ++(count)
+                @test s.D0 == ++(count)
                 @test s.phi == ++(count)
                 @test s.omega == ++(count)
-                @test s.Z0 == 0; ++(count)
+                @test s.Z0 == ++(count)
                 @test s.tanLambda == ++(count)
                 @test s.time == ++(count)
                 @test s.referencePoint == Vector3f(++(count), ++(count), ++(count))
@@ -324,7 +324,30 @@ end
             @test dq.track == tc[1]
         end
 
-        #---Alingment of counter
-        count.count += 24
+        #---GeneratorEventParametersCollection-----------------------------------------------------
+        gep = RootIO.get(reader, evt, "GeneratorEventParametersCollection")
+        for p in gep
+            @test p.eventScale == ++(count)
+            @test p.alphaQED == ++(count)
+            @test p.alphaQCD == ++(count)
+            @test p.signalProcessId == ++(count)
+            @test p.sqrts == ++(count)
+            for i in 1:vectorsize
+                @test p.crossSections[i] == ++(count)
+                @test p.crossSectionErrors[i] == ++(count)
+            end
+            @test p.signalVertex[1] == mcp[1]
+        end
+        
+        #---GeneratorPdfInfoCollection-------------------------------------------------------------
+        gpi = RootIO.get(reader, evt, "GeneratorPdfInfoCollection")
+        for p in gpi
+            @test p.partonId == [++(count), ++(count)]
+            @test p.lhapdfId == [++(count), ++(count)]
+            @test p.x == [++(count), ++(count)]
+            @test p.xf == [++(count), ++(count)]
+            @test p.scale == ++(count)
+        end
+
     end
 end
