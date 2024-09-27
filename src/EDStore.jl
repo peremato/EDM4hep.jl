@@ -16,7 +16,7 @@ function initialize!(store::EDStore{ED}) where ED <: POD
 end
 
 function Base.empty!(store::EDStore{ED}) where ED <: POD
-    store.objects isa StructArray & empty!(store.objects)
+    store.objects isa StructArray && empty!(store.objects)
     for (i,R) in enumerate(relations(ED))
         store.relations[i] isa Vector &&  empty!(store.relations[i])
     end
