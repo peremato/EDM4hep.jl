@@ -94,7 +94,7 @@ end
 Base.propertynames(oid::ObjectID) = tuple(fieldnames(ObjectID)...,:object)
 function register(p::ED) where ED
     collid = collectionID(ED)
-    store::Vector{ED} = EDStore_objects(ED, collid)
+    store = EDStore_objects(ED, collid)
     !iszero(p.index) && error("Registering an already registered MCParticle $p")
     last = lastindex(store)
     p = @set p.index = ObjectID{ED}(last, collid)

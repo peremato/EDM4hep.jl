@@ -1,6 +1,9 @@
 
 # Release Notes
 
+## 0.4.x
+- Use StructArrays also for EDStore when building the model directly.
+
 
 ## 0.4.0
 ### New Functionality

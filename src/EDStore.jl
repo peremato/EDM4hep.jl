@@ -1,3 +1,5 @@
+using StructArrays
+
 export EDStore, getEDStore, initEDStore, assignEDStore, emptyEDStore, assignEDStore_relations, assignEDStore_vmembers
 
 mutable struct EDStore{ED <: POD}
@@ -8,13 +10,13 @@ mutable struct EDStore{ED <: POD}
 end
 
 function initialize!(store::EDStore{ED}) where ED <: POD
-    store.objects = ED[]
+    store.objects = StructArray(ED[])
     store.relations = Tuple(ObjectID{eltype(R)}[] for R in relations(ED))
     store.vmembers = Tuple(ObjectID{eltype(R)}[] for R in vmembers(ED))
 end
 
 function Base.empty!(store::EDStore{ED}) where ED <: POD
-    store.objects isa Vector && empty!(store.objects)
+    store.objects isa StructArray & empty!(store.objects)
     for (i,R) in enumerate(relations(ED))
         store.relations[i] isa Vector &&  empty!(store.relations[i])
     end
@@ -82,7 +84,7 @@ end
 function EDStore_objects(::Type{ED}, collid::UInt32=0x00000000) where ED
     store = getEDStore(ED, collid)
     if !isdefined(store, :objects)
-        store.objects = ED[]
+        store.objects = StructArray(ED[])
     end
     store.objects
 end
