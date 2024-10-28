@@ -1,9 +1,12 @@
 
 # Release Notes
 
+## 0.4.2
+- Moved to JuliaHEP organization
+- Update to FHist 0.11 series (#9)
+
 ## 0.4.1
 - Use StructArrays also for EDStore when building the model directly in memory.
-
 
 ## 0.4.0
 ### New Functionality

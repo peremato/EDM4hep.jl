@@ -1,7 +1,7 @@
 name = "EDM4hep"
 uuid = "eb32b910-dde9-4347-8fce-cd6be3498f0c"
 authors = ["Pere Mato <pere.mato@cern.ch>"]
-version = "0.4.1"
+version = "0.4.2"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
