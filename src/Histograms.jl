@@ -15,7 +15,7 @@ module Histograms
 
     """
     H1D(title::String, nbins::Int, min::Float, max::Float, unit::Symbol)
-        Create a 1-dimentional histgram carrying the title and units
+        Create a 1-dimensional histogram carrying the title and units.
     """
     struct H1D
         title::String
@@ -31,7 +31,7 @@ module Histograms
 
     """
     H2D(title::String, xbins::Int, xmin::Float, xmax::Float, ybins::Int, ymin::Float, ymax::Float, unit::Tuple{Symbol,Symbol})
-        Create a 2-dimentional histgram carrying the title and units
+        Create a 2-dimensional histogram carrying the title and units.
     """
     struct H2D
         title::String
@@ -47,7 +47,7 @@ module Histograms
 
     """
     H3D(title::String, xbins::Int, xmin::Float, xmax::Float, ybins::Int, ymin::Float, ymax::Float, zbins::Int, zmin::Float, zmax::Float, unit::Tuple{Symbol,Symbol,Symbol})
-        Create a 2-dimentional histgram carrying the title and units
+        Create a 2-dimensional histogram carrying the title and units.
     """
     struct H3D
         title::String
