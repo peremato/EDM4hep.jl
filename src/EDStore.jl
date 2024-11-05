@@ -4,8 +4,8 @@ export EDStore, getEDStore, initEDStore, assignEDStore, emptyEDStore, assignEDSt
 
 mutable struct EDStore{ED <: POD}
     objects::AbstractVector{ED}
-    relations::Tuple    # a Tuple of ObjectID{ED} [Abstrcat] Vectors
-    vmembers::Tuple   # a Tuple of T [Abstrcat] Vectors
+    relations::Tuple    # a Tuple of ObjectID{ED} [Abstract] Vectors
+    vmembers::Tuple   # a Tuple of T [Abstract] Vectors
     EDStore{ED}() where ED = new()
 end
 
@@ -32,7 +32,7 @@ const _eventDataStore = Dict{UInt32, EDStore}()
 """
     getEDStore(::Type{ED}, collid::UInt32=0x00000000)
 
-Get the store corresponding to the `collid`. If it is not specified then obtain a `collid` frm the data type `ED`
+Get the store corresponding to the `collid`. If it is not specified then obtain a `collid` from the data type `ED`.
 """
 function getEDStore(::Type{ED}, collid::UInt32=0x00000000) where ED
     global _eventDataStore
@@ -54,7 +54,7 @@ function hasEDStore(collid::UInt32)
 end
 """
     initEDStore(::Type{ED}) where ED
-Unintialize the store corresponding to type `ED`
+Initialize the store corresponding to type `ED`.
 """
 function initEDStore(::Type{ED}) where ED
     getEDStore(ED) |> initialize!
@@ -62,7 +62,7 @@ end
 
 """
     emptyEDStore()
-Empty tyhe whole sortres
+Empty the whole store.
 """
 function emptyEDStore()
     global _eventDataStore

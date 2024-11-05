@@ -12,8 +12,8 @@ module Analysis
     """
         Base.empty!(data::AbstractAnalysisData)
 
-    Default function to reset the user analysis data structure in case 
-    is not provided explicitely.
+    Default function to reset the user analysis data structure in case it 
+    is not provided explicitly.
     """
     function Base.empty!(data::AbstractAnalysisData)
         for (fn,ft) in zip(propertynames(data), fieldtypes(typeof(data)))
@@ -28,8 +28,8 @@ module Analysis
      """
         Base.append!(d1::AbstractAnalysisData, d2::AbstractAnalysisData)
 
-    Default function to reset the user analysis data structure in case 
-    is not provided explicitely.
+    Default function to reset the user analysis data structure in case it 
+    is not provided explicitly.
     """
     function Base.append!(d1::AbstractAnalysisData, d2::AbstractAnalysisData)
         typeof(d1) != typeof(d2) && error("Cannot append!() data of different types")
@@ -46,9 +46,9 @@ module Analysis
     do_analysis!(data::AbstractAnalysisData, analysis, reader, events; mt::Bool=false, tasks_per_thread::Int=4)
 
     Perform an analysis on all `events` by executing the `analysis` function. 
-    The iteration will be chunked and distributed to diffrent tasks running on 
+    The iteration will be chunked and distributed to different tasks running on 
     different threads if the option argument `mt` is set to `true`. 
-    The results in `data` for all the cbhunks will be merged at the end of the analysis.   
+    The results in `data` for all the chunks will be merged at the end of the analysis.   
     """
     function do_analysis!(data::AbstractAnalysisData, analysis, reader, events; mt::Bool=false, tasks_per_thread::Int=4)
         # Empty the user analysis data

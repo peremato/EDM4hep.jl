@@ -109,7 +109,7 @@ module RootIO
                  "IO Format" r.isRNTuple ? "RNTuple" : "TTree";
                  "PODIO version" r.podioversion;
                  "ROOT version" VersionNumber(r.files[1].format_version÷10000, r.files[1].format_version%10000÷100, r.files[1].format_version%100)]
-        pretty_table(io, data1, header=["Atribute", "Value"], alignment=:l)
+        pretty_table(io, data1, header=["Attribute", "Value"], alignment=:l)
         if !isempty(r.btypes)
             bs = sort([b for b in keys(r.btypes) if b[1] != '_'])
             bt = getindex.(Ref(r.btypes), bs)
@@ -179,7 +179,7 @@ module RootIO
     function StructArray{T,bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {T,bname} 
         fnames = fieldnames(T)
         n_rels::Int32  = 0      # number of one-to-one or one-to-many Relations 
-        if len == -1            # Need the length to fill missing colums
+        if len == -1            # Need the length to fill missing columns
             len = length(getproperty(evt, Symbol(bname, :_, fnames[2])))
         end
         sa = Tuple( map(zip(fieldnames(T), fieldtypes(T))) do (fn,ft)
@@ -244,7 +244,7 @@ module RootIO
     """
     function get(reader::Reader, treename::String)
         reader.treename = treename
-        #---build a dictionary of branches and associted type
+        #---build a dictionary of branches and associated type
         tree = reader.files[1][treename]
         pattern = r"(edm4hep|podio)::([a-zA-Z]+?)(Data$|$)"
         vpattern = r"(std::)?vector<(std::)?(.*)>"
@@ -286,13 +286,13 @@ module RootIO
     end
     
     function _get(reader::Reader, evt::UnROOT.LazyEvent, bname::String, btype::Type, register::Bool)
-        if haskey(reader.layouts, bname)                          # Check whether the the layout has been pre-compiled 
+        if haskey(reader.layouts, bname)                          # Check whether the layout has been pre-compiled 
             layout = reader.layouts[bname]
         else
             layout = buildlayout(reader, bname, btype)
             reader.layouts[bname] = layout
         end
-        collid = Base.get(reader.collectionIDs, bname, UInt32(0)) # The CollectionID has beeen assigned when opening the file
+        collid = Base.get(reader.collectionIDs, bname, UInt32(0)) # The CollectionID has been assigned when opening the file
         sbranch = Symbol(bname)
         if reader.isRNTuple
             sa = StructArray{btype}(evt, sbranch, collid)
@@ -317,7 +317,7 @@ module RootIO
     get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
 
     Gets an object collection by its name, with the possibility to overwrite the mapping Julia type or use the 
-    type known in the ROOT file (C++ class name). The optonal key parameter `register` indicates is the collection
+    type known in the ROOT file (C++ class name). The optional key parameter `register` indicates if the collection
     needs to be registered to the `EDStore`.
     """
     function get(reader::Reader, evt::UnROOT.LazyEvent, bname::String; btype::Type=Any, register=true)
