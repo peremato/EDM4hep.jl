@@ -1,4 +1,3 @@
-using Revise
 using Test
 using EDM4hep
 using EDM4hep.RootIO
