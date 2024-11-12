@@ -322,15 +322,10 @@ module RootIO
             sa = StructArray{btype,sbranch}(evt, collid)
         end
         if register
-            assignEDStore(sa, collid)
-            if !isempty(layout[3])  # check if there are relations in this branch
-                relations = Tuple(_get(reader, evt, rb, ObjectID{rt}, false) for (rb, rt) in layout[3])
-                assignEDStore_relations(relations, btype, collid)
-            end
-            if !isempty(layout[4])  # check if there are vector members in this branch
-                vmembers = Tuple(_get(reader, evt, rb, rt, false) for (rb, rt) in layout[4])
-                assignEDStore_vmembers(vmembers, btype, collid)
-            end
+            relations = Tuple(_get(reader, evt, rb, ObjectID{rt}, false) for (rb, rt) in layout[3])
+            vmembers = Tuple(_get(reader, evt, rb, rt, false) for (rb, rt) in layout[4])
+            coll = EDCollection(sa, relations, vmembers)
+            EDStore()[collid] = coll
         end
         sa
     end
