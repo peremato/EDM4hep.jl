@@ -123,7 +123,10 @@ Base.iszero(x::ObjectID{ED}) where ED = x.index < 0
 Base.show(io::IO, x::ObjectID{ED}) where ED = print(io, "#$(iszero(x) ? 0 : x.index+1)")
 Base.convert(::Type{Integer}, i::ObjectID{ED}) where ED = i.index+1
 Base.convert(::Type{ED}, i::ObjectID{ED}) where ED = iszero(i) ? nothing : @inbounds EDCollection_objects(ED, i.collectionID)[i.index+1]
-Base.convert(::Type{ObjectID{ED}}, p::ED) where ED = iszero(p.index) ? register(p).index : return p.index
+function Base.convert(::Type{ObjectID{EI}}, p::ED) where {EI, ED<:EI}
+    iszero(p.index) && (p = register(p))
+    ObjectID{EI}(p.index.index, p.index.collectionID)
+end
 Base.convert(::Type{ObjectID{ED}}, i::Integer) where ED = ObjectID{ED}(i,0)
 Base.eltype(::Type{ObjectID{ED}}) where ED = ED
 Base.to_index(oid::ObjectID) = oid.index+1

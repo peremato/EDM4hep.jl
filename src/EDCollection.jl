@@ -16,12 +16,25 @@ struct EDCollection{ED <: POD}
 end
 Base.iterate(coll::EDCollection) = iterate(coll.objects)
 Base.iterate(coll::EDCollection, state) = iterate(coll.objects, state)
+Base.getindex(coll::EDCollection, i::Int) = coll.objects[i]
 Base.length(coll::EDCollection) = length(coll.objects)
+Base.lastindex(coll::EDCollection) = lastindex(coll.objects)
 function Base.push!(coll::EDCollection, obj)
     !iszero(obj.index) && error("Already registered object $obj")
     last = length(coll.objects)
     obj = @set obj.index=last
     push!(coll.objects, obj)
+end
+function Base.getproperty(coll::EDCollection, name::Symbol)
+    if name == :objects
+        return getfield(coll, :objects)
+    elseif name == :relations
+        return getfield(coll, :relations)
+    elseif name == :vmembers
+        return getfield(coll, :vmembers)
+    else
+        getproperty(coll.objects, name)
+    end
 end
 EDCollection(sa::StructArray{ED}, r::Tuple, v::Tuple) where ED = EDCollection{ED}(sa, r, v)
 
