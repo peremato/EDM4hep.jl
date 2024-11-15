@@ -35,7 +35,7 @@ p7, p5 = add_parent(p7, p5)
 p8 = MCParticle(PDG=-2, mass=0.0, momentum=(3.962, -49.498, -26.687), generatorStatus=1)
 p8, p5 = add_parent(p8, p5)
 
-for p in getEDStore(MCParticle).objects
+for p in getEDCollection(MCParticle)
     println("MCParticle $(p.index) with PDG=$(p.PDG) and momentum $(p.momentum) has $(length(p.daughters)) daughters")
     for d in p.daughters
         println("   ---> $(d.index) with PDG=$(d.PDG) and momentum $(d.momentum)")
@@ -46,18 +46,18 @@ end
 
 const nsh = 5
 for j in 1:nsh
-  sth1 = SimTrackerHit(cellID=0xabadcaffee, EDep=j*0.000001, position=(j * 10., j * 20., j * 5.), mcparticle=p7)
+  sth1 = SimTrackerHit(cellID=0xabadcaffee, eDep=j*0.000001, position=(j * 10., j * 20., j * 5.), particle=p7)
   sth1 = register(sth1)
 
-  sth2 = SimTrackerHit(cellID=0xcaffeebabe, EDep=j*0.001, position=(-j * 10., -j * 20., -j * 5.), mcparticle=p8)
+  sth2 = SimTrackerHit(cellID=0xcaffeebabe, eDep=j*0.001, position=(-j * 10., -j * 20., -j * 5.), particle=p8)
   sth2 = register(sth2)
 end
 
-for s in getEDStore(SimTrackerHit).objects
-    println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with EDep=$(s.EDep) and position=$(s.position) associated to particle $(s.mcparticle.index)")
+for s in getEDCollection(SimTrackerHit)
+    println("SimTrackerHit in cellID=$(string(s.cellID, base=16)) with eDep=$(s.eDep) and position=$(s.position) associated to particle $(s.particle.index)")
 end
 
 
 using DataFrames
-df = DataFrame(getEDStore(MCParticle).objects)
+df = DataFrame(getEDCollection(MCParticle).objects)
 

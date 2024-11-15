@@ -247,109 +247,6 @@ function gen_docstring(io, key, dtype)
     println(io,"\"\"\"")
 end
 
-#=
-function gen_structarray(io, key, dtype; podio=17)
-    jtype = to_julia(key)
-    println(io, "function StructArray{$jtype, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where bname")
-    first = true
-    for m in dtype["Members"] 
-        t, v, c = split_member(m)
-        if first
-            println(io, "    firstmem = getproperty(evt, Symbol(bname, :_$v))")
-            println(io, "    len = length(firstmem)")
-            println(io, "    columns = (StructArray{ObjectID{$jtype}}((collect(0:len-1),fill(collid,len))),")
-            println(io, "        firstmem,")
-            first = false
-        else
-            if t in fundamental_types
-                println(io, "        getproperty(evt, Symbol(bname, :_$v)),")
-            elseif startswith(t, "SVector")
-                N = match(r"SVector{([0-9]+)[, ]([^,]+)}", t).captures[1]
-                println(io, "        StructArray{$t}(reshape(getproperty(evt, Symbol(bname, \"_$v[$N]\")), $N, len);dims=1),")
-            else
-                println(io, "        StructArray{$t, Symbol(bname, :_$v)}(evt, collid, len),")
-            end 
-        end
-    end
-    if haskey(dtype, "VectorMembers")
-        for (i,r) in enumerate(dtype["VectorMembers"])
-            t, v, c = split_member(r)
-            v == "subdetectorHitNumbers" && (v = "subDetectorHitNumbers")   # adhoc fixes
-            println(io, "        StructArray{PVector{$(jtype),$(t),$(i)}, Symbol(bname, :_$v)}(evt, collid, len),")
-        end
-    end
-    n_rels = 0
-    if haskey(dtype, "OneToManyRelations")
-        for (i,r) in enumerate(dtype["OneToManyRelations"])
-            t, v, c = split_member(r)
-            println(io, "        StructArray{Relation{$(jtype),$(t),$(i)}, Symbol(bname, :_$v)}(evt, collid, len),")
-            n_rels += 1
-        end
-    end
-    if haskey(dtype, "OneToOneRelations")
-        for (i,r) in enumerate(dtype["OneToOneRelations"])
-            t, v, c = split_member(r)
-            v == "mcparticle" && (v = "MCParticle")   # adhoc fixes
-            if podio == 16
-                println(io, "        StructArray{ObjectID{$(t)}, Symbol(bname, \"#$n_rels\")}(evt, collid, len),")
-            else
-                println(io, "        StructArray{ObjectID{$(t)}, Symbol(:_, bname, \"_$v\")}(evt, collid, len),")
-            end
-            n_rels += 1
-        end
-    end
-    println(io, "    )")
-    println(io, "    return StructArray{$jtype}(columns)")
-    println(io, "end\n")
-end
-
-function gen_structarray_rntuple(io, key, dtype)
-    jtype = to_julia(key)
-    println(io, "function StructArray{$jtype}(evt::UnROOT.LazyEvent, branch::Symbol, collid = UInt32(0))")
-    println(io, "    sa = getproperty(evt, branch)")
-    first = true
-    for m in dtype["Members"] 
-        t, v, c = split_member(m)
-        if first
-            println(io, "    len = length(sa.$(v))")
-            println(io, "    fcollid = fill(collid,len)")
-            println(io, "    columns = (StructArray{ObjectID{$jtype}}((collect(0:len-1),fcollid)),")
-            println(io, "        sa.$(v),")
-            first = false
-        else
-            if t in fundamental_types || startswith(t, "SVector")
-                println(io, "        sa.$(v),")
-            else
-                println(io, "        StructArray{$(t)}(StructArrays.components(sa.$(v))),")
-            end
-        end
-    end
-    if haskey(dtype, "VectorMembers")
-        for (i,r) in enumerate(dtype["VectorMembers"])
-            t, v, c = split_member(r)
-            v == "subdetectorHitNumbers" && (v = "subDetectorHitNumbers")   # adhoc fixes
-            println(io, "        StructArray{PVector{$(jtype),$(t),$(i)}}((sa.$(v)_begin, sa.$(v)_end, fcollid)),")
-        end
-    end
-    if haskey(dtype, "OneToManyRelations")
-        for (i,r) in enumerate(dtype["OneToManyRelations"])
-            t, v, c = split_member(r)
-            println(io, "        StructArray{Relation{$(jtype),$(t),$(i)}}((sa.$(v)_begin, sa.$(v)_end, fcollid)),")
-        end
-    end
-    if haskey(dtype, "OneToOneRelations")
-        for (i,r) in enumerate(dtype["OneToOneRelations"])
-            t, v, c = split_member(r)
-            v == "mcparticle" && (v = "MCParticle")   # adhoc fixes
-            println(io, "        StructArray{ObjectID{$(t)}}(StructArrays.components(getproperty(evt, Symbol(:_, branch, :_$v)))),")
-        end
-    end
-    println(io, "    )")
-    println(io, "    return StructArray{$jtype}(columns)")
-    println(io, "end\n")
-end
-=#
-
 function build_graph(datatypes, interfaces=Dict())
     types = to_julia.(keys(datatypes))
     interfaces = to_julia.(keys(interfaces))
@@ -412,21 +309,18 @@ end
 println(io, "export $(join(unique(exports),", "))")
 close(io)
 
-#=
-#---StructArrays--------------------------------------------------------------------------------------
-for v in (16,17)
-    local io = open(joinpath(@__DIR__, "genStructArrays-v$(v).jl"), "w")
-    local datatypes = data["datatypes"]
-    for (key,value) in pairs(datatypes)
-        gen_structarray(io, key, value; podio=v)
-    end
-    close(io)
+#---Links------------------------------------------------------------------------------------------
+io = open(joinpath(@__DIR__, "genLinks.jl"), "w")
+println(io, "# Automatically generated by generate.jl from edm4hep.yaml (schema version $schema_version)\n")
+links = data["links"]
+exports = []
+for (key,body) in pairs(links)
+    jtype = to_julia(key)
+    from = to_julia(body["From"])
+    to = to_julia(body["To"])
+    println(io, "const $jtype = Link{$from,$to}")
+    push!(exports, to_julia(key))
 end
-io = open(joinpath(@__DIR__, "genStructArrays-rntuple.jl"), "w")
-datatypes = data["datatypes"]
-for (key,value) in pairs(datatypes)
-    gen_structarray_rntuple(io, key, value)
-end
-=#
-
+println(io, "\n")
+println(io, "export $(join(unique(exports),", "))")
 close(io)

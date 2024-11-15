@@ -72,10 +72,10 @@
     @test p5.daughters[1] == p7
     @test p5.daughters[2] == p8
 
-    @test length(getEDStore(MCParticle).objects) == 8
+    @test length(getEDCollection(MCParticle)) == 8
 
     # Iterate over particles, daughters and parents
-    for p in getEDStore(MCParticle).objects
+    for p in getEDCollection(MCParticle)
         for d in p.daughters  # each particle with daughters must be in the parents of each daughter 
             @test p in d.parents
         end
@@ -91,7 +91,7 @@
     @test p1.index.index == 0
     @test p2.index.index == 1
 
-    initEDStore(MCParticle)
+    getEDCollection(MCParticle) |> empty!
     p1 = MCParticle() |> register
     p2 = MCParticle() |> register
     @test p1.index.index == 0

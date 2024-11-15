@@ -1,5 +1,6 @@
 include("../podio/genInterfaces.jl")
 include("../podio/genDatatypes.jl")
+include("../podio/genLinks.jl")
 
 #--------------------------------------------------------------------------------------------------
 #----Utility functions for MCParticle--------------------------------------------------------------

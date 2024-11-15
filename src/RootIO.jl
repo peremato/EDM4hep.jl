@@ -162,34 +162,53 @@ module RootIO
         (T, (), Tuple(relations), Tuple(vmembers))
     end
 
-    #---StructArray constructors--------------------------------------------------------------------
+    const missing_columns = Dict{Symbol, Bool}()
 
+    #---Replace getproperty by a more tolerant getcolumn-------------------------------------------    
+    function getcolumn(evt::UnROOT.LazyEvent, bname::Symbol, val::T, len::Int) where T
+        if hasproperty(evt, bname)
+            return getproperty(evt, bname)
+        else
+            if !haskey(missing_columns, bname)
+                @warn "Column $bname not found in the tree"
+                missing_columns[bname] = true
+            end 
+            return fill(val, len)
+        end
+    end
+
+    #---StructArray constructors--------------------------------------------------------------------
     @inline function StructArray{Relation{ED,TD,N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,TD,N,bname}
-        StructArray{Relation{ED,TD,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
+        StructArray{Relation{ED,TD,N}}((getcolumn(evt, Symbol(bname, :_begin), 0x00000000, len), 
+                                        getcolumn(evt, Symbol(bname, :_end), 0x00000000, len), fill(collid,len)))
     end
     @inline function StructArray{PVector{ED,T, N}, bname}(evt::UnROOT.LazyEvent, collid, len) where {ED,T,N,bname}
-        StructArray{PVector{ED,T,N}}((getproperty(evt, Symbol(bname, :_begin)), getproperty(evt, Symbol(bname, :_end)), fill(collid,len)))
+        StructArray{PVector{ED,T,N}}((getcolumn(evt, Symbol(bname, :_begin), 0x00000000, len), 
+                                      getcolumn(evt, Symbol(bname, :_end), 0x00000000, len), fill(collid,len)))
     end
     @inline function StructArray{SVector{N,T}, bname}(evt::UnROOT.LazyEvent, collid, len) where {N,T,bname}
         StructArray{SVector{N,T}}(reshape(getproperty(evt, Symbol(bname, "[$N]")), N, len);dims=1)
     end
     @inline function StructArray{ObjectID{ED}, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {ED,bname}
-        inds = getproperty(evt, Symbol(bname, :_index))
-        cids = getproperty(evt, Symbol(bname, :_collectionID))
+        inds = getcolumn(evt, Symbol(bname, :_index), -1, len)
+        cids = getcolumn(evt, Symbol(bname, :_collectionID), 0x00000000, len)
         #len > 0 && cids[1] == -2 && fill!(cids, 0)      # Handle the case collid is -2 :-( )
         replace!(cids, -2 => 0)
         StructArray{ObjectID{ED}}((inds, cids))
     end
     @inline function StructArray{ObjectID, bname}(evt::UnROOT.LazyEvent, collid = UInt32(0), len = -1) where {bname}
-        inds = getproperty(evt, Symbol(bname, :_index))
-        cids = getproperty(evt, Symbol(bname, :_collectionID))
+        inds = getcolumn(evt, Symbol(bname, :_index), -1, len)
+        cids = getcolumn(evt, Symbol(bname, :_collectionID), 0x00000000, len)
         StructArray{ObjectID}((inds, cids))
     end
     @inline function StructArray{Vector3f, bname}(evt::UnROOT.LazyEvent, collid, len) where {bname}
-        StructArray{Vector3f}((getproperty(evt, Symbol(bname, :_x)), getproperty(evt, Symbol(bname, :_y)), getproperty(evt, Symbol(bname, :_z))))
+        StructArray{Vector3f}((getcolumn(evt, Symbol(bname, :_x), 0.0f0, len), 
+                               getcolumn(evt, Symbol(bname, :_y), 0.0f0, len),
+                               getcolumn(evt, Symbol(bname, :_z), 0.0f0, len)))
     end
+
     @inline function StructArray{T, bname}(evt::UnROOT.LazyEvent, collid, len) where {T <: Number,bname}
-        getproperty(evt, bname)
+        getcolumn(evt, bname, zero(T), len)
     end
 
     #---Generic StructArray constructor (fall-back)------------------------------------------------
@@ -281,7 +300,11 @@ module RootIO
                     reader.btypes[key] = builtin_types[classname]
                 else
                     classname = result.captures[2]
-                    reader.btypes[key] = getproperty(EDM4hep, Symbol(classname))
+                    if hasproperty(EDM4hep, Symbol(classname))
+                        reader.btypes[key] = getproperty(EDM4hep, Symbol(classname))
+                    else
+                        @warn "Type $classname not found in EDM4hep module"
+                    end
                 end
             end
         elseif tree isa UnROOT.RNTuple
@@ -322,15 +345,10 @@ module RootIO
             sa = StructArray{btype,sbranch}(evt, collid)
         end
         if register
-            assignEDStore(sa, collid)
-            if !isempty(layout[3])  # check if there are relations in this branch
-                relations = Tuple(_get(reader, evt, rb, ObjectID{rt}, false) for (rb, rt) in layout[3])
-                assignEDStore_relations(relations, btype, collid)
-            end
-            if !isempty(layout[4])  # check if there are vector members in this branch
-                vmembers = Tuple(_get(reader, evt, rb, rt, false) for (rb, rt) in layout[4])
-                assignEDStore_vmembers(vmembers, btype, collid)
-            end
+            relations = Tuple(_get(reader, evt, rb, ObjectID{rt}, false) for (rb, rt) in layout[3])
+            vmembers = Tuple(_get(reader, evt, rb, rt, false) for (rb, rt) in layout[4])
+            coll = EDCollection(sa, relations, vmembers)
+            EDStore()[collid] = coll
         end
         sa
     end

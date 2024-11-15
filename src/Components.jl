@@ -3,6 +3,7 @@ using Corpuscles    #  PDG database
 using StaticArrays  #  Needed for fix length arrays in datatypes
 
 export register, relations, vmembers, Relation, PVector, ObjectID, collectionID, θ, ϕ
+export @set
 
 abstract type POD end # Abstract type to denote a POD from PODIO
 
@@ -121,8 +122,11 @@ Base.zero(::Type{ObjectID{ED}}) where ED = ObjectID{ED}(-1,0)
 Base.iszero(x::ObjectID{ED}) where ED = x.index < 0
 Base.show(io::IO, x::ObjectID{ED}) where ED = print(io, "#$(iszero(x) ? 0 : x.index+1)")
 Base.convert(::Type{Integer}, i::ObjectID{ED}) where ED = i.index+1
-Base.convert(::Type{ED}, i::ObjectID{ED}) where ED = iszero(i) ? nothing : @inbounds EDStore_objects(ED, i.collectionID)[i.index+1]
-Base.convert(::Type{ObjectID{ED}}, p::ED) where ED = iszero(p.index) ? register(p).index : return p.index
+Base.convert(::Type{ED}, i::ObjectID{ED}) where ED = iszero(i) ? nothing : @inbounds EDCollection_objects(ED, i.collectionID)[i.index+1]
+function Base.convert(::Type{ObjectID{EI}}, p::ED) where {EI, ED<:EI}
+    iszero(p.index) && (p = register(p))
+    ObjectID{EI}(p.index.index, p.index.collectionID)
+end
 Base.convert(::Type{ObjectID{ED}}, i::Integer) where ED = ObjectID{ED}(i,0)
 Base.eltype(::Type{ObjectID{ED}}) where ED = ED
 Base.to_index(oid::ObjectID) = oid.index+1
@@ -138,7 +142,7 @@ end
 Base.propertynames(oid::ObjectID) = tuple(fieldnames(ObjectID)...,:object)
 function register(p::ED) where ED
     collid = collectionID(ED)
-    store = EDStore_objects(ED, collid)
+    store = EDCollection_objects(ED, collid)
     !iszero(p.index) && error("Registering an already registered MCParticle $p")
     last = lastindex(store)
     p = @set p.index = ObjectID{ED}(last, collid)
@@ -147,7 +151,7 @@ function register(p::ED) where ED
 end
 function update(p::ED) where ED
     iszero(p.index) && (p = register(p))  # need to register if not done
-    EDStore_objects(ED)[p.index.index+1] = p
+    EDCollection_objects(ED)[p.index.index+1] = p
 end
 function collectionID(::Type{ED}) where ED
     hash(ED) % UInt32  # Use the hash of the Type
@@ -165,7 +169,7 @@ struct Relation{ED<:POD,TD<:POD,N}
     collid::UInt32   # Collection ID of the data object (when is read) or 0 if newly created
     Relation{ED,TD,N}(first=0, last=0, collid=0) where {ED,TD,N} = new(first, last, collid)
 end
-indices(r::Relation{ED,TD,N}) where {ED,TD,N} = [p.index+1 for p in EDStore_relations(ED,N,r.collid)[r.first+1:r.last]]
+indices(r::Relation{ED,TD,N}) where {ED,TD,N} = [p.index+1 for p in EDCollection_relations(ED,N,r.collid)[r.first+1:r.last]]
 function Base.show(io::IO, r::Relation{ED,TD}) where {ED,TD}
     try
         idxs = indices(r)
@@ -178,9 +182,9 @@ function Base.iterate(r::Relation{ED,TD,N}, i=1) where {ED,TD,N}
     if i > (r.last-r.first)
         return nothing
     else
-        rel = EDStore_relations(ED,N,r.collid)   # Normally, the relations have been read and should not fail
+        rel = EDCollection_relations(ED,N,r.collid)   # Normally, the relations have been read and should not fail
         oid = rel[r.first + i]
-        if !hasEDStore(oid.collectionID)
+        if !hasEDCollection(oid.collectionID)
             @warn "Cannot iterate on this relation because the collection with ID $(hex(oid.collectionID)) has not been loaded!"
             return nothing
         else
@@ -189,7 +193,7 @@ function Base.iterate(r::Relation{ED,TD,N}, i=1) where {ED,TD,N}
         end
     end
 end
-Base.getindex(r::Relation{ED,TD,N}, i) where {ED,TD,N} = 0 < i <= (r.last - r.first) ? convert(TD, EDStore_relations(ED,N,r.collid)[r.first + i]) : throw(BoundsError(r,i))
+Base.getindex(r::Relation{ED,TD,N}, i) where {ED,TD,N} = 0 < i <= (r.last - r.first) ? convert(TD, EDCollection_relations(ED,N,r.collid)[r.first + i]) : throw(BoundsError(r,i))
 Base.size(r::Relation) = (r.last-r.first,)
 Base.length(r::Relation) = r.last-r.first
 Base.eltype(::Type{Relation{ED,TD,N}}) where {ED,TD,N} = TD
@@ -201,9 +205,9 @@ function vmembers(::Type{ED}) where ED
     (ft for ft in fieldtypes(ED) if ft <: PVector)
 end
 
-function push(r::Relation{ED,TD,N}, p::TD) where {ED,TD,N}
+function push(r::Relation{ED,TD,N}, p) where {ED,TD,N}
     (;first, last, collid) = r
-    relations = EDStore_relations(ED, N, collid)
+    relations = EDCollection_relations(ED, N, collid)
     length = last-first
     tail = lastindex(relations)
     append!(relations, zeros(ObjectID{TD}, length+1))            # add extended indices at the end
@@ -218,7 +222,7 @@ end
 function pop(r::Relation{ED,TD,N}) where {ED,TD,N}
     (;first, last, collid) = r
     (last - first <= 0) && throw(ArgumentError("relation must be non-empty"))
-    relations = EDStore_relations(ED, N, collid)
+    relations = EDCollection_relations(ED, N, collid)
     relations[last] = zero(ObjectID{TD})
     return Relation{ED,TD,N}(first, last-1, collid)
 end
@@ -232,26 +236,53 @@ struct PVector{ED<:POD,T, N} <: AbstractVector{T}
     collid::UInt32   # Collection ID of the data object (when is read) or 0 if newly created
     PVector{ED,T,N}(first=0, last=0, collid=0) where {ED,T,N} = new(first, last, collid)
 end
-values(v::PVector{ED,T,N}) where {ED,T,N} = EDStore_pvectors(ED,N,v.collid)[v.first+1:v.last]
+values(v::PVector{ED,T,N}) where {ED,T,N} = EDCollection_pvectors(ED,N,v.collid)[v.first+1:v.last]
 Base.show(io::IO, v::PVector{ED}) where ED = show(io, values(v))
 
 function Base.iterate(v::PVector{ED,T, N}, i=1) where {ED,T,N}
     if i > (v.last-v.first)
         return nothing
     else
-        val = EDStore_pvectors(ED,N,v.collid)   # Normally, the pvectors have been read and should not fail
+        val = EDCollection_pvectors(ED,N,v.collid)   # Normally, the pvectors have been read and should not fail
         obj = val[v.first + i]
         return (obj, i + 1)
     end
 end
-Base.getindex(v::PVector{ED,T, N}, i) where {ED,T, N} = 0 < i <= (v.last - v.first) ? EDStore_pvectors(ED,N,v.collid)[v.first + i] : throw(BoundsError(v,i))
+Base.getindex(v::PVector{ED,T, N}, i) where {ED,T, N} = 0 < i <= (v.last - v.first) ? EDCollection_pvectors(ED,N,v.collid)[v.first + i] : throw(BoundsError(v,i))
 Base.size(v::PVector{ED,T,N}) where {ED,T,N} = (v.last-v.first,)
 Base.length(v::PVector{ED,T,N}) where {ED,T,N} = v.last-v.first
 Base.eltype(::Type{PVector{ED,T,N}}) where {ED,T,N} = T
 function Base.convert(::Type{PVector{ED,T,N}}, v::AbstractVector{T}) where {ED,T,N}
-    pvectors = EDStore_pvectors(ED,N)
+    pvectors = EDCollection_pvectors(ED,N)
     tail = lastindex(pvectors)
     len  = length(v)
     append!(pvectors, v)
     PVector{ED,T,N}(tail, tail + len)
+end
+
+#--------------------------------------------------------------------------------------------------
+#---Link{FROM, TO} for implementation of Links-----------------------------------------------------
+#--------------------------------------------------------------------------------------------------
+struct Link{FROM<:POD,TO<:POD} <: POD
+    index::ObjectID{Link{FROM,TO}}   # ObjectID of himself
+    #---Data Members
+    weight::Float32                  #  weight of this link 
+    #---OneToOneRelations
+    from_idx::ObjectID{FROM}  #  reference to the reconstructed hit 
+    to_idx::ObjectID{TO}      #  reference to the Monte-Carlo particle 
+end
+Base.show(io::IO, l::Link{FROM,TO}) where {FROM,TO} = print(io, "Link{$FROM,$TO}(weight=$(l.weight), from=$(l.from_idx), to=$(l.to_idx))")
+function Link{FROM,TO}(;weight=0, from=-1, to=-1) where {FROM,TO}
+    Link{FROM,TO}(-1, weight, from, to)
+end
+function Base.getproperty(obj::Link{FROM,TO}, sym::Symbol) where {FROM,TO}
+    if sym == :from
+        idx = getfield(obj, :from_idx)
+        return iszero(idx) ? nothing : convert(FROM, idx)
+    elseif sym == :to
+        idx = getfield(obj, :to_idx)
+        return iszero(idx) ? nothing : convert(TO, idx)
+    else # fallback to getfield
+        return getfield(obj, sym)
+    end
 end

@@ -3,12 +3,15 @@
 [![codecov](https://codecov.io/gh/JuliaHEP/EDM4hep.jl/graph/badge.svg?token=4DRq2yd3t5)](https://codecov.io/gh/JuliaHEP/EDM4hep.jl)
 
 # EDM4hep in Julia
-Prototype of the [EDM4hep](https://github.com/key4hep/EDM4hep) (generic Event Data Model for HEP experiments part of Key4hep) for Julia with the goal to have very simple structures (isbits) with the purpose to evaluate its ergonomic design and implementation performance.
+Prototype interface to [EDM4hep](https://github.com/key4hep/EDM4hep) (generic Event Data Model for HEP experiments part of Key4hep) for Julia with the goal to have very simple structures (isbits) with the purpose to evaluate its ergonomic design and implementation performance.
 
-See presentations: 
+See recent presentations: 
 - [FCC Software meeting 26/2/2024](https://indico.cern.ch/event/1351111/contributions/5687785/attachments/2807853/4899861/EDM4hep.jl-20240226.pdf)
 - [EDM4hep developers 26/03/2024](https://indico.cern.ch/event/1398635/contributions/5879405/attachments/2826751/4938272/EDM4hep.jl-20240326.pdf)
 - [CHEP24 Poster](https://indico.cern.ch/event/1338689/contributions/6016139/attachments/2951973/5189367/EDM4hep.jl-CHEP24.pdf)
+
+> **Note:**
+> The `main` branch of this project is work-in-progress towards the > version 1 of EDM4hep. To read current EDM4hep data files you need > to use registered versions of the package being the latest tag `0.4.2`, in the `v0-patches` branch. 
 
 ## Installation
 The package has been registered in the General Julia registry therefore its installation is simply using the `Pkg` packager manager.

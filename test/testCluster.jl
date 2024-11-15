@@ -58,7 +58,7 @@ end =#
     @test c1.shapeParameters == [1.0f0,2.0f0,3.0f0]
     @test c1.subdetectorEnergies == [10.0f0,20.0f0,30.0f0]
 
-    @test length(getEDStore(Cluster).objects) == 3
-    @test length(getEDStore(CalorimeterHit).objects) == 2
+    @test length(getEDCollection(Cluster)) == 3
+    @test length(getEDCollection(CalorimeterHit)) == 2
 
 end

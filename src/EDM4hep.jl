@@ -10,7 +10,7 @@ module EDM4hep
 
     include("Components.jl")
     include("Datatypes.jl")
-    include("EDStore.jl")
+    include("EDCollection.jl")
     include("RootIO.jl")
     include("SystemOfUnits.jl")
     include("Histograms.jl")
