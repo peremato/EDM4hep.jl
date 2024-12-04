@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial (EDM) · EDM4hep.jl</title><meta name="title" content="Tutorial (EDM) · EDM4hep.jl"/><meta property="og:title" content="Tutorial (EDM) · EDM4hep.jl"/><meta property="twitter:title" content="Tutorial (EDM) · EDM4hep.jl"/><meta name="description" content="Documentation for EDM4hep.jl."/><meta property="og:description" content="Documentation for EDM4hep.jl."/><meta property="twitter:description" content="Documentation for EDM4hep.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">EDM4hep.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li class="is-active"><a class="tocitem" href>Tutorial (EDM)</a><ul class="internal"><li><a class="tocitem" href="#Create-a-collection-of-MCParticles-in-memory"><span>Create a collection of MCParticles in memory</span></a></li><li><a class="tocitem" href="#Convert-PYTHIA-event-to-MCParticles"><span>Convert PYTHIA event to MCParticles</span></a></li></ul></li><li><a class="tocitem" href="../tutorial_io/">Tutorial (I/O)</a></li><li><a class="tocitem" href="../api/">Public APIs</a></li><li><a class="tocitem" href="../release_notes/">Release Notes</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorial (EDM)</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial (EDM)</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaHEP/EDM4hep.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaHEP/EDM4hep.jl/blob/main/docs/src/tutorial_edm_lit.jl#L" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="EDM4hep.jl-EDM-Tutorial"><a class="docs-heading-anchor" href="#EDM4hep.jl-EDM-Tutorial">EDM4hep.jl EDM Tutorial</a><a id="EDM4hep.jl-EDM-Tutorial-1"></a><a class="docs-heading-anchor-permalink" href="#EDM4hep.jl-EDM-Tutorial" title="Permalink"></a></h1><p>This tutorial shows how to use the EDM4hep Julia types to create data models in memory.</p><div class="admonition is-info"><header class="admonition-header">Note that</header><div class="admonition-body"><p>You can also download this tutorial as a <a href="../tutorial_edm.ipynb">Jupyter notebook</a> and a plain <a href="../tutorial_edm.jl">Julia source file</a>.</p></div></div><h4 id="Table-of-contents"><a class="docs-heading-anchor" href="#Table-of-contents">Table of contents</a><a id="Table-of-contents-1"></a><a class="docs-heading-anchor-permalink" href="#Table-of-contents" title="Permalink"></a></h4><ul><li><a href="#Create-a-collection-of-MCParticles-in-memory">Create a collection of MCParticles in memory</a></li><li class="no-marker"><ul><li><a href="#Accessing-the-properties-of-the-MCParticles">Accessing the properties of the MCParticles</a></li><li><a href="#Modifying-the-properties-of-the-MCParticles">Modifying the properties of the MCParticles</a></li><li><a href="#Create-a-tree-of-MCParticles">Create a tree of MCParticles</a></li><li><a href="#Iterate-over-the-particles">Iterate over the particles</a></li><li><a href="#One-to-one-relations">One-to-one relations</a></li><li><a href="#One-to-many-relations">One-to-many relations</a></li></ul></li><li><a href="#Convert-PYTHIA-event-to-MCParticles">Convert PYTHIA event to MCParticles</a></li><li class="no-marker"><ul><li><a href="#Conversion-function-of-PYTHIA-event-to-MCParticles">Conversion function of PYTHIA event to MCParticles</a></li><li><a href="#Generate-a-PYTHIA-event">Generate a PYTHIA event</a></li></ul></li></ul><h4 id="Loading-the-necessary-modules"><a class="docs-heading-anchor" href="#Loading-the-necessary-modules">Loading the necessary modules</a><a id="Loading-the-necessary-modules-1"></a><a class="docs-heading-anchor-permalink" href="#Loading-the-necessary-modules" title="Permalink"></a></h4><ul><li>We will use the <code>EDM4hep</code> module that defines all the EDM4hep types and its relations and links.</li><li>We will use the <a href="https://juliahep.github.io/PYTHIA8.jl/stable/"><code>PYTHIA8</code></a> module to generate realistic MC Particles</li><li>We will use the <a href="https://juliaphysics.github.io/Corpuscles.jl/stable/"><code>Corpuscles</code></a> module to access the properties of the particles</li><li>We will use the <a href="https://juliaphysics.github.io/FHist.jl/stable/"><code>FHist</code></a> module to create histograms</li><li>We will use the <a href="https://docs.juliaplots.org/stable/"><code>Plots</code></a> module to plot the histograms</li></ul><p>If these modules are not installed, you can install them by running the following commands:</p><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;EDM4hep&quot;)
+Pkg.add(&quot;PYTHIA8&quot;)
+Pkg.add(&quot;FHist&quot;)
+Pkg.add(&quot;Plots&quot;)</code></pre><pre><code class="language-julia hljs">using EDM4hep
+using PYTHIA8
+using Corpuscles: hascharm, hasstrange, ismeson, isbaryon
+using FHist
+using Plots: plot, plot!, theme</code></pre><h2 id="Create-a-collection-of-MCParticles-in-memory"><a class="docs-heading-anchor" href="#Create-a-collection-of-MCParticles-in-memory">Create a collection of MCParticles in memory</a><a id="Create-a-collection-of-MCParticles-in-memory-1"></a><a class="docs-heading-anchor-permalink" href="#Create-a-collection-of-MCParticles-in-memory" title="Permalink"></a></h2><p>We will create a collection of MCParticles explicitly</p><pre><code class="language-julia hljs">p1 = MCParticle(PDG=2212, mass=0.938, momentum=(0.0, 0.0, 7000.0), generatorStatus=3);
+p2 = MCParticle(PDG=2212, mass=0.938, momentum=(0.0, 0.0, -7000.0), generatorStatus=3);</code></pre><p>The particles <code>p1</code> and <code>p2</code> are the initial protons in the event.</p><h3 id="Accessing-the-properties-of-the-MCParticles"><a class="docs-heading-anchor" href="#Accessing-the-properties-of-the-MCParticles">Accessing the properties of the MCParticles</a><a id="Accessing-the-properties-of-the-MCParticles-1"></a><a class="docs-heading-anchor-permalink" href="#Accessing-the-properties-of-the-MCParticles" title="Permalink"></a></h3><p>You can access the properties of the particles as follows:</p><pre><code class="language-julia hljs">println(&quot;Particle p1 has PDG=$(p1.PDG), mass=$(p1.mass), momentum=$(p1.momentum), and generatorStatus=$(p1.generatorStatus)&quot;)
+println(&quot;Particle p2 has PDG=$(p2.PDG), mass=$(p2.mass), momentum=$(p2.momentum), and generatorStatus=$(p2.generatorStatus)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Particle p1 has PDG=2212, mass=0.938, momentum=(0.0, 0.0, 7000.0), and generatorStatus=3
+Particle p2 has PDG=2212, mass=0.938, momentum=(0.0, 0.0, -7000.0), and generatorStatus=3</code></pre><p>The names of the particles can be accessed using the <code>name</code> property (added to MCParticle)</p><pre><code class="language-julia hljs">println(&quot;Particle p1 has name=$(p1.name)&quot;)
+println(&quot;Particle p2 has name=$(p2.name)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Particle p1 has name=p+
+Particle p2 has name=p+</code></pre><p>The energy of the particles can be accessed using the <code>energy</code> property (added to MCParticle)</p><pre><code class="language-julia hljs">println(&quot;Particle p1 has energy=$(p1.energy)&quot;)
+println(&quot;Particle p2 has energy=$(p2.energy)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Particle p1 has energy=7000.000062846
+Particle p2 has energy=7000.000062846</code></pre><p>You can see the full documentation of the <code>MCParticle</code> type to see all the available properties by executing the command <code>?MCParticle</code> or using the <code>@doc</code> macro as follows:</p><pre><code class="language-julia hljs">@doc MCParticle</code></pre><h3 id="Modifying-the-properties-of-the-MCParticles"><a class="docs-heading-anchor" href="#Modifying-the-properties-of-the-MCParticles">Modifying the properties of the MCParticles</a><a id="Modifying-the-properties-of-the-MCParticles-1"></a><a class="docs-heading-anchor-permalink" href="#Modifying-the-properties-of-the-MCParticles" title="Permalink"></a></h3><div class="admonition is-info"><header class="admonition-header">Note that</header><div class="admonition-body"><p>EDM4hep data types are immutable, so we can not change the properties of the particles directly. To change the properties of a <code>MCParticle</code>, for example, we need to create a new instance with the desired properties. This can be achieved by using the <code>@set</code> macro that will return a new instance with all untouched attributes plus the modified one.</p></div></div><p>For example the following line will raise an error</p><pre><code class="language-julia hljs">try
+    p1.time = 1.1
+catch e
+    println(e)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ErrorException(&quot;setfield!: immutable struct of type MCParticle cannot be changed&quot;)</code></pre><p>To change the time property of the particle <code>p1</code> we can use the <code>@set</code> macro as follows:</p><pre><code class="language-julia hljs">p1 = @set p1.time = 1.1;</code></pre><p>Now we can access the new property</p><pre><code class="language-julia hljs">println(&quot;Particle p1 has time = $(p1.time)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Particle p1 has time = 1.1</code></pre><h3 id="Create-a-tree-of-MCParticles"><a class="docs-heading-anchor" href="#Create-a-tree-of-MCParticles">Create a tree of MCParticles</a><a id="Create-a-tree-of-MCParticles-1"></a><a class="docs-heading-anchor-permalink" href="#Create-a-tree-of-MCParticles" title="Permalink"></a></h3><p>We will create a tree of MCParticles by adding daughters and parents to the particles</p><pre><code class="language-julia hljs">p3 = MCParticle(PDG=1, mass=0.0, momentum=(0.750, -1.569, 32.191), generatorStatus=3)
+p3, p1 = add_parent(p3, p1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(MCParticle(#2, 1, 3, 0, 0.0f0, 0.0f0, 0.0, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0.75, -1.569, 32.191), (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0, 0), MCParticle#[1], MCParticle#[]), MCParticle(#1, 2212, 3, 0, 0.0f0, 1.1f0, 0.938, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0.0, 0.0, 7000.0), (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0, 0), MCParticle#[], MCParticle#[2]))</code></pre><div class="admonition is-info"><header class="admonition-header">Note that</header><div class="admonition-body"><p>The <code>add_parent</code> function returns new instances with the related <code>MCParticle</code> objects since they have been modified. The same applies to the <code>add_daughter</code> function.</p></div></div><p>Lets add more particles to the tree</p><pre><code class="language-julia hljs">p4 = MCParticle(PDG=-2, mass=0.0, momentum=(-3.047, -19.000, -54.629), generatorStatus=3)
+p4, p2 = add_parent(p4, p2)
+
+p5 = MCParticle(PDG=-24, mass=80.799, momentum=(1.517, -20.68, -20.605), generatorStatus=3)
+p5, p1 = add_parent(p5, p1)
+p5, p2 = add_parent(p5, p2)
+
+p6 = MCParticle(PDG=22, mass=0.0, momentum=(-3.813, 0.113, -1.833), generatorStatus=1)
+p6, p1 = add_parent(p6, p1)
+p6, p2 = add_parent(p6, p2)
+
+p7 = MCParticle(PDG=1, mass=0.0, momentum=(-2.445, 28.816, 6.082), generatorStatus=1)
+p7, p5 = add_parent(p7, p5)
+
+p8 = MCParticle(PDG=-2, mass=0.0, momentum=(3.962, -49.498, -26.687), generatorStatus=1)
+p8, p5 = add_parent(p8, p5)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(MCParticle(#8, -2, 1, 0, 0.0f0, 0.0f0, 0.0, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (3.962, -49.498, -26.687), (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0, 0), MCParticle#[5], MCParticle#[]), MCParticle(#5, -24, 3, 0, 0.0f0, 0.0f0, 80.799, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (1.517, -20.68, -20.605), (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0, 0), MCParticle#[1, 3], MCParticle#[7, 8]))</code></pre><h3 id="Iterate-over-the-particles"><a class="docs-heading-anchor" href="#Iterate-over-the-particles">Iterate over the particles</a><a id="Iterate-over-the-particles-1"></a><a class="docs-heading-anchor-permalink" href="#Iterate-over-the-particles" title="Permalink"></a></h3><p>Now that we have constructed the tree in memory, we can iterate over the particles, daughters and parents The function <code>getEDCollection</code> returns the collection of particles (<code>EDCollection{MCParticle}</code>). The one-to-many relations are stored in the <code>daughters</code> and <code>parents</code> properties of the <code>MCParticle</code> type. They can be iterated as follows:</p><pre><code class="language-julia hljs">for p in getEDCollection(MCParticle)
+    println(&quot;MCParticle $(p.index) with PDG=$(p.PDG) and momentum $(p.momentum) has $(length(p.daughters)) daughters&quot;)
+    for d in p.daughters
+        println(&quot;   ---&gt; $(d.index) with PDG=$(d.PDG) and momentum $(d.momentum)&quot;)
+    end
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">MCParticle #1 with PDG=2212 and momentum (0.0, 0.0, 7000.0) has 3 daughters
+   ---&gt; #2 with PDG=1 and momentum (0.75, -1.569, 32.191)
+   ---&gt; #5 with PDG=-24 and momentum (1.517, -20.68, -20.605)
+   ---&gt; #6 with PDG=22 and momentum (-3.813, 0.113, -1.833)
+MCParticle #2 with PDG=1 and momentum (0.75, -1.569, 32.191) has 0 daughters
+MCParticle #3 with PDG=2212 and momentum (0.0, 0.0, -7000.0) has 3 daughters
+   ---&gt; #4 with PDG=-2 and momentum (-3.047, -19.0, -54.629)
+   ---&gt; #5 with PDG=-24 and momentum (1.517, -20.68, -20.605)
+   ---&gt; #6 with PDG=22 and momentum (-3.813, 0.113, -1.833)
+MCParticle #4 with PDG=-2 and momentum (-3.047, -19.0, -54.629) has 0 daughters
+MCParticle #5 with PDG=-24 and momentum (1.517, -20.68, -20.605) has 2 daughters
+   ---&gt; #7 with PDG=1 and momentum (-2.445, 28.816, 6.082)
+   ---&gt; #8 with PDG=-2 and momentum (3.962, -49.498, -26.687)
+MCParticle #6 with PDG=22 and momentum (-3.813, 0.113, -1.833) has 0 daughters
+MCParticle #7 with PDG=1 and momentum (-2.445, 28.816, 6.082) has 0 daughters
+MCParticle #8 with PDG=-2 and momentum (3.962, -49.498, -26.687) has 0 daughters</code></pre><h3 id="One-to-one-relations"><a class="docs-heading-anchor" href="#One-to-one-relations">One-to-one relations</a><a id="One-to-one-relations-1"></a><a class="docs-heading-anchor-permalink" href="#One-to-one-relations" title="Permalink"></a></h3><p>The type <code>SimTrackerHit</code> has a one-to-one relation with the type <code>MCParticle</code>. Lets create a hit and associate it to a particle in the tree. We use the keyword argument <code>particle</code> to associate the hit to the particle, like this:</p><pre><code class="language-julia hljs">hit = SimTrackerHit(cellID=0xabadcaffee, eDep=0.1, position=(0.0, 0.0, 0.0), particle=p7);</code></pre><div class="admonition is-info"><header class="admonition-header">Note that</header><div class="admonition-body"><p>The just created hit is not yet registered to any collection. This is seen by the value of the <code>index</code> attribute.</p></div></div><pre><code class="language-julia hljs">println(&quot;index=$(hit.index)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">index=#0</code></pre><p>The value #0 indicates that is not registered. To register it, we can use the function <code>register</code> to the default <code>EDCollection</code></p><pre><code class="language-julia hljs">nhit = register(hit)
+println(&quot;index=$(nhit.index)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">index=#1</code></pre><p>Now the hit is registered and can be accessed by the <code>getEDCollection</code> function</p><pre><code class="language-julia hljs">for h in getEDCollection(SimTrackerHit)
+    println(&quot;SimTrackerHit in cellID=$(string(h.cellID, base=16)) with eDep=$(h.eDep) and position=$(h.position) associated to particle $(h.particle.index)&quot;)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SimTrackerHit in cellID=abadcaffee with eDep=0.1 and position=(0.0, 0.0, 0.0) associated to particle #7</code></pre><p>Alternatively, instead of using the <code>register</code> function, we can also use the function <code>push!</code> to a specific <code>EDCollection</code>.</p><pre><code class="language-julia hljs">hitcollection = EDCollection{SimTrackerHit}()
+push!(hitcollection, hit)
+push!(hitcollection, hit)
+for h in hitcollection
+    println(&quot;SimTrackerHit in cellID=$(string(h.cellID, base=16)) with eDep=$(h.eDep) and position=$(h.position) associated to particle $(h.particle.index)&quot;)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SimTrackerHit in cellID=abadcaffee with eDep=0.1 and position=(0.0, 0.0, 0.0) associated to particle #7
+SimTrackerHit in cellID=abadcaffee with eDep=0.1 and position=(0.0, 0.0, 0.0) associated to particle #7</code></pre><h3 id="One-to-many-relations"><a class="docs-heading-anchor" href="#One-to-many-relations">One-to-many relations</a><a id="One-to-many-relations-1"></a><a class="docs-heading-anchor-permalink" href="#One-to-many-relations" title="Permalink"></a></h3><p>The type <code>Track</code> has a one-to-many relation with objects of type <code>TrackerHit</code> that have created the <code>Track</code>. The <code>Track</code> type has a <code>trackerHits</code> property that behaves as a vector of <code>TrackerHit</code> objects. Functions <code>pushToTrackerHits</code> and <code>popFromTrackerHits</code> are provided to create the relation between the <code>Track</code> and the <code>TrackerHit</code>.</p><pre><code class="language-julia hljs">t_hit1 = TrackerHit3D(cellID=0x1, eDep=0.1, position=(1., 1., 1.))
+t_hit2 = TrackerHit3D(cellID=0x1, eDep=0.2, position=(2., 2., 2.))
+track = Track()
+track = pushToTrackerHits(track, t_hit1)
+track = pushToTrackerHits(track, t_hit2)
+println(&quot;Track has $(length(track.trackerHits)) hits&quot;)
+for h in track.trackerHits
+   println(&quot;TrackerHit in cellID=$(string(h.cellID, base=16)) with eDep=$(h.eDep) and position=$(h.position)&quot;)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Track has 2 hits
+TrackerHit in cellID=1 with eDep=0.1 and position=(1.0, 1.0, 1.0)
+TrackerHit in cellID=1 with eDep=0.2 and position=(2.0, 2.0, 2.0)</code></pre><p>The <code>Track</code> object has a <code>trackerHits</code> property that can be iterated and index of <code>TrackerHit3D</code> objects.</p><pre><code class="language-julia hljs">println(&quot;Hit 1: $(track.trackerHits[1])&quot;)
+println(&quot;Hit 2: $(track.trackerHits[2])&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Hit 1: TrackerHit3D(#1, 0x0000000000000001, 0, 0, 0.0f0, 0.1f0, 0.0f0, (1.0, 1.0, 1.0), 3×3 CovMatrix{Float32}[0.0; 0.0 0.0; 0.0 0.0 0.0])
+Hit 2: TrackerHit3D(#2, 0x0000000000000001, 0, 0, 0.0f0, 0.2f0, 0.0f0, (2.0, 2.0, 2.0), 3×3 CovMatrix{Float32}[0.0; 0.0 0.0; 0.0 0.0 0.0])</code></pre><p>We can remove the hits from the track using the <code>popFromTrackerHits</code> function</p><pre><code class="language-julia hljs">track = popFromTrackerHits(track)
+for h in track.trackerHits
+    println(&quot;TrackerHit in cellID=$(string(h.cellID, base=16)) with eDep=$(h.eDep) and position=$(h.position)&quot;)
+ end
+println(&quot;After pop Track has $(length(track.trackerHits)) hits&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">TrackerHit in cellID=1 with eDep=0.1 and position=(1.0, 1.0, 1.0)
+After pop Track has 1 hits</code></pre><h2 id="Convert-PYTHIA-event-to-MCParticles"><a class="docs-heading-anchor" href="#Convert-PYTHIA-event-to-MCParticles">Convert PYTHIA event to MCParticles</a><a id="Convert-PYTHIA-event-to-MCParticles-1"></a><a class="docs-heading-anchor-permalink" href="#Convert-PYTHIA-event-to-MCParticles" title="Permalink"></a></h2><p>Next we will generate a PYTHIA event and convert it to <code>MCParticle</code>s and use the interface provided by EDM4hep to navigate through the particles.</p><h3 id="Conversion-function-of-PYTHIA-event-to-MCParticles"><a class="docs-heading-anchor" href="#Conversion-function-of-PYTHIA-event-to-MCParticles">Conversion function of PYTHIA event to MCParticles</a><a id="Conversion-function-of-PYTHIA-event-to-MCParticles-1"></a><a class="docs-heading-anchor-permalink" href="#Conversion-function-of-PYTHIA-event-to-MCParticles" title="Permalink"></a></h3><p>The following function <code>convertToEDM</code> takes a <code>PYTHIA8.Event</code> object and converts it to a collection of <code>MCParticle</code> objects. The properties of a PYTHIA <code>Particle</code> are mapped to the properties of a <code>MCParticle</code> object. The only complexity is to create the relations between the particles. The function <code>add_parent</code> is used to create the relations between the particles. The interpretation of the indices is described in the PYTHIA documentation:</p><p>There are six allowed combinations of mother1 and mother2:</p><ul><li>mother1 = mother2 = 0: for lines 0 - 2, where line 0 represents the event as a whole, and 1 and 2 the two incoming beam particles;</li><li>mother1 = mother2 &gt; 0: the particle is a &quot;carbon copy&quot; of its mother, but with changed momentum as a &quot;recoil&quot; effect, e.g. in a shower;</li><li>mother1 &gt; 0, mother2 = 0: the &quot;normal&quot; mother case, where it is meaningful to speak of one single mother to several products, in a shower or decay;</li><li>mother1 &lt; mother2, both &gt; 0, for abs(status) = 81 - 86: primary hadrons produced from the fragmentation of a string spanning the range from mother1 to mother2, so that all partons in this range should be considered mothers; and analogously for abs(status) = 101 - 106, the formation of R-hadrons;</li><li>mother1 &lt; mother2, both &gt; 0, except case 4: particles with two truly different mothers, in particular the particles emerging from a hard 2 → n interaction.</li><li>mother2 &lt; mother1, both &gt; 0: particles with two truly different mothers, notably for the special case that two nearby partons are joined together into a status 73 or 74 new parton, in the g + q → q case the q is made first mother to simplify flavour tracing.</li></ul><p>Note that indices in the <code>PYTHIA8.Event</code> start at 0, while in the <code>EDM4hep</code> types start at 1.</p><pre><code class="language-julia hljs">function convertToEDM(event, onlyFinal=false)
+    # Initialize the MCParticle collection
+    mcps = getEDCollection(MCParticle) |&gt; empty!
+    # Loop over the particles in the Pythia event
+    for p in event
+        onlyFinal &amp;&amp; (p |&gt; isFinal || continue)
+        # Create a new EDM particle
+        MCParticle(PDG = p |&gt; id,
+                   generatorStatus = p |&gt; status,
+                   charge = p |&gt; charge,
+                   time = p |&gt; tProd,
+                   mass = p |&gt; m,
+                   vertex = Vector3d(p |&gt; xProd, p |&gt; yProd, p |&gt; zProd),
+                   momentum = Vector3d(p |&gt; px, p |&gt; py, p |&gt; pz),
+                   colorFlow = (p |&gt; col, p|&gt; acol)) |&gt; register
+    end
+    onlyFinal &amp;&amp; return mcps
+    # Loop over the particles in the Pythia event to create the relations (second pass)
+    for (i,p) in enumerate(event)
+        mcp = mcps[i]
+        m1, m2 = p |&gt; mother1, p |&gt; mother2
+        m1 == m2 &gt; 0 &amp;&amp;  add_parent(mcp, mcps[m1+1])
+        m1 &gt; 0 &amp;&amp; m2 == 0 &amp;&amp; add_parent(mcp, mcps[m1+1])
+        if 0 &lt; m1 &lt; m2
+            for j in m1:m2
+                add_parent(mcp, mcps[j+1])
+            end
+        end
+    end
+    return mcps
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">convertToEDM (generic function with 2 methods)</code></pre><h3 id="Generate-a-PYTHIA-event"><a class="docs-heading-anchor" href="#Generate-a-PYTHIA-event">Generate a PYTHIA event</a><a id="Generate-a-PYTHIA-event-1"></a><a class="docs-heading-anchor-permalink" href="#Generate-a-PYTHIA-event" title="Permalink"></a></h3><pre><code class="language-julia hljs">pythia = PYTHIA8.Pythia(&quot;&quot;, false) # Create a PYTHIA object (mode=0, no output)
+pythia &lt;&lt; &quot;Beams:eCM = 8000.&quot; &lt;&lt;
+          &quot;HardQCD:all = on&quot; &lt;&lt;
+          &quot;PhaseSpace:pTHatMin = 20.&quot;;
+# The purpose of the next two lines is to reduce the amount of output during the event generation
+pythia &lt;&lt; &quot;Next:numberShowEvent = 0&quot; &lt;&lt;
+          &quot;Next:numberShowProcess = 0&quot;;
+pythia |&gt; init
+pythia |&gt; next</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>We convert now the PYTHIA event to <code>MCParticles</code> (only final particles in this case)</p><pre><code class="language-julia hljs">mcps = convertToEDM(event(pythia), true);</code></pre><p>Lets&#39;s see if the conversion was successful and the set of particles conserves the energy, charge and momentum</p><pre><code class="language-julia hljs">println(&quot;Total energy = $(sum(p.energy for p in mcps))&quot;)
+println(&quot;Total charge = $(sum(mcps.charge))&quot;)
+println(&quot;Total momentum = $(sum(mcps.momentum))&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Total energy = 8000.000000002222
+Total charge = 2.0
+Total momentum = (4.919190055296951e-13, 1.1957781986815519e-11, -2.840281621008245e-9)</code></pre><p>We recover here ths center-of-mass energy, the total charge of 2 from the incident protons and the total momentum of the event (compatible with zero).</p><p>Lets now display some selected decay trees inside the full <code>MCParticle</code> collection. We start by converting the PYTHIA event taking all particles this time. The, we implement a recursive function <code>printdecay</code>to print the decay tree of the particles.</p><pre><code class="language-julia hljs">mcps = convertToEDM(event(pythia));
+function printdecay(indent, p)
+    println(isempty(indent) ? &quot;&quot; : indent*&quot;---&gt; &quot;, &quot;$(p.name) E=$(p.energy)&quot;)
+    for d in p.daughters
+        printdecay(indent*&quot;   &quot;, d)
+    end
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">printdecay (generic function with 1 method)</code></pre><p>Lets use the function to print the decay trees of all the particles in the event that contains the charm quark. The module <code>Corpuscles</code> is used to identify the charm quark.</p><pre><code class="language-julia hljs">for p in mcps
+    hascharm(p.PDG) || continue
+    printdecay(&quot;&quot;, p)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">D*(2010)+ E=21.198607626181317
+   ---&gt; D0 E=19.26271610157951
+      ---&gt; K- E=1.7790162926960469
+      ---&gt; pi+ E=3.229658335729168
+      ---&gt; pi0 E=14.254041473154295
+         ---&gt; gamma0 E=2.431025863247699
+         ---&gt; gamma0 E=11.823015609906596
+   ---&gt; pi+ E=1.9358915246018062
+~D0 E=2.4033307580426078
+   ---&gt; K(S)0 E=0.9760106714346882
+      ---&gt; pi+ E=0.38218558073586634
+      ---&gt; pi- E=0.5938250906988217
+   ---&gt; pi- E=0.46240892829782326
+   ---&gt; pi+ E=0.9649111583100963
+D0 E=19.26271610157951
+   ---&gt; K- E=1.7790162926960469
+   ---&gt; pi+ E=3.229658335729168
+   ---&gt; pi0 E=14.254041473154295
+      ---&gt; gamma0 E=2.431025863247699
+      ---&gt; gamma0 E=11.823015609906596</code></pre><p>In another event we get obviously a different set of particles and decay trees.</p><pre><code class="language-julia hljs">pythia |&gt; next
+mcps = convertToEDM(event(pythia));
+for p in mcps
+    hascharm(p.PDG) || continue
+    printdecay(&quot;&quot;, p)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">~D0 E=2.172578466262983
+   ---&gt; K+ E=1.1148822395877638
+   ---&gt; pi- E=0.2683243346176745
+   ---&gt; pi0 E=0.7893718920575451
+      ---&gt; gamma0 E=0.6722912205599659
+      ---&gt; gamma0 E=0.11708067149757914
+D+ E=2.8729323018476602
+   ---&gt; mu+ E=0.7849011434788771
+   ---&gt; nu(mu)0 E=1.071297104764489
+   ---&gt; K0 E=1.0167340536042944
+      ---&gt; K(S)0 E=1.0167340536042944
+         ---&gt; pi+ E=0.6549893520142137
+         ---&gt; pi- E=0.3617447015900806</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Introduction</a><a class="docs-footer-nextpage" href="../tutorial_io/">Tutorial (I/O) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Wednesday 4 December 2024 13:33">Wednesday 4 December 2024</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
