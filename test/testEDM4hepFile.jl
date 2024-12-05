@@ -8,22 +8,27 @@ mutable struct Counter
     count::Int
 end
 ++(c::Counter) = c.count += 1
+reset!(c::Counter) = c.count = 41
 
 @testset "ReadEDM4hep$(T)file" for T in (:TTree, :RNTuple)
-    f = joinpath(@__DIR__, "EDM4hep_$T.root")
+    f = joinpath(@__DIR__, "EDM4hep_example_$T.root")
     reader = RootIO.Reader(f)
     events = RootIO.get(reader, "events")
 
     @test length(events) == frames
     count = Counter(-1)
-    
+    reset!(count)
+    cov3f = CovMatrix3f([++(count) for i in 1:6])
+    reset!(count)
+    cov4f = CovMatrix4f([++(count) for i in 1:10])
+    reset!(count)
+    cov6f = CovMatrix6f([++(count) for i in 1:21])
+
     for evt in events
-        cov3f = CovMatrix3f([++(count) for i in 1:6])
-        cov4f = CovMatrix4f([++(count) for i in 1:10])
-        cov6f = CovMatrix6f([++(count) for i in 1:21])
         #---EventHeader----------------------------------------------------------------------------
         evth = RootIO.get(reader, evt, "EventHeader")[1]
-        count = Counter(evth.eventNumber)
+        reset!(count)
+        @test evth.eventNumber == ++(count)
         @test evth.runNumber == ++(count)
         @test evth.timeStamp == ++(count)
         @test evth.weight == 1
@@ -33,6 +38,7 @@ end
     
         #---MCParticleCollection-------------------------------------------------------------------
         mcp = RootIO.get(reader, evt, "MCParticleCollection")
+        reset!(count)
         for p in mcp
             @test p.PDG == ++(count)
             @test p.generatorStatus == ++(count)
@@ -56,13 +62,14 @@ end
             @test p.spin.y == ++(count)
             @test p.spin.z == ++(count)
             @test p.colorFlow.a == ++(count)
-            @test p.colorFlow.b == ++(count)
+            @test p.colorFlow.b == ++(count)    
         end 
         @test mcp[1].daughters[1] == mcp[2]
         @test mcp[1].parents[1] == mcp[3]
 
         #---SimTrackerHitCollection----------------------------------------------------------------
         sth = RootIO.get(reader, evt, "SimTrackerHitCollection")
+        reset!(count)
         for h in sth
             @test h.cellID == ++(count)
             @test h.eDep == ++(count)
@@ -80,6 +87,7 @@ end
 
         #---CaloHitContributionCollection----------------------------------------------------------
         chc = RootIO.get(reader, evt, "CaloHitContributionCollection")
+        reset!(count)
         for c in chc
             @test c.PDG == ++(count)
             @test c.energy  == ++(count)
@@ -92,6 +100,7 @@ end
 
         #---SimCalorimeterHitCollection------------------------------------------------------------
         sch = RootIO.get(reader, evt, "SimCalorimeterHitCollection")
+        reset!(count)
         for h in sch
             @test h.cellID == ++(count)
             @test h.energy == ++(count)
@@ -103,6 +112,7 @@ end
 
         #---RawCalorimeterHitCollection------------------------------------------------------------
         rch = RootIO.get(reader, evt, "RawCalorimeterHitCollection")
+        reset!(count)
         for h in rch
             @test h.cellID == ++(count)
             @test h.amplitude == ++(count)
@@ -111,6 +121,7 @@ end
 
         #---CalorimeterHitCollection----------------------------------------------------------------
         ch = RootIO.get(reader, evt, "CalorimeterHitCollection")
+        reset!(count)
         for h in ch
             @test h.cellID == ++(count)
             @test h.energy == ++(count)
@@ -125,6 +136,7 @@ end
         #---ParticleIDCollection-------------------------------------------------------------------
         recp = RootIO.get(reader, evt, "ReconstructedParticleCollection")
         pidc = RootIO.get(reader, evt, "ParticleIDCollection")
+        reset!(count)
         for pid in pidc
             @test pid.type == ++(count)
             @test pid.PDG == ++(count)
@@ -136,6 +148,7 @@ end
 
         #---ClusterCollection-----------------------------------------------------------------------
         cc = RootIO.get(reader, evt, "ClusterCollection")
+        reset!(count)
         for c in cc
             @test c.type == ++(count)
             @test c.energy == ++(count)
@@ -159,6 +172,7 @@ end
 
         #---TrackerHit3DCollection------------------------------------------------------------------
         th3d = RootIO.get(reader, evt, "TrackerHit3DCollection")
+        reset!(count)
         for h in th3d
             @test h.cellID == ++(count)
             @test h.type == ++(count)
@@ -172,6 +186,7 @@ end
        
         #---TrackerHitPlaneCollection----------------------------------------------------------------
         thp = RootIO.get(reader, evt, "TrackerHitPlaneCollection")
+        reset!(count)
         for h in thp
             @test h.cellID == ++(count)
             @test h.type == ++(count)
@@ -189,6 +204,7 @@ end
 
         #---RawTimeSeriesCollection-----------------------------------------------------------------
         rts = RootIO.get(reader, evt, "RawTimeSeriesCollection")
+        reset!(count)
         for ts in rts
             @test ts.cellID == ++(count)
             @test ts.quality == ++(count)
@@ -200,13 +216,14 @@ end
 
         #---TrackCollection------------------------------------------------------------------------
         tc = RootIO.get(reader, evt, "TrackCollection")
+        reset!(count)
         for t in tc
             @test t.type == ++(count)
             @test t.chi2 == ++(count)
             @test t.ndf == ++(count)
-            @test t.subdetectorHoleNumbers == []
             for (i, s) in t.trackStates |> enumerate
                 @test t.subdetectorHitNumbers[i] == ++(count)
+                @test t.subdetectorHoleNumbers[i] == ++(count)
                 @test s.location == ++(count)
                 @test s.D0 == ++(count)
                 @test s.phi == ++(count)
@@ -224,6 +241,7 @@ end
 
         #---VertexCollection------------------------------------------------------------------------
         vc = RootIO.get(reader, evt, "VertexCollection")
+        reset!(count)
         for v in vc
             @test v.type == ++(count)
             @test v.chi2 == ++(count)
@@ -236,6 +254,7 @@ end
         end
 
         #---ReconstructedParticleCollection--------------------------------------------------------
+        reset!(count)
         for p in recp
             @test p.PDG == ++(count)
             @test p.energy == ++(count)
@@ -251,64 +270,28 @@ end
             @test p.decayVertex == vc[1]
         end
 
-        #---RecoMCParticleLinkCollection------------------------------------------------------------
-        rmpl = RootIO.get(reader, evt, "RecoMCParticleLinkCollection")
-        for l in rmpl
-            @test l.weight == ++(count)
-            @test l.from == recp[1]
-            @test l.to == mcp[1]
+        #---Links-----------------------------------------------------------------------------------
+        function checkLink(name, from, to)
+            links = RootIO.get(reader, evt, "$(name)Collection")
+            reset!(count)
+            for l in links
+                @test l.weight == ++(count)
+                @test l.from == from
+                @test l.to == to
+            end
         end
 
-        #---CaloHitSimCaloHitLinkCollection---------------------------------------------------------
-        chshl = RootIO.get(reader, evt, "CaloHitSimCaloHitLinkCollection")
-        for l in chshl
-            @test l.weight == ++(count)
-            @test l.from == ch[1]
-            @test l.to == sch[1]
-        end
-
-        #---TrackerHitSimTrackerHitLinkCollection---------------------------------------------------
-        thshl = RootIO.get(reader, evt, "TrackerHitSimTrackerHitLinkCollection")
-        for l in thshl
-            @test l.weight == ++(count)
-            @test l.from == th3d[1]
-            @test l.to == sth[1]
-        end
-
-        #---CaloHitMCParticleLinkCollection---------------------------------------------------------
-        chmpl = RootIO.get(reader, evt, "CaloHitMCParticleLinkCollection")
-        for l in chmpl
-            @test l.weight == ++(count)
-            @test l.from == ch[1]
-            @test l.to == mcp[1]
-        end
-
-        #---ClusterMCParticleLinkCollection---------------------------------------------------------
-        cmpl = RootIO.get(reader, evt, "ClusterMCParticleLinkCollection")
-        for l in cmpl
-            @test l.weight == ++(count)
-            @test l.from == cc[1]
-            @test l.to == mcp[1]
-        end
-
-        #---TrackMCParticleLinkCollection-----------------------------------------------------------
-        tmpl = RootIO.get(reader, evt, "TrackMCParticleLinkCollection")
-        for l in tmpl
-            @test l.weight == ++(count)
-            @test l.from == tc[1]
-            @test l.to == mcp[1]
-        end
-
-        #---MCVertexRecoParticleLinkCollection-----------------------------------------------------
-        mvpl = RootIO.get(reader, evt, "MCVertexRecoParticleLinkCollection")
-        for l in mvpl
-            @test l.weight == ++(count)
-            @test l.from == vc[1]
-            @test l.to == recp[1]
-        end
+        checkLink("RecoMCParticleLink", recp[1], mcp[1])
+        checkLink("CaloHitSimCaloHitLink", ch[1], sch[1])
+        checkLink("TrackerHitSimTrackerHitLink", th3d[1], sth[1])
+        checkLink("CaloHitMCParticleLink", ch[1], mcp[1])
+        checkLink("ClusterMCParticleLink", cc[1], mcp[1])
+        checkLink("TrackMCParticleLink", tc[1], mcp[1])
+        checkLink("VertexRecoParticleLink", vc[1], recp[1])
 
         #---TimeSeriesCollection-------------------------------------------------------------------
         tsc = RootIO.get(reader, evt, "TimeSeriesCollection")
+        reset!(count)
         for ts in tsc
             @test ts.cellID == ++(count)
             @test ts.time == ++(count)
@@ -318,6 +301,7 @@ end
 
         #---RecDqdxCollection-----------------------------------------------------------------------
         rdq = RootIO.get(reader, evt, "RecDqdxCollection")
+        reset!(count)
         for dq in rdq
             @test dq.dQdx == Quantity(++(count), ++(count), ++(count))
             @test dq.track == tc[1]
@@ -325,6 +309,7 @@ end
 
         #---GeneratorEventParametersCollection-----------------------------------------------------
         gep = RootIO.get(reader, evt, "GeneratorEventParametersCollection")
+        reset!(count)
         for p in gep
             @test p.eventScale == ++(count)
             @test p.alphaQED == ++(count)
@@ -340,6 +325,7 @@ end
         
         #---GeneratorPdfInfoCollection-------------------------------------------------------------
         gpi = RootIO.get(reader, evt, "GeneratorPdfInfoCollection")
+        reset!(count)
         for p in gpi
             @test p.partonId == [++(count), ++(count)]
             @test p.lhapdfId == [++(count), ++(count)]

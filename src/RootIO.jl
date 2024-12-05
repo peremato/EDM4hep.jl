@@ -302,6 +302,12 @@ module RootIO
                     classname = result.captures[2]
                     if hasproperty(EDM4hep, Symbol(classname))
                         reader.btypes[key] = getproperty(EDM4hep, Symbol(classname))
+                    elseif classname == "Link"
+                        # Special case for Link
+                        res = match(r"(.*)Collection$", key)
+                        if !isnothing(res)
+                            reader.btypes[key] = getproperty(EDM4hep, Symbol(res.captures[1]))
+                        end
                     else
                         @warn "Type $classname not found in EDM4hep module"
                     end
@@ -321,7 +327,15 @@ module RootIO
                     reader.btypes[fieldname] = Base.get(builtin_types, classname, Nothing)
                 else
                     classname = result.captures[2]
-                    reader.btypes[fieldname] = getproperty(EDM4hep, Symbol(classname))
+                    if classname == "Link"
+                        # Special case for Link
+                        res = match(r"(.*)Collection$", fieldname)
+                        if !isnothing(res)
+                            reader.btypes[fieldname] = getproperty(EDM4hep, Symbol(res.captures[1]))
+                        end
+                    else
+                        reader.btypes[fieldname] = getproperty(EDM4hep, Symbol(classname))
+                    end
                 end
             end
         else
