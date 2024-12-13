@@ -26,18 +26,18 @@ module Analysis
     end
 
      """
-        Base.append!(d1::AbstractAnalysisData, d2::AbstractAnalysisData)
+        Base.merge!(d1::AbstractAnalysisData, d2::AbstractAnalysisData)
 
     Default function to reset the user analysis data structure in case it 
     is not provided explicitly.
     """
-    function Base.append!(d1::AbstractAnalysisData, d2::AbstractAnalysisData)
-        typeof(d1) != typeof(d2) && error("Cannot append!() data of different types")
+    function Base.merge!(d1::AbstractAnalysisData, d2::AbstractAnalysisData)
+        typeof(d1) != typeof(d2) && error("Cannot merge!() data of different types")
         for (fn,ft) in zip(propertynames(d1), fieldtypes(typeof(d1)))
             if isprimitivetype(ft)
                 setproperty!(d1, fn, getproperty(d1,fn) + getproperty(d2,fn))
             else
-                append!(getproperty(d1, fn), getproperty(d2, fn))
+                merge!(getproperty(d1, fn), getproperty(d2, fn))
             end
         end
     end
@@ -62,7 +62,7 @@ module Analysis
             end
             # Wait and sum the reduce the results
             results = fetch.(tasks)
-            append!.(Ref(data), results)
+            merge!.(Ref(data), results)
         else
             analysis(data, reader, events)
         end

@@ -22,7 +22,7 @@ module Histograms
         hist::Hist1DType
         usym::Symbol
         uval::Float64
-        H1D(title, nbins, min, max; unit=:nounit) = new(title, Hist1D(Float64; binedges=range(min,max,nbins+1), overflow=false), unit, _getvalue(unit))
+        H1D(title, nbins, min, max; unit=:nounit) = new(title, Hist1D(binedges=range(min,max,nbins+1), overflow=false), unit, _getvalue(unit))
     end
     
     Base.push!(h::H1D, v, w=1) = atomic_push!(h.hist, v/h.uval, w)
@@ -38,7 +38,7 @@ module Histograms
         hist::Hist2DType
         unit::Tuple{Symbol,Symbol}
         uval::Tuple{Float64,Float64}
-        H2D(title, xbins, xmin, xmax, ybins, ymin, ymax; units=(:nounit, :nounit)) = new(title, Hist2D(Float64;binedges=(range(xmin,xmax,xbins+1), range(ymin,ymax, ybins+1)), overflow=true), units, _getvalue(units))
+        H2D(title, xbins, xmin, xmax, ybins, ymin, ymax; units=(:nounit, :nounit)) = new(title, Hist2D(binedges=(range(xmin,xmax,xbins+1), range(ymin,ymax, ybins+1)), overflow=true), units, _getvalue(units))
     end
 
     Base.push!(h::H2D, u, v, w=1) = atomic_push!(h.hist, u/h.uval[1], v/h.uval[2], w)
@@ -55,7 +55,7 @@ module Histograms
         unit::Tuple{Symbol,Symbol,Symbol}
         uval::Tuple{Float64,Float64,Float64}
         H3D(title, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax; units=(:nounit, :nounit, :nounit)) = 
-            new(title, Hist3D(Float64;binedges=(range(xmin,xmax,xbins+1), range(ymin,ymax, ybins+1), range(zmin,zmax, zbins+1)), overflow=true), units, _getvalue(units))
+            new(title, Hist3D(binedges=(range(xmin,xmax,xbins+1), range(ymin,ymax, ybins+1), range(zmin,zmax, zbins+1)), overflow=true), units, _getvalue(units))
     end
 
     Base.push!(h::H3D, x, y, z, w=1) = atomic_push!(h.hist, x/h.uval[1], y/h.uval[2], z/h.uval[3], w)

@@ -3,6 +3,7 @@ using Corpuscles    #  PDG database
 using StaticArrays  #  Needed for fix length arrays in datatypes
 
 export register, relations, vmembers, Relation, PVector, ObjectID, collectionID, θ, ϕ
+export @set, @reset
 
 abstract type POD end # Abstract type to denote a POD from PODIO
 
@@ -13,6 +14,7 @@ Base.convert(::SVector{3,Float64}, v::Vector3d) = SVector{3,Float64}(v...)
 Base.show(io::IO, v::Vector3d) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3d, v2::Vector3d) = Vector3d(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
+Base.:-(v1::Vector3d) = Vector3d(-v1.x, -v1.y, -v1.z)
 Base.:*(v::Vector3d, a::Number) = Vector3d(a*v.x, a*v.y, a*v.z)
 Base.:*(a::Number, v::Vector3d) = v * a
 function Base.isapprox(v1::Vector3d, v2::Vector3d; atol::Real=0, rtol::Real=Base.rtoldefault(Float64,Float64,atol), nans::Bool=false)
@@ -30,6 +32,7 @@ Base.zero(::Type{Vector3d}) = Vector3d()
 Base.show(io::IO, v::Vector3f) = print(io, "($(v.x), $(v.y), $(v.z))")
 Base.:+(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 Base.:-(v1::Vector3f, v2::Vector3f) = Vector3f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
+Base.:-(v1::Vector3f) = Vector3f(-v1.x, -v1.y, -v1.z)
 Base.:*(v::Vector3f, a::Number) = Vector3f(a*v.x, a*v.y, a*v.z)
 Base.:*(a::Number, v::Vector3f) = v * a
 function Base.isapprox(v1::Vector3f, v2::Vector3f; atol::Real=0, rtol::Real=Base.rtoldefault(Float32,Float32,atol), nans::Bool=false)
@@ -47,6 +50,7 @@ Base.zero(::Type{Vector3f}) = Vector3f()
 Base.show(io::IO, v::Vector2i) = print(io, "($(v.a), $(v.b))")
 Base.:+(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a + v2.a, v1.b + v2.b)
 Base.:-(v1::Vector2i, v2::Vector2i) = Vector3d(v1.a - v2.a, v1.b - v2.b)
+Base.:-(v1::Vector2i) = Vector2i(-v1.a, -v1.b)
 Base.:*(v::Vector2i, a::Number) = Vector3d(a*v.a, a*v.b)
 Base.:*(a::Number, v::Vector2i) = v * a
 Base.zero(::Type{Vector2i}) = Vector2i()
@@ -55,6 +59,7 @@ Base.zero(::Type{Vector2i}) = Vector2i()
 Base.show(io::IO, v::Vector4f) = print(io, "($(v.x), $(v.y), $(v.z), $(v.t))")
 Base.:+(v1::Vector4f, v2::Vector4f) = Vector4f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.t + v2.t)
 Base.:-(v1::Vector4f, v2::Vector4f) = Vector4f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.t - v2.t)
+Base.:-(v1::Vector4f) = Vector4f(-v1.x, -v1.y, -v1.z), -v1.t
 Base.:*(v::Vector4f, a::Number) = Vector4f(a*v.x, a*v.y, a*v.z, a*v.t)
 Base.:*(a::Number, v::Vector4f) = v * a
 function Base.isapprox(v1::Vector4f, v2::Vector4f; atol::Real=0, rtol::Real=Base.rtoldefault(Float32,Float32,atol), nans::Bool=false)

@@ -39,6 +39,7 @@ end
 #--------------------------------------------------------------------------------------------------
 #----Utility functions for ReconstructedParticle---------------------------------------------------
 #--------------------------------------------------------------------------------------------------
-export pₜ
+export pₜ, theta
 pₜ( o::ReconstructedParticle) = √(o.momentum.x^2 + o.momentum.y^2)
-
+θ(p::ReconstructedParticle) = atan(√(p.momentum.x^2+p.momentum.y^2), p.momentum.z)
+ϕ(p::ReconstructedParticle) = atan(p.momentum.y, p.momentum.x)
