@@ -1,6 +1,10 @@
 
 # Release Notes
 
+## 0.4.3
+- Ensure that you can read FCC fullsim data
+- Added example analysis_mH-recoil-fullsim.jl
+
 ## 0.4.2
 - Moved to JuliaHEP organization
 - Update to FHist 0.11 series (#9)

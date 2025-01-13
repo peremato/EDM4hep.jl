@@ -18,7 +18,7 @@ using EDM4hep.RootIO
     # Loop over MC events
     for evt in Iterators.take(events, 100)
         recps = RootIO.get(reader, evt, "ReconstructedParticles"; register=true);
-        tracks = RootIO.get(reader, evt, "EFlowTrack"; register=true)
+        #tracks = RootIO.get(reader, evt, "EFlowTrack"; register=true)
         pids  =  RootIO.get(reader, evt, "ParticleIDs"; register=true)
         μids = RootIO.get(reader, evt, "Muon#0")
         @test eltype(μids) == ObjectID

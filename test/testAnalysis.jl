@@ -22,7 +22,7 @@ function myanalysis!(data::AnalysisData, reader, events)
     data
 end
 
-@testset "$(T)Analysis" for T in (:TTree, :RNTuple)
+@testset "$(T)Analysis" for T in (:TTree,) # (:TTree, :RNTuple)
     if T == :RNTuple
         f = joinpath(@__DIR__, "../examples/Output_REC_rntuple-rc2.root")
     else

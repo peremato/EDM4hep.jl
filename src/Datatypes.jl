@@ -1,3 +1,4 @@
+using StructArrays
 
 include("../podio/genDatatypes.jl")
 
@@ -34,6 +35,12 @@ function Base.getproperty(obj::MCParticle, sym::Symbol)
     else # fallback to getfield
         return getfield(obj, sym)
     end
+end
+
+function Base.getproperty(obj::StructArray{MCParticle}, sym::Symbol)
+    sym === :energy && return getproperty.(obj, :energy)
+    sym === :name && return getproperty.(obj, :name)
+    StructArrays.component(obj, sym)
 end
 
 #--------------------------------------------------------------------------------------------------

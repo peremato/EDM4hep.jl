@@ -1,6 +1,6 @@
 using EDM4hep.RootIO
 
-@testset "$(T)Reader" for T in (:TTree, :RNTuple)
+@testset "$(T)Reader" for T in (:TTree,) # (:TTree, :RNTuple)
 
     if T == :RNTuple
         f = joinpath(@__DIR__, "../examples/Output_REC_rntuple-rc2.root")

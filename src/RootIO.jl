@@ -98,6 +98,7 @@ module RootIO
             include(joinpath(@__DIR__,"../podio/genStructArrays-rntuple.jl"))
         end
         =#
+        setCollectionNames(reader.collectionNames)    # remember the collection names
         return reader
     end
 
@@ -197,7 +198,6 @@ module RootIO
                     StructArray{ft, Symbol(bname, "#$(n_rels-1)")}(evt, collid, len)
                 end
             else
-                fn == :subdetectorHitNumbers && (fn = :subDetectorHitNumbers)   # adhoc fixes
                 StructArray{ft,Symbol(bname,:_,fn)}(evt, collid, len)
             end
         end)
@@ -344,14 +344,14 @@ module RootIO
     end
 
     """
-    create_getter(reader::Reader, bname::String; selection=nothing)
+    create_getter(reader::Reader, bname::String; selection=nothing, register=true)
 
     This function creates a getter function for a given branch name. The getter function is a function that takes an event and
     returns a `StructArray` with the data of the branch. The getter function is created as a function with the name `get_<branchname>`.
     The optional parameter `selection` is a list of field names to be selected from the branch. If `selection` is not provided, all fields are selected.
     The user can use a list of strings, symbols or regular expressions to select the fields.
     """
-    function create_getter(reader::Reader, bname::String; selection=nothing)
+    function create_getter(reader::Reader, bname::String; selection=nothing, register=true)
         btype = reader.btypes[bname]
         collid = Base.get(reader.collectionIDs, bname, UInt32(0))
         snames = isnothing(selection) ? fieldnames(btype) : selectednames(btype, selection) 
@@ -381,7 +381,12 @@ module RootIO
                             N = size(ft)[1]
                             code *= "        StructArray{$ft}(reshape(getproperty(evt, Symbol(\"$(bname)_$fn[$N]\")), $N, len);dims=1),\n"
                         elseif ft <: ObjectID  # one-to-one relation
-                            code *= "        StructArray{$ft, Symbol(\"$(bname)#$(n_rels-1)\")}(evt, $(collid), len),\n"
+                            if isnewpodio()
+                                na = replace("$(fn)", "_idx" => "", "mcparticle" => "MCParticle")     # remove the added suffix
+                                code *= "        StructArray{$ft, Symbol(\"_$(bname)_$(na)\")}(evt, $(collid), len),\n"
+                            else
+                                code *= "        StructArray{$ft, Symbol(\"$(bname)#$(n_rels-1)\")}(evt, $(collid), len),\n"
+                            end
                         else
                             code *= "        StructArray{$ft, Symbol(\"$(bname)_$fn\")}(evt, $(collid), len),\n"
                         end
@@ -391,8 +396,39 @@ module RootIO
                 end
             end
             code *= "    )\n"
-            code *= "    return StructArray{$btype}(columns)\n"
+            code *= "    sa =  StructArray{$btype}(columns)\n"
+            if register
+                code *= "    assignEDStore(sa, UInt32($(collid)))\n"
+                code *= "    relations = (\n"
+                for (ft, fn) in zip(fieldtypes(btype), fieldnames(btype))
+                    if ft <: Relation
+                        rt = eltype(ft)
+                        if fn in snames
+                            code *= "        StructArray{ObjectID{$rt}, Symbol(\"_$(bname)_$(fn)\")}(evt),\n"
+                        else
+                            code *= "        StructArray(ObjectID{$rt}[]),\n"
+                        end
+                    end
+                end
+                code *= "    )\n"
+                code *= "    pvectors = (\n"
+                for (ft, fn) in zip(fieldtypes(btype), fieldnames(btype))
+                    fn in snames || continue
+                    if ft <: PVector
+                        rt = eltype(ft)
+                        if fn in snames
+                            code *= "        StructArray{$rt, Symbol(\"_$(bname)_$(fn)\")}(evt),\n"
+                        else
+                            code *= "        StructArray($rt[]),\n"
+                        end
+                    end
+                end
+                code *= "    )\n"
+                code *= "    assignEDStore_relations(relations, $btype, UInt32($(collid)))\n"
+                code *= "    assignEDStore_vmembers(pvectors, $btype, UInt32($(collid)))\n"
+            end
         end
+        code *= "    return sa\n"
         code *= "end\n"
         Meta.parse(code) |> eval
     end

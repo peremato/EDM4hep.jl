@@ -1,6 +1,7 @@
 using StructArrays
 
-export EDStore, getEDStore, initEDStore, assignEDStore, emptyEDStore, assignEDStore_relations, assignEDStore_vmembers
+export EDStore, getEDStore, initEDStore, assignEDStore, emptyEDStore, 
+       assignEDStore_relations, assignEDStore_vmembers, setCollectionNames
 
 mutable struct EDStore{ED <: POD}
     objects::AbstractVector{ED}
@@ -28,6 +29,12 @@ end
 
 #--- Global Event Data Store-----------------------------------------------------------------------
 const _eventDataStore = Dict{UInt32, EDStore}()
+const _collectionNames = Ref(Dict{UInt32, String}())
+
+function setCollectionNames(collnames)
+    global _collectionNames
+    _collectionNames[] = collnames
+end
 
 """
     getEDStore(::Type{ED}, collid::UInt32=0x00000000)
@@ -84,6 +91,7 @@ end
 function EDStore_objects(::Type{ED}, collid::UInt32=0x00000000) where ED
     store = getEDStore(ED, collid)
     if !isdefined(store, :objects)
+        #@warn "No objects of type $(ED) with collid $collid. You need to read $(_collectionNames[][collid]) first"
         store.objects = StructArray(ED[])
     end
     store.objects
@@ -94,7 +102,12 @@ function EDStore_relations(::Type{ED}, N::Int, collid::UInt32=0x00000000) where 
     if !isdefined(store, :relations)
         store.relations = Tuple(ObjectID{eltype(R)}[] for R in relations(ED))
     end
-    store.relations[N]
+    _relations = store.relations[N]
+    if hasEDStore(collid)
+        _relations
+    else
+        @warn "No collection of type $(typeof(_relations)) with collid $collid"
+    end
 end
 
 function EDStore_pvectors(::Type{ED}, N::Int, collid::UInt32=0x00000000) where ED

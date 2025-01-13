@@ -5,6 +5,10 @@ using IterTools
 
 export resonanceBuilder, recoilBuilder
 
+deltaR(lv1, lv2) = sqrt((eta(lv1)-eta(lv2))^2 + (phi(lv1)-phi(lv2))^2)
+p(lv) = sqrt(lv.x^2 + lv.y^2 + lv.z^2)
+LorentzVectorHEP.LorentzVector(p::T) where T <: Union{ReconstructedParticle, MCParticle} = LorentzVector(p.energy, p.momentum.x, p.momentum.y, p.momentum.z)
+
 """
     resonanceBuilder(rmass::AbstractFloat, legs::AbstractVector{ReconstructedParticle})
 
@@ -53,6 +57,14 @@ function unBoostCrossingAngle(in, angle)
     e′  = e * sqrt(1 + ta^2) + pₓ * ta 
     pₓ′ = pₓ * sqrt(1 + ta^2) + e * ta
     return @set (@set in.momentum.x = pₓ′).energy = e′
+end
+
+function unBoostCrossingAngle(in::StructArray{MCParticle}, angle)
+    ta = tan(angle)
+    e = in.energy
+    pₓ = in.momentum.x
+    pₓ′ = pₓ * sqrt(1 + ta^2) + e * ta
+    return @set in.momentum.x = pₓ′
 end
 
 """

@@ -209,6 +209,7 @@ Base.getindex(v::PVector{ED,T, N}, i) where {ED,T, N} = 0 < i <= (v.last - v.fir
 Base.size(v::PVector{ED,T,N}) where {ED,T,N} = (v.last-v.first,)
 Base.length(v::PVector{ED,T,N}) where {ED,T,N} = v.last-v.first
 Base.eltype(::Type{PVector{ED,T,N}}) where {ED,T,N} = T
+Base.zero(::Type{PVector{ED,T,N}}) where {ED,T,N} = PVector{ED,T,N}(0,0,0)
 function Base.convert(::Type{PVector{ED,T,N}}, v::AbstractVector{T}) where {ED,T,N}
     pvectors = EDStore_pvectors(ED,N)
     tail = lastindex(pvectors)

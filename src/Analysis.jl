@@ -36,6 +36,8 @@ module Analysis
         for (fn,ft) in zip(propertynames(d1), fieldtypes(typeof(d1)))
             if isprimitivetype(ft)
                 setproperty!(d1, fn, getproperty(d1,fn) + getproperty(d2,fn))
+            elseif ft <: AbstractVector
+                append!(getproperty(d1, fn), getproperty(d2, fn))
             else
                 merge!(getproperty(d1, fn), getproperty(d2, fn))
             end
