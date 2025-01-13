@@ -20,20 +20,20 @@ julia -e ‘import Pkg; Pkg.add(“EDM4hep”)’
 ```julia
 julia> using EDM4hep
 julia> using EDM4hep.RootIO
-julia> file = "root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter2023/IDEA/p8_ee_ZZ_ecm240/events_000189367.root"
+julia> file = "root://eospublic.cern.ch//eos/experiment/fcc/prod/fcc/ee/test_spring2024/240gev/Hbb/CLD_o2_v05/rec/00016562/000/Hbb_rec_16562_1.root"
 julia> reader = RootIO.Reader(file)
-┌───────────────┬────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Attribute     │ Value                                                                                      │
-├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
-│ File Name(s)  │ root://eospublic.cern.ch//eos/experiment/fcc/ee/generation/DelphesEvents/winter202....     │
-│ n of events   │ 100000                                                                                      
-│ IO Format     │ TTree                                                                                      │
-│ PODIO version │ 0.16.2                                                                                     │
-│ ROOT version  │ 6.26.6                                                                                     │
-└───────────────┴────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ Attribute     │ Value                                                                                                     ⋯
+├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ File Name(s)  │ root://eospublic.cern.ch//eos/experiment/fcc/prod/fcc/ee/test_spring2024/240gev/Hbb/CLD_o2_v05/rec/000165 ⋯
+│ # of events   │ 100                                                                                                       ⋯
+│ IO Format     │ TTree                                                                                                     ⋯
+│ PODIO version │ 0.99.0                                                                                                    ⋯
+│ ROOT version  │ 6.28.10                                                                                                   ⋯
+└───────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────
 julia> events = RootIO.get(reader, "events");
 julia> evt = events[1];
-julia> recps = RootIO.get(reader, evt, "ReconstructedParticles");
+julia> recps = RootIO.get(reader, evt, "PandoraPFOs");
 julia> recps.energy[1:5]
 5-element Vector{Float32}:
 ...
